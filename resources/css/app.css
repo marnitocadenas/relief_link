@@ -1,0 +1,49 @@
+@tailwind utilities;
+
+/* ReliefLink's visual language: only #2563EB, #FFFFFF and #22C55E. */
+:root { --blue:#2563EB; --white:#FFFFFF; --green:#22C55E; }
+* { box-sizing: border-box; }
+body { min-width:320px; margin:0; background:var(--white); color:var(--blue); font-family:Figtree,ui-sans-serif,system-ui,sans-serif; }
+button,input,select,textarea { font:inherit; }
+button { cursor:pointer; }
+button:disabled { cursor:not-allowed; opacity:.65; }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+
+  .shell { width:100%; max-width:1600px; margin:auto; padding-inline:clamp(1rem,3vw,3rem); }
+  .page { width:100%; max-width:1600px; margin:auto; padding:clamp(1.5rem,4vw,3.5rem) clamp(1rem,3vw,3rem); }
+  .eyebrow { color:var(--blue); font-size:.75rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+  .page-title { margin:.35rem 0 0; color:var(--blue); font-size:clamp(1.75rem,4vw,2.7rem); font-weight:800; line-height:1.15; }
+  .page-copy { max-width:46rem; margin-top:.75rem; color:var(--blue); font-size:1rem; line-height:1.65; }
+  .panel { border:1px solid var(--blue); border-radius:1rem; background:var(--white); }
+  .field { width:100%; border:1px solid var(--blue); border-radius:.7rem; background:var(--white); color:var(--blue); padding:.72rem .9rem; }
+  .field::placeholder { color:var(--blue); opacity:.7; }
+  .field:focus { border-color:var(--green); outline:2px solid var(--green); outline-offset:1px; }
+  /* Shared form control baseline used by every ReliefLink workspace. */
+  .input { width:100%; min-height:2.75rem; border:1px solid var(--blue); border-radius:.7rem; background:var(--white); color:var(--blue); padding:.65rem .85rem; font-size:.9rem; font-weight:600; line-height:1.35; }
+  .input::placeholder { color:var(--blue); opacity:.58; font-weight:500; }
+  .input:focus { border-color:var(--green); outline:2px solid var(--green); outline-offset:1px; }
+  select.input { padding-right:2.25rem; }
+  textarea.input { min-height:6rem; resize:vertical; }
+  .nav-link { display:inline-flex; align-items:center; gap:.5rem; border-radius:.6rem; color:var(--blue); padding:.65rem .85rem; font-size:.9rem; font-weight:700; text-decoration:none; transition: background 0.15s ease, color 0.15s ease; }
+  .nav-link:hover,.nav-link-active { background:var(--blue); color:var(--white); }
+
+  .table-wrap { overflow-x:auto; border:1px solid var(--blue); border-radius:1rem; overflow:hidden; }
+  .data-table, table { width:100%; min-width:640px; border-collapse:collapse; background:var(--white); color:var(--blue); font-size:.9rem; border:1px solid var(--blue); }
+  .data-table th, table th { background:var(--blue); color:var(--white); padding:.85rem 1rem; text-align:left; font-weight:800; border:1px solid var(--blue); }
+  .data-table td, table td { border:1px solid var(--blue); padding:.9rem 1rem; vertical-align:middle; }
+
+  /* Staff operations inherit the larger, touch-friendly workspace rhythm used elsewhere. */
+  .staff-workspace { padding-top:clamp(1.5rem,3vw,2.25rem); padding-bottom:clamp(2rem,4vw,3.5rem); }
+  .staff-workspace > .panel { border-radius:1.25rem; padding:clamp(1.25rem,2.5vw,2rem); gap:1.25rem; }
+  .staff-workspace h1 { font-size:clamp(1.65rem,3vw,2.25rem); line-height:1.2; }
+  .staff-workspace h2 { font-size:1rem; }
+  .staff-workspace label { font-size:.72rem !important; letter-spacing:.035em; }
+  .staff-workspace .text-xs { font-size:.82rem; line-height:1.45; }
+  .staff-workspace .text-\[10px\] { font-size:.7rem; line-height:1.35; }
+  .staff-workspace .text-\[11px\] { font-size:.76rem; line-height:1.4; }
+  .staff-workspace button { min-height:2.65rem; }
+  .staff-workspace table { font-size:.9rem; }
+  .staff-workspace table th { padding:1rem; font-size:.78rem; }
+  .staff-workspace table td { padding:1rem; }
+  .staff-workspace .grid { gap:1rem; }
+  @media (max-width:640px) { .staff-workspace > .panel { padding:1rem; } .staff-workspace .input { min-height:3rem; font-size:1rem; } .staff-workspace button { min-height:3rem; } }

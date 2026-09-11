@@ -1,0 +1,5 @@
+<?php
+namespace App\Services;
+use App\Models\SystemSetting;
+use App\Models\User;
+class SystemSettings { public const DEFAULTS=['auto_matching'=>true,'match_on_category'=>true,'match_on_quantity'=>false,'max_matches_per_donation'=>5,'match_cooldown_hours'=>24,'email_handoff_alerts'=>true,'email_match_alerts'=>true,'email_approval_alerts'=>true,'handoff_reminder_hours'=>24,'admin_verification'=>true,'require_justification'=>true,'auto_approve_returning'=>false,'max_pending_per_user'=>3,'allow_self_registration'=>true,'maintenance_mode'=>false,'session_timeout_minutes'=>60,'max_photo_size_mb'=>2,'items_per_page'=>10]; public static function all():array { return array_replace(self::DEFAULTS,SystemSetting::pluck('value','key')->all()); } public static function get(string $key):mixed { return self::all()[$key]??null; } public static function save(array $settings,User $user):array { foreach($settings as $key=>$value) SystemSetting::updateOrCreate(['key'=>$key],['value'=>$value,'updated_by_user_id'=>$user->id]); return self::all(); } }

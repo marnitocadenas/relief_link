@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema;
+return new class extends Migration { public function up():void { Schema::table('users',fn(Blueprint $t)=>$t->string('profile_photo_path')->nullable()->after('role')); Schema::table('matches',function(Blueprint $t){$t->dateTime('handoff_scheduled_at')->nullable()->after('status');$t->timestamp('donor_completed_at')->nullable();$t->timestamp('beneficiary_completed_at')->nullable();}); } public function down():void { Schema::table('matches',fn(Blueprint $t)=>$t->dropColumn(['handoff_scheduled_at','donor_completed_at','beneficiary_completed_at']));Schema::table('users',fn(Blueprint $t)=>$t->dropColumn('profile_photo_path'));} };

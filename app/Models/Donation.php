@@ -1,0 +1,4 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model; use Illuminate\Database\Eloquent\Factories\HasFactory;
+class Donation extends Model { use HasFactory; protected $fillable=['donor_id','item_name','category','quantity','condition_notes','availability_window','pickup_location','preferred_handoff_slots','image_path','status','storage_location','condition_grade','intake_notes','expiry_date']; protected $casts=['expiry_date'=>'date']; public function donor(){return $this->belongsTo(User::class,'donor_id');} public function matches(){return $this->hasMany(DonationMatch::class);} public function scopeFilter($q,$f){return $q->when($f['category']??null,fn($q,$v)=>$q->where('category',$v))->when($f['status']??null,fn($q,$v)=>$q->where('status',$v))->when($f['q']??null,fn($q,$v)=>$q->where('item_name','like',"%$v%"));} }

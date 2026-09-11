@@ -1,0 +1,3 @@
+<?php
+namespace App\Http\Requests\Api; use App\Services\SystemSettings; use Illuminate\Foundation\Http\FormRequest; use Illuminate\Validation\Rule;
+class StoreAidRequest extends FormRequest { public function authorize():bool{return true;} public function rules():array{return ['category'=>'required|string|max:80','quantity_needed'=>'required|integer|min:1','urgency'=>['required',Rule::in(['low','medium','high'])],'justification'=>(SystemSettings::get('require_justification')?'required':'nullable').'|string|max:2000','item_details'=>'nullable|string|max:255','alternative_categories'=>'nullable|string|max:255','pickup_location'=>'nullable|string|max:255','availability_window'=>'nullable|string|max:255','image'=>'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:4096'];} }
