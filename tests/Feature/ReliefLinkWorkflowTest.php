@@ -15,6 +15,93 @@ class ReliefLinkWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_api_registration_requires_role_specific_registration_fields(): void
+    {
+        $password = 'Strong!Pass123';
+
+        $this->postJson('/api/register', [
+            'name' => 'Donor User',
+            'email' => 'donor-sequence@example.test',
+            'role' => 'donor',
+            'contact_number' => '555-0100',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('campus_role');
+
+        $this->postJson('/api/register', [
+            'name' => 'Donor Organization',
+            'email' => 'donor-organization@example.test',
+            'role' => 'donor',
+            'campus_role' => 'campus_organization',
+            'contact_number' => '555-0101',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('organization_name');
+
+        $this->postJson('/api/register', [
+            'name' => 'Donor Other',
+            'email' => 'donor-other@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'contact_number' => '555-0102',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('other_role_specify');
+
+        $this->postJson('/api/register', [
+            'name' => 'Beneficiary Other',
+            'email' => 'beneficiary-other@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'other',
+            'contact_number' => '555-0103',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors(['other_role_specify', 'campus_id']);
+    }
+
+    public function test_api_registration_creates_valid_donor_and_beneficiary_accounts(): void
+    {
+        $password = 'Strong!Pass123';
+
+        $this->postJson('/api/register', [
+            'name' => 'Donor Account',
+            'email' => 'donor-account@example.test',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'contact_number' => '555-0200',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'donor-account@example.test',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'contact_number' => '555-0200',
+        ]);
+
+        $this->postJson('/api/register', [
+            'name' => 'Beneficiary Account',
+            'email' => 'beneficiary-account@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'other',
+            'other_role_specify' => 'Visiting Researcher',
+            'campus_id' => 'BEN-001',
+            'contact_number' => '555-0201',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'beneficiary-account@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'other',
+            'other_role_specify' => 'Visiting Researcher',
+            'campus_id' => 'BEN-001',
+            'contact_number' => '555-0201',
+        ]);
+    }
+
     public function test_core_relief_workflow_updates_all_connected_records(): void
     {
         $donor = User::factory()->create(['role' => 'donor']);
@@ -391,6 +478,8 @@ class ReliefLinkWorkflowTest extends TestCase
 
         $this->postJson('/api/register', [
             'name' => 'Blocked User', 'email' => 'blocked@example.test', 'role' => 'donor',
+            'campus_role' => 'student',
+            'contact_number' => '1234567890',
             'password' => 'Strong!Pass123', 'password_confirmation' => 'Strong!Pass123',
         ])->assertForbidden();
     }

@@ -89,15 +89,15 @@ function Sidebar({mobileOpen,setMobileOpen}){
         if (role === 'admin') {
             return [
                 { name: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
-                { name: 'People', path: '/users', icon: 'users' },
-                { name: 'Donations', path: '/donations', icon: 'donation' },
-                { name: 'Requests', path: '/requests', icon: 'request' },
-                { name: 'Matches', path: '/matches', icon: 'match' },
-                { name: 'Reports', path: '/reports', icon: 'report' },
-                { name: 'Activity', path: '/activities', icon: 'activity' },
-                { name: 'Categories', path: '/admin/categories', icon: 'categories' },
-                { name: 'Approvals', path: '/admin/approvals', icon: 'approvals' },
+                { name: 'User Management', path: '/users', icon: 'users' },
+                { name: 'Donation Management', path: '/donations', icon: 'donation' },
+                { name: 'Request Management', path: '/requests', icon: 'request' },
+                { name: 'Matching Management', path: '/matches', icon: 'match' },
+                { name: 'Category Management', path: '/admin/categories', icon: 'categories' },
+                { name: 'Approval Management', path: '/admin/approvals', icon: 'approvals' },
                 { name: 'Announcements', path: '/admin/announcements', icon: 'announcements' },
+                { name: 'Activity Logs', path: '/activities', icon: 'activity' },
+                { name: 'Reports & Analytics', path: '/reports', icon: 'report' },
             ];
         }
         if (role === 'staff') {
@@ -106,7 +106,7 @@ function Sidebar({mobileOpen,setMobileOpen}){
                 { name: 'Request Verifications', path: '/staff/verifications', icon: 'approvals' },
                 { name: 'Warehouse & Inventory', path: '/staff/inventory', icon: 'donation' },
                 { name: 'Walk-In Relief Desk', path: '/staff/desk', icon: 'request' },
-                { name: 'Handoff & Dispatch', path: '/staff/handoffs', icon: 'fulfillment' },
+                { name: 'Support & Fulfillment', path: '/staff/handoffs', icon: 'fulfillment' },
                 { name: 'Activity & Reports', path: '/staff/activity', icon: 'activity' },
             ];
         }
@@ -114,10 +114,10 @@ function Sidebar({mobileOpen,setMobileOpen}){
             return [
                 { name: 'Dashboard', path: '/donor/dashboard', icon: 'dashboard' },
                 { name: 'Make a Donation', path: '/donate', icon: 'donation' },
-                { name: 'Requests / Needs', path: '/donor/needs', icon: 'request' },
+                { name: 'Browse Requests', path: '/donor/needs', icon: 'request' },
                 { name: 'My Donations', path: '/donations', icon: 'donation' },
                 { name: 'My Matches', path: '/matches', icon: 'match' },
-                { name: 'Fulfillment', path: '/donor/fulfillment', icon: 'fulfillment' },
+                { name: 'Fulfillment Status', path: '/donor/fulfillment', icon: 'fulfillment' },
                 { name: 'Donation History', path: '/donor/history', icon: 'history' },
             ];
         }
@@ -589,6 +589,11 @@ function Auth({ register = false }) {
         password: '',
         password_confirmation: '',
         role: 'donor',
+        campus_role: '',
+        contact_number: '',
+        campus_id: '',
+        organization_name: '',
+        other_role_specify: '',
     });
 
     // Password Visibility Toggles
@@ -639,9 +644,112 @@ function Auth({ register = false }) {
     }
     const regNoPersonal = regPwd.length > 0 && !regContainsPersonal;
     const regMatchesConfirm = regConfirmPwd.length > 0 && regConfirmPwd === regPwd;
-
     const regIsPasswordValid = regHasLength && regHasUpper && regHasLower && regHasNumber && regHasSpecial && regNoSpaces && regNotWeak && regNoPersonal;
-    const regIsFormValid = regNameStr.trim() !== '' && regEmailStr.trim() !== '' && regIsPasswordValid && regMatchesConfirm;
+
+    const regNameValid = regNameStr.trim() !== '' && regNameStr.trim().length <= 255;
+    const regRoleValid = ['donor', 'beneficiary'].includes(f.role);
+    const donorCampusRoles = ['student', 'faculty', 'staff', 'alumni', 'campus_organization', 'other'];
+    const beneficiaryCampusRoles = ['student', 'faculty', 'staff', 'other'];
+    const regCampusRoleValid = (f.role === 'donor' && donorCampusRoles.includes(f.campus_role))
+        || (f.role === 'beneficiary' && beneficiaryCampusRoles.includes(f.campus_role));
+    const regConditionalValid = (f.role === 'donor' && f.campus_role === 'campus_organization')
+        ? f.organization_name.trim() !== '' && f.organization_name.trim().length <= 255
+        : f.campus_role === 'other'
+            ? f.other_role_specify.trim() !== '' && f.other_role_specify.trim().length <= 100
+            : true;
+    const regCampusIdValid = f.role !== 'beneficiary' || (f.campus_id.trim() !== '' && f.campus_id.trim().length <= 50);
+    const regContactNumber = f.contact_number || '';
+    const regContactValid = regContactNumber.trim() !== ''
+        && regContactNumber.trim().length <= 20
+        && /^[\d\s\-\+\(\)]+$/.test(regContactNumber);
+    const regEmailValid = regEmailStr.trim() !== ''
+        && regEmailStr.trim().length <= 255
+        && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmailStr.trim());
+
+    const regCanUseRole = regNameValid;
+    const regCanUseCampusRole = regCanUseRole && regRoleValid;
+    const regCanUseConditional = regCanUseCampusRole && regCampusRoleValid;
+    const regCanUseCampusId = f.role !== 'beneficiary' || regCanUseConditional;
+    const regCanUseContact = regCanUseConditional && (f.role !== 'beneficiary' || regCampusIdValid);
+    const regCanUseEmail = regCanUseContact && regContactValid;
+    const regCanUsePassword = regCanUseEmail && regEmailValid;
+    const regCanUseConfirm = regCanUsePassword && regIsPasswordValid;
+    const regIsFormValid = regCanUseConfirm && regMatchesConfirm;
+
+    const clearRegistrationDependents = (prev) => ({
+        ...prev,
+        campus_role: '',
+        campus_id: '',
+        organization_name: '',
+        other_role_specify: '',
+        contact_number: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+    });
+
+    const handleRegistrationNameChange = (e) => {
+        const name = e.target.value;
+        setF((prev) => ({
+            name,
+            ...clearRegistrationDependents(prev),
+        }));
+    };
+
+    const handleRegistrationRoleChange = (e) => {
+        setF((prev) => ({
+            ...clearRegistrationDependents(prev),
+            role: e.target.value,
+        }));
+    };
+
+    const handleRegistrationCampusRoleChange = (e) => {
+        setF((prev) => ({
+            ...clearRegistrationDependents(prev),
+            campus_role: e.target.value,
+        }));
+    };
+
+    const handleRegistrationConditionalChange = (field, value) => {
+        setF((prev) => ({
+            ...clearRegistrationDependents(prev),
+            [field]: value,
+        }));
+    };
+
+    const handleRegistrationContactChange = (e) => {
+        setF((prev) => ({
+            ...prev,
+            contact_number: e.target.value,
+            email: '',
+            password: '',
+            password_confirmation: '',
+        }));
+    };
+
+    const handleRegistrationEmailChange = (e) => {
+        setF((prev) => ({
+            ...prev,
+            email: e.target.value,
+            password: '',
+            password_confirmation: '',
+        }));
+    };
+
+    const handleRegistrationPasswordChange = (e) => {
+        setF((prev) => ({
+            ...prev,
+            password: e.target.value,
+            password_confirmation: '',
+        }));
+    };
+
+    const handleRegistrationConfirmPasswordChange = (e) => {
+        setF((prev) => ({
+            ...prev,
+            password_confirmation: e.target.value,
+        }));
+    };
 
     let regPwdScore = 0;
     if (regPwd.length >= 8) regPwdScore += 1;
@@ -664,10 +772,32 @@ function Auth({ register = false }) {
         const rememberedEmail = localStorage.getItem('relieflink_remembered_email');
         if (rememberedEmail && targetMode === 'login') {
             setRemember(true);
-            setF((prev) => ({ ...prev, email: rememberedEmail, password: '', password_confirmation: '' }));
+            setF({
+                name: '',
+                email: rememberedEmail,
+                password: '',
+                password_confirmation: '',
+                role: 'donor',
+                campus_role: '',
+                contact_number: '',
+                campus_id: '',
+                organization_name: '',
+                other_role_specify: '',
+            });
         } else {
             setRemember(false);
-            setF((prev) => ({ ...prev, email: '', password: '', password_confirmation: '' }));
+            setF({
+                name: '',
+                email: '',
+                password: '',
+                password_confirmation: '',
+                role: 'donor',
+                campus_role: '',
+                contact_number: '',
+                campus_id: '',
+                organization_name: '',
+                other_role_specify: '',
+            });
         }
     }, [register]);
 
@@ -693,6 +823,12 @@ function Auth({ register = false }) {
         setLoading(true);
         setError('');
         setSuccessMessage('');
+
+        if (mode === 'register' && !regIsFormValid) {
+            setError('Please complete each registration field in order before creating your account.');
+            setLoading(false);
+            return;
+        }
 
         if (mode === 'register') {
             if (f.password !== f.password_confirmation) {
@@ -1026,7 +1162,18 @@ function Auth({ register = false }) {
                                         setMode('register');
                                         setError('');
                                         setSuccessMessage('');
-                                        setF((prev) => ({ ...prev, password: '', password_confirmation: '' }));
+                                        setF({
+                                            name: '',
+                                            email: '',
+                                            password: '',
+                                            password_confirmation: '',
+                                            role: 'donor',
+                                            campus_role: '',
+                                            contact_number: '',
+                                            campus_id: '',
+                                            organization_name: '',
+                                            other_role_specify: '',
+                                        });
                                     }}
                                 >
                                     Create an Account
@@ -1037,7 +1184,7 @@ function Auth({ register = false }) {
 
                     {/* Mode 2: REGISTER */}
                     {mode === 'register' && (
-                        <form className="panel space-y-4 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleAuthSubmit}>
+                        <form className="panel space-y-4 bg-white p-6 shadow-lg sm:p-8" noValidate onSubmit={handleAuthSubmit}>
                             <div className="text-center">
                                 <p className="eyebrow">JOIN RELIEFLINK</p>
                                 <h1 className="page-title text-2xl font-extrabold text-[#2563EB]">
@@ -1060,7 +1207,8 @@ function Auth({ register = false }) {
                                         placeholder="Enter your full name"
                                         className="field mt-1 text-xs py-2"
                                         value={f.name}
-                                        onChange={(e) => setF({ ...f, name: e.target.value })}
+                                        onChange={handleRegistrationNameChange}
+                                        maxLength={255}
                                     />
                                 </div>
 
@@ -1070,14 +1218,174 @@ function Auth({ register = false }) {
                                     </label>
                                     <select
                                         id="reg_role"
-                                        className="field mt-1 text-xs py-2"
+                                        className={`field mt-1 text-xs py-2 ${!regCanUseRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                         value={f.role}
-                                        onChange={(e) => setF({ ...f, role: e.target.value })}
+                                        onChange={handleRegistrationRoleChange}
+                                        disabled={!regCanUseRole}
+                                        required
                                     >
                                         <option value="donor">Donate Resources (Campus Donor)</option>
                                         <option value="beneficiary">Request Support (Student Beneficiary)</option>
                                     </select>
                                 </div>
+
+                                {f.role === 'donor' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="reg_campus_role" className="block text-xs font-bold text-[#2563EB]">
+                                                Donor Type / Campus Role <span className="text-[#22C55E]">*</span>
+                                            </label>
+                                            <select
+                                                id="reg_campus_role"
+                                                className={`field mt-1 text-xs py-2 ${!regCanUseCampusRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                                value={f.campus_role}
+                                                onChange={handleRegistrationCampusRoleChange}
+                                                disabled={!regCanUseCampusRole}
+                                                required
+                                            >
+                                                <option value="">Select your campus role</option>
+                                                <option value="student">Student</option>
+                                                <option value="faculty">Faculty</option>
+                                                <option value="staff">Staff</option>
+                                                <option value="alumni">Alumni</option>
+                                                <option value="campus_organization">Campus Organization</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+
+                                        {f.campus_role === 'campus_organization' && (
+                                            <div>
+                                                <label htmlFor="reg_organization_name" className="block text-xs font-bold text-[#2563EB]">
+                                                    Organization Name <span className="text-[#22C55E]">*</span>
+                                                </label>
+                                                <input
+                                                    id="reg_organization_name"
+                                                    type="text"
+                                                    placeholder="Enter your campus organization name"
+                                                    className={`field mt-1 text-xs py-2 ${!regCanUseConditional ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                                    value={f.organization_name}
+                                                    onChange={(e) => handleRegistrationConditionalChange('organization_name', e.target.value)}
+                                                    disabled={!regCanUseConditional}
+                                                    maxLength={255}
+                                                    required
+                                                />
+                                            </div>
+                                        )}
+
+                                        {f.campus_role === 'other' && (
+                                            <div>
+                                                <label htmlFor="reg_other_role" className="block text-xs font-bold text-[#2563EB]">
+                                                    Please Specify Donor Type <span className="text-[#22C55E]">*</span>
+                                                </label>
+                                                <input
+                                                    id="reg_other_role"
+                                                    type="text"
+                                                    placeholder="Specify your donor type"
+                                                    className={`field mt-1 text-xs py-2 ${!regCanUseConditional ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                                    value={f.other_role_specify}
+                                                    onChange={(e) => handleRegistrationConditionalChange('other_role_specify', e.target.value)}
+                                                    disabled={!regCanUseConditional}
+                                                    maxLength={100}
+                                                    required
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <label htmlFor="reg_contact_number" className="block text-xs font-bold text-[#2563EB]">
+                                                Contact Number <span className="text-[#22C55E]">*</span>
+                                            </label>
+                                            <input
+                                                id="reg_contact_number"
+                                                type="tel"
+                                                placeholder="Enter your contact number"
+                                                className={`field mt-1 text-xs py-2 ${!regCanUseContact ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                                value={f.contact_number}
+                                                onChange={handleRegistrationContactChange}
+                                                disabled={!regCanUseContact}
+                                                maxLength={20}
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {f.role === 'beneficiary' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="reg_campus_role" className="block text-xs font-bold text-[#2563EB]">
+                                                Beneficiary Type / Campus Role <span className="text-[#22C55E]">*</span>
+                                            </label>
+                                            <select
+                                                id="reg_campus_role"
+                                                className={`field mt-1 text-xs py-2 ${!regCanUseCampusRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                                value={f.campus_role}
+                                                onChange={handleRegistrationCampusRoleChange}
+                                                disabled={!regCanUseCampusRole}
+                                                required
+                                            >
+                                                <option value="">Select your campus role</option>
+                                                <option value="student">Student</option>
+                                                <option value="faculty">Faculty</option>
+                                                <option value="staff">Staff</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+
+                                        {f.campus_role === 'other' && (
+                                            <div>
+                                                <label htmlFor="reg_other_role" className="block text-xs font-bold text-[#2563EB]">
+                                                    Please Specify Campus Role <span className="text-[#22C55E]">*</span>
+                                                </label>
+                                                <input
+                                                    id="reg_other_role"
+                                                    type="text"
+                                                    placeholder="Specify your campus role"
+                                                    className={`field mt-1 text-xs py-2 ${!regCanUseConditional ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                                    value={f.other_role_specify}
+                                                    onChange={(e) => handleRegistrationConditionalChange('other_role_specify', e.target.value)}
+                                                    disabled={!regCanUseConditional}
+                                                    maxLength={100}
+                                                    required
+                                                />
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">
+                                                Campus ID / Student ID <span className="text-[#22C55E]">*</span>
+                                            </label>
+                                            <input
+                                                id="reg_campus_id"
+                                                type="text"
+                                                placeholder="Enter your Campus ID / Student ID"
+                                                className={`field mt-1 text-xs py-2 ${!regCanUseCampusId ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                                value={f.campus_id}
+                                                onChange={(e) => handleRegistrationConditionalChange('campus_id', e.target.value)}
+                                                disabled={!regCanUseCampusId}
+                                                maxLength={50}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="reg_contact_number" className="block text-xs font-bold text-[#2563EB]">
+                                                Contact Number <span className="text-[#22C55E]">*</span>
+                                            </label>
+                                            <input
+                                                id="reg_contact_number"
+                                                type="tel"
+                                                placeholder="Enter your contact number"
+                                                className={`field mt-1 text-xs py-2 ${!regCanUseContact ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                                value={f.contact_number}
+                                                onChange={handleRegistrationContactChange}
+                                                disabled={!regCanUseContact}
+                                                maxLength={20}
+                                                required
+                                            />
+                                        </div>
+                                    </>
+                                )}
 
                                 <div>
                                     <label htmlFor="reg_email" className="block text-xs font-bold text-[#2563EB]">
@@ -1088,9 +1396,11 @@ function Auth({ register = false }) {
                                         required
                                         type="email"
                                         placeholder="Enter your email address"
-                                        className="field mt-1 text-xs py-2"
+                                        className={`field mt-1 text-xs py-2 ${!regCanUseEmail ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                         value={f.email}
-                                        onChange={(e) => setF({ ...f, email: e.target.value })}
+                                        onChange={handleRegistrationEmailChange}
+                                        disabled={!regCanUseEmail}
+                                        maxLength={255}
                                     />
                                 </div>
 
@@ -1107,9 +1417,10 @@ function Auth({ register = false }) {
                                             type="password"
                                             autoComplete="new-password"
                                             placeholder="At least 8 characters"
-                                            className="field text-xs py-2 font-semibold"
+                                            className={`field text-xs py-2 font-semibold ${!regCanUsePassword ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                             value={f.password}
-                                            onChange={(e) => setF({ ...f, password: e.target.value })}
+                                            onChange={handleRegistrationPasswordChange}
+                                            disabled={!regCanUsePassword}
                                         />
                                     </div>
 
@@ -1172,9 +1483,10 @@ function Auth({ register = false }) {
                                             type="password"
                                             autoComplete="new-password"
                                             placeholder="Re-enter password"
-                                            className="field text-xs py-2 font-semibold"
+                                            className={`field text-xs py-2 font-semibold ${!regCanUseConfirm ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                             value={f.password_confirmation}
-                                            onChange={(e) => setF({ ...f, password_confirmation: e.target.value })}
+                                            onChange={handleRegistrationConfirmPasswordChange}
+                                            disabled={!regCanUseConfirm}
                                         />
                                     </div>
                                     {f.password_confirmation && (
@@ -1205,7 +1517,18 @@ function Auth({ register = false }) {
                                         setMode('login');
                                         setError('');
                                         setSuccessMessage('');
-                                        setF((prev) => ({ ...prev, password: '', password_confirmation: '' }));
+                                        setF({
+                                            name: '',
+                                            email: '',
+                                            password: '',
+                                            password_confirmation: '',
+                                            role: 'donor',
+                                            campus_role: '',
+                                            contact_number: '',
+                                            campus_id: '',
+                                            organization_name: '',
+                                            other_role_specify: '',
+                                        });
                                     }}
                                 >
                                     Sign In
