@@ -18,6 +18,15 @@ const readCachedUser = () => {
 const clearSession = () => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    try {
+        Object.keys(localStorage).forEach((key) => {
+            if (key.startsWith('relieflink:last-authenticated-route')) {
+                localStorage.removeItem(key);
+            }
+        });
+    } catch {
+        // Storage cleanup exception safety
+    }
 };
 
 export const useAuth = () => useContext(AuthContext);

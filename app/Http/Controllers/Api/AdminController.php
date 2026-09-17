@@ -77,9 +77,15 @@ class AdminController extends Controller
     {
         $d = $r->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8',
             'role' => 'required|in:donor,beneficiary,staff,admin',
+            'campus_role' => 'nullable|string|max:50',
+            'contact_number' => 'nullable|string|max:30',
+            'campus_id' => 'nullable|string|max:50',
+            'organization_name' => 'nullable|string|max:255',
+            'other_role_specify' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
         ]);
         $d['password'] = Hash::make($d['password']);
         $u = User::create($d);
@@ -94,6 +100,12 @@ class AdminController extends Controller
             'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|min:8',
             'role' => 'sometimes|required|in:donor,beneficiary,staff,admin',
+            'campus_role' => 'nullable|string|max:50',
+            'contact_number' => 'nullable|string|max:30',
+            'campus_id' => 'nullable|string|max:50',
+            'organization_name' => 'nullable|string|max:255',
+            'other_role_specify' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
         ]);
         if (!empty($d['password'])) {
             $d['password'] = Hash::make($d['password']);

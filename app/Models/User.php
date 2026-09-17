@@ -29,6 +29,7 @@ class User extends Authenticatable
         'campus_id',
         'organization_name',
         'other_role_specify',
+        'country',
         'profile_photo_path',
         'email_verified_at',
         'remember_token',

@@ -24,11 +24,16 @@ class RegisterRequest extends FormRequest
             'campus_id' => trim((string) $this->input('campus_id', '')),
             'organization_name' => trim((string) $this->input('organization_name', '')),
             'other_role_specify' => trim((string) $this->input('other_role_specify', '')),
+            'country' => trim((string) $this->input('country', '')),
         ]);
     }
 
     public function rules(): array
     {
+        $isInternational = $this->campus_role === 'other' && (
+            stripos((string) $this->other_role_specify, 'international') !== false
+        );
+
         return [
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/'],
@@ -38,34 +43,48 @@ class RegisterRequest extends FormRequest
                 'string',
                 'max:50',
                 function ($attribute, $value, $fail) {
+                    $normalized = strtolower($value);
                     if ($this->role === 'donor') {
-                        $allowed = ['student', 'faculty', 'staff', 'alumni', 'campus_organization', 'other'];
-                        if (!in_array(strtolower($value), $allowed)) {
+                        $allowed = ['student', 'faculty', 'staff', 'other', 'alumni', 'campus_organization'];
+                        if (!in_array($normalized, $allowed, true)) {
                             $fail('Invalid donor type selected.');
                         }
                     } elseif ($this->role === 'beneficiary') {
                         $allowed = ['student', 'faculty', 'staff', 'other'];
-                        if (!in_array(strtolower($value), $allowed)) {
+                        if (!in_array($normalized, $allowed, true)) {
                             $fail('Invalid beneficiary type selected.');
                         }
                     }
                 },
             ],
-            'contact_number' => 'required|string|max:20|regex:/^[\d\s\-\+\(\)]+$/',
             'campus_id' => [
-                'required_if:role,beneficiary',
+                Rule::requiredIf(fn () => in_array($this->role, ['donor', 'beneficiary'], true)),
                 'string',
                 'max:50',
             ],
+            'other_role_specify' => [
+                'required_if:campus_role,other',
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'country' => [
+                Rule::requiredIf($isInternational),
+                'nullable',
+                'string',
+                'max:100',
+            ],
             'organization_name' => [
                 'required_if:campus_role,campus_organization',
+                'nullable',
                 'string',
                 'max:255',
             ],
-            'other_role_specify' => [
-                'required_if:campus_role,other',
+            'contact_number' => [
+                'required',
                 'string',
-                'max:100',
+                'max:30',
+                'regex:/^\+?[0-9\s\-\(\)\.]{7,25}$/',
             ],
             'password' => [
                 'required',
@@ -111,15 +130,31 @@ class RegisterRequest extends FormRequest
 
     public function messages(): array
     {
+        $idLabel = 'Identification Number';
+        if ($this->campus_role === 'student') {
+            $idLabel = 'Student ID Number';
+        } elseif ($this->campus_role === 'faculty') {
+            $idLabel = 'Faculty/Employee ID Number';
+        } elseif ($this->campus_role === 'staff') {
+            $idLabel = 'Staff/Employee ID Number';
+        } elseif ($this->campus_role === 'other') {
+            $idLabel = 'Valid ID Number';
+        }
+
         return [
             'campus_role.required' => 'Campus role is required.',
+            'campus_id.required' => "{$idLabel} is required.",
+            'campus_id.required_if' => "{$idLabel} is required.",
+            'other_role_specify.required_if' => $this->role === 'donor'
+                ? 'Please specify your donor type.'
+                : 'Please specify your beneficiary type.',
+            'country.required' => 'Country is required for international registration.',
+            'country.required_if' => 'Country is required for international registration.',
+            'organization_name.required_if' => 'Organization name is required for campus organizations.',
             'contact_number.required' => 'Contact number is required.',
-            'contact_number.regex' => 'Contact number must contain only numbers, spaces, dashes, plus signs, and parentheses.',
+            'contact_number.regex' => 'Please enter a valid international contact number.',
             'email.regex' => 'Please enter a valid email address.',
             'password' => 'The password must contain an allowed special character.',
-            'campus_id.required_if' => 'Campus ID / Student ID is required for beneficiaries.',
-            'organization_name.required_if' => 'Organization name is required for campus organizations.',
-            'other_role_specify.required_if' => 'Please specify your campus role.',
         ];
     }
 }

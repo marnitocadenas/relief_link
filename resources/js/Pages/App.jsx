@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import api from '../api/axios';
 import { Icon, Button, Badge, Error, Empty } from '../Components/UI';
+import InternationalPhoneInput, { COUNTRY_LIST } from '../Components/InternationalPhoneInput';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const title = (s = '') =>
@@ -24,34 +25,6 @@ const getRoleDashboard = (role) => {
     if (role === 'beneficiary') return '/beneficiary/dashboard';
     return '/login';
 };
-
-const lastRouteKey = (userId) => `relieflink:last-authenticated-route:${userId}`;
-
-const getLastAuthenticatedRoute = (user) => {
-    if (!user?.id) return null;
-    try {
-        const route = localStorage.getItem(lastRouteKey(user.id));
-        return route && route.startsWith('/') && !['/', '/login', '/register'].includes(route) ? route : null;
-    } catch {
-        return null;
-    }
-};
-
-function RememberAuthenticatedRoute() {
-    const { user, loading } = useAuth();
-    const location = useLocation();
-
-    useEffect(() => {
-        if (loading || !user?.id || ['/', '/login', '/register'].includes(location.pathname)) return;
-        try {
-            localStorage.setItem(lastRouteKey(user.id), `${location.pathname}${location.search}${location.hash}`);
-        } catch {
-            // Route persistence is a convenience only; navigation remains functional if storage is unavailable.
-        }
-    }, [location.hash, location.pathname, location.search, loading, user?.id]);
-
-    return null;
-}
 
 function RouteGuard({ children, roles }) {
     const { user, loading } = useAuth();
@@ -360,7 +333,7 @@ function Home() {
     const { user, loading } = useAuth();
     // Do not render the public landing page while an existing session is being restored.
     if (loading) return <main className="min-h-screen bg-white" aria-busy="true" aria-label="Restoring your session"/>;
-    if (user) return <Navigate to={getLastAuthenticatedRoute(user) || getRoleDashboard(user.role)} replace />;
+    if (user) return <Navigate to={getRoleDashboard(user.role)} replace />;
 
     const categories = [
         { name: 'Food & Meals', icon: 'food' },
@@ -576,6 +549,40 @@ function Home() {
     );
 }
 
+const DONOR_OTHER_PRESETS = [
+    'Alumni',
+    'Parent/Guardian',
+    'Community Donor',
+    'External Donor',
+    'International Donor',
+    'Campus Organization',
+    'Other Approved Donor',
+];
+
+const BENEFICIARY_OTHER_PRESETS = [
+    'Campus Cleaner',
+    'Gardener',
+    'Maintenance Worker',
+    'Security Personnel',
+    'Community Beneficiary',
+    'International Beneficiary',
+    'Other Approved Beneficiary',
+];
+
+const getIdLabel = (campusRole) => {
+    if (campusRole === 'student') return 'Student ID Number';
+    if (campusRole === 'faculty') return 'Faculty/Employee ID Number';
+    if (campusRole === 'staff') return 'Staff/Employee ID Number';
+    return 'Campus ID';
+};
+
+const getIdPlaceholder = (campusRole) => {
+    if (campusRole === 'student') return 'Enter your Student ID Number (e.g., 2026-12345)';
+    if (campusRole === 'faculty') return 'Enter your faculty/employee ID number';
+    if (campusRole === 'staff') return 'Enter your staff/employee ID number';
+    return 'Enter your campus ID number';
+};
+
 function Auth({ register = false }) {
     const { login, user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
@@ -588,13 +595,15 @@ function Auth({ register = false }) {
         email: '',
         password: '',
         password_confirmation: '',
-        role: 'donor',
+        role: '',
         campus_role: '',
-        contact_number: '',
-        campus_id: '',
-        organization_name: '',
         other_role_specify: '',
+        country: '',
+        campus_id: '',
+        contact_number: '',
+        organization_name: '',
     });
+    const [isPhoneValid, setIsPhoneValid] = useState(false);
 
     // Password Visibility Toggles
     const [showPassword, setShowPassword] = useState(false);
@@ -646,93 +655,110 @@ function Auth({ register = false }) {
     const regMatchesConfirm = regConfirmPwd.length > 0 && regConfirmPwd === regPwd;
     const regIsPasswordValid = regHasLength && regHasUpper && regHasLower && regHasNumber && regHasSpecial && regNoSpaces && regNotWeak && regNoPersonal;
 
-    const regNameValid = regNameStr.trim() !== '' && regNameStr.trim().length <= 255;
+    const nameTrimmed = regNameStr.trim();
+    const nameWords = nameTrimmed.split(/\s+/).filter((w) => w.length >= 1);
+    const regNameValid = nameWords.length >= 2
+        && /^[A-Za-zÀ-ÿ\s'\-\.]+$/.test(nameTrimmed)
+        && nameTrimmed.length >= 3
+        && nameTrimmed.length <= 255;
     const regRoleValid = ['donor', 'beneficiary'].includes(f.role);
-    const donorCampusRoles = ['student', 'faculty', 'staff', 'alumni', 'campus_organization', 'other'];
-    const beneficiaryCampusRoles = ['student', 'faculty', 'staff', 'other'];
-    const regCampusRoleValid = (f.role === 'donor' && donorCampusRoles.includes(f.campus_role))
-        || (f.role === 'beneficiary' && beneficiaryCampusRoles.includes(f.campus_role));
-    const regConditionalValid = (f.role === 'donor' && f.campus_role === 'campus_organization')
-        ? f.organization_name.trim() !== '' && f.organization_name.trim().length <= 255
-        : f.campus_role === 'other'
-            ? f.other_role_specify.trim() !== '' && f.other_role_specify.trim().length <= 100
-            : true;
-    const regCampusIdValid = f.role !== 'beneficiary' || (f.campus_id.trim() !== '' && f.campus_id.trim().length <= 50);
+    const regCampusRoleValid = ['student', 'faculty', 'staff', 'other'].includes(f.campus_role);
+
+    const isOther = f.campus_role === 'other';
+    const regOtherSpecifyValid = !isOther || ((f.other_role_specify || '').trim() !== '' && (f.other_role_specify || '').trim().length <= 100);
+
+    const isInternational = isOther && (f.other_role_specify || '').toLowerCase().includes('international');
+    const regCountryValid = !isInternational || ((f.country || '').trim() !== '' && (f.country || '').trim().length <= 100);
+
+    const regConditionalValid = (!isOther || regOtherSpecifyValid) && (!isInternational || regCountryValid);
+
+    const regIdTrimmed = (f.campus_id || '').trim();
+    const regIdValid = regIdTrimmed.length >= 3 && regIdTrimmed.length <= 50;
+
     const regContactNumber = f.contact_number || '';
-    const regContactValid = regContactNumber.trim() !== ''
-        && regContactNumber.trim().length <= 20
-        && /^[\d\s\-\+\(\)]+$/.test(regContactNumber);
+    const regContactValid = regContactNumber.trim().length >= 7 && (isPhoneValid || /^\+?[0-9\s\-()]{7,25}$/.test(regContactNumber.trim()));
+
     const regEmailValid = regEmailStr.trim() !== ''
         && regEmailStr.trim().length <= 255
         && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmailStr.trim());
 
+    // Strict Sequential Field Progression Gates
     const regCanUseRole = regNameValid;
     const regCanUseCampusRole = regCanUseRole && regRoleValid;
-    const regCanUseConditional = regCanUseCampusRole && regCampusRoleValid;
-    const regCanUseCampusId = f.role !== 'beneficiary' || regCanUseConditional;
-    const regCanUseContact = regCanUseConditional && (f.role !== 'beneficiary' || regCampusIdValid);
+    const regCanUseOtherSpecify = regCanUseCampusRole && isOther;
+    const regCanUseCountry = regCanUseOtherSpecify && isInternational && regOtherSpecifyValid;
+    const regCanUseId = regCanUseCampusRole && regCampusRoleValid && regConditionalValid;
+    const regCanUseContact = regCanUseId && regIdValid;
     const regCanUseEmail = regCanUseContact && regContactValid;
     const regCanUsePassword = regCanUseEmail && regEmailValid;
     const regCanUseConfirm = regCanUsePassword && regIsPasswordValid;
     const regIsFormValid = regCanUseConfirm && regMatchesConfirm;
 
-    const clearRegistrationDependents = (prev) => ({
-        ...prev,
-        campus_role: '',
-        campus_id: '',
-        organization_name: '',
-        other_role_specify: '',
-        contact_number: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-    });
-
     const handleRegistrationNameChange = (e) => {
-        const name = e.target.value;
         setF((prev) => ({
-            name,
-            ...clearRegistrationDependents(prev),
+            ...prev,
+            name: e.target.value,
         }));
     };
 
     const handleRegistrationRoleChange = (e) => {
         setF((prev) => ({
-            ...clearRegistrationDependents(prev),
+            ...prev,
             role: e.target.value,
+            campus_role: '',
+            other_role_specify: '',
+            country: '',
+            campus_id: '',
+            organization_name: '',
         }));
     };
 
     const handleRegistrationCampusRoleChange = (e) => {
         setF((prev) => ({
-            ...clearRegistrationDependents(prev),
+            ...prev,
             campus_role: e.target.value,
+            other_role_specify: '',
+            country: '',
+            campus_id: '',
+            organization_name: '',
         }));
     };
 
-    const handleRegistrationConditionalChange = (field, value) => {
-        setF((prev) => ({
-            ...clearRegistrationDependents(prev),
-            [field]: value,
-        }));
-    };
-
-    const handleRegistrationContactChange = (e) => {
+    const handleRegistrationOtherSpecifyChange = (val) => {
+        const isIntl = val.toLowerCase().includes('international');
         setF((prev) => ({
             ...prev,
-            contact_number: e.target.value,
-            email: '',
-            password: '',
-            password_confirmation: '',
+            other_role_specify: val,
+            country: isIntl ? prev.country : '',
         }));
+    };
+
+    const handleRegistrationCountryChange = (val) => {
+        setF((prev) => ({
+            ...prev,
+            country: val,
+        }));
+    };
+
+    const handleRegistrationIdChange = (e) => {
+        setF((prev) => ({
+            ...prev,
+            campus_id: e.target.value,
+        }));
+    };
+
+    const handleRegistrationPhoneChange = (e164Value, valid) => {
+        setF((prev) => ({
+            ...prev,
+            contact_number: e164Value,
+        }));
+        setIsPhoneValid(valid);
     };
 
     const handleRegistrationEmailChange = (e) => {
         setF((prev) => ({
             ...prev,
             email: e.target.value,
-            password: '',
-            password_confirmation: '',
         }));
     };
 
@@ -740,7 +766,6 @@ function Auth({ register = false }) {
         setF((prev) => ({
             ...prev,
             password: e.target.value,
-            password_confirmation: '',
         }));
     };
 
@@ -777,12 +802,13 @@ function Auth({ register = false }) {
                 email: rememberedEmail,
                 password: '',
                 password_confirmation: '',
-                role: 'donor',
+                role: '',
                 campus_role: '',
-                contact_number: '',
-                campus_id: '',
-                organization_name: '',
                 other_role_specify: '',
+                country: '',
+                campus_id: '',
+                contact_number: '',
+                organization_name: '',
             });
         } else {
             setRemember(false);
@@ -791,12 +817,13 @@ function Auth({ register = false }) {
                 email: '',
                 password: '',
                 password_confirmation: '',
-                role: 'donor',
+                role: '',
                 campus_role: '',
-                contact_number: '',
-                campus_id: '',
-                organization_name: '',
                 other_role_specify: '',
+                country: '',
+                campus_id: '',
+                contact_number: '',
+                organization_name: '',
             });
         }
     }, [register]);
@@ -815,7 +842,7 @@ function Auth({ register = false }) {
     }, [otpTimer]);
 
     if (authLoading) return <main className="min-h-screen bg-white" aria-busy="true" aria-label="Restoring your session"/>;
-    if (user) return <Navigate to={getLastAuthenticatedRoute(user) || getRoleDashboard(user.role)} replace />;
+    if (user) return <Navigate to={getRoleDashboard(user.role)} replace />;
 
     // Handle Login & Register Submit
     const handleAuthSubmit = async (e) => {
@@ -843,14 +870,27 @@ function Auth({ register = false }) {
             }
         }
 
+        const submitPayload = mode === 'register' ? {
+            name: f.name.trim(),
+            email: f.email.trim(),
+            password: f.password,
+            password_confirmation: f.password_confirmation,
+            role: f.role,
+            campus_role: f.campus_role,
+            other_role_specify: isOther ? f.other_role_specify.trim() : null,
+            country: (isOther && isInternational) ? f.country.trim() : null,
+            campus_id: f.campus_id.trim(),
+            contact_number: f.contact_number.trim(),
+        } : f;
+
         try {
-            const u = await login(f, mode === 'register');
+            const u = await login(submitPayload, mode === 'register');
             if (remember && mode === 'login') {
                 localStorage.setItem('relieflink_remembered_email', f.email);
             } else {
                 localStorage.removeItem('relieflink_remembered_email');
             }
-            navigate(getLastAuthenticatedRoute(u) || getRoleDashboard(u.role), { replace: true });
+            navigate(getRoleDashboard(u.role), { replace: true });
         } catch (e) {
             setError(e.response?.data?.message || 'Unable to authenticate. Please check your credentials.');
         } finally {
@@ -1167,12 +1207,13 @@ function Auth({ register = false }) {
                                             email: '',
                                             password: '',
                                             password_confirmation: '',
-                                            role: 'donor',
+                                            role: '',
                                             campus_role: '',
-                                            contact_number: '',
-                                            campus_id: '',
-                                            organization_name: '',
                                             other_role_specify: '',
+                                            country: '',
+                                            campus_id: '',
+                                            contact_number: '',
+                                            organization_name: '',
                                         });
                                     }}
                                 >
@@ -1204,12 +1245,17 @@ function Auth({ register = false }) {
                                         id="reg_name"
                                         required
                                         type="text"
-                                        placeholder="Enter your full name"
-                                        className="field mt-1 text-xs py-2"
+                                        placeholder="Enter your first name and last name"
+                                        className="field mt-1 text-xs py-2 font-semibold"
                                         value={f.name}
                                         onChange={handleRegistrationNameChange}
                                         maxLength={255}
                                     />
+                                    {f.name.length > 0 && !regNameValid && (
+                                        <p className="text-[11px] font-semibold text-[#2563EB]/70 mt-1">
+                                            Please enter both your first name and last name (e.g., Juan Dela Cruz).
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -1218,174 +1264,137 @@ function Auth({ register = false }) {
                                     </label>
                                     <select
                                         id="reg_role"
-                                        className={`field mt-1 text-xs py-2 ${!regCanUseRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                        className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                         value={f.role}
                                         onChange={handleRegistrationRoleChange}
                                         disabled={!regCanUseRole}
                                         required
                                     >
-                                        <option value="donor">Donate Resources (Campus Donor)</option>
+                                        <option value="">Select account type</option>
                                         <option value="beneficiary">Request Support (Student Beneficiary)</option>
+                                        <option value="donor">Make a Donation (Donor)</option>
                                     </select>
                                 </div>
 
-                                {f.role === 'donor' && (
-                                    <>
-                                        <div>
-                                            <label htmlFor="reg_campus_role" className="block text-xs font-bold text-[#2563EB]">
-                                                Donor Type / Campus Role <span className="text-[#22C55E]">*</span>
-                                            </label>
-                                            <select
-                                                id="reg_campus_role"
-                                                className={`field mt-1 text-xs py-2 ${!regCanUseCampusRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                                value={f.campus_role}
-                                                onChange={handleRegistrationCampusRoleChange}
-                                                disabled={!regCanUseCampusRole}
-                                                required
-                                            >
-                                                <option value="">Select your campus role</option>
-                                                <option value="student">Student</option>
-                                                <option value="faculty">Faculty</option>
-                                                <option value="staff">Staff</option>
-                                                <option value="alumni">Alumni</option>
-                                                <option value="campus_organization">Campus Organization</option>
-                                                <option value="other">Other</option>
-                                            </select>
+                                <div>
+                                    <label htmlFor="reg_campus_role" className="block text-xs font-bold text-[#2563EB]">
+                                        {f.role === 'donor'
+                                            ? 'Donor Type / Campus Role'
+                                            : f.role === 'beneficiary'
+                                                ? 'Beneficiary Type / Campus Role'
+                                                : 'Campus Role'}{' '}
+                                        <span className="text-[#22C55E]">*</span>
+                                    </label>
+                                    <select
+                                        id="reg_campus_role"
+                                        className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseCampusRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                        value={f.campus_role}
+                                        onChange={handleRegistrationCampusRoleChange}
+                                        disabled={!regCanUseCampusRole}
+                                        required
+                                    >
+                                        <option value="">Select your campus role</option>
+                                        <option value="student">Student</option>
+                                        <option value="faculty">Faculty</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+
+                                {f.campus_role === 'other' && (
+                                    <div>
+                                        <label htmlFor="reg_other_role" className="block text-xs font-bold text-[#2563EB]">
+                                            {f.role === 'donor' ? 'Specify Donor Type' : 'Specify Beneficiary Type'} <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            id="reg_other_role"
+                                            list={f.role === 'donor' ? 'donor_other_presets' : 'beneficiary_other_presets'}
+                                            type="text"
+                                            placeholder={f.role === 'donor' ? 'e.g., Alumni, International Donor, Community Donor' : 'e.g., Campus Cleaner, Maintenance Worker, International Beneficiary'}
+                                            className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseOtherSpecify ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                            value={f.other_role_specify}
+                                            onChange={(e) => handleRegistrationOtherSpecifyChange(e.target.value)}
+                                            disabled={!regCanUseOtherSpecify}
+                                            maxLength={100}
+                                            required
+                                        />
+                                        <datalist id={f.role === 'donor' ? 'donor_other_presets' : 'beneficiary_other_presets'}>
+                                            {(f.role === 'donor' ? DONOR_OTHER_PRESETS : BENEFICIARY_OTHER_PRESETS).map((p) => (
+                                                <option key={p} value={p} />
+                                            ))}
+                                        </datalist>
+                                        <div className="mt-1.5 flex flex-wrap gap-1">
+                                            {(f.role === 'donor' ? DONOR_OTHER_PRESETS : BENEFICIARY_OTHER_PRESETS).map((preset) => (
+                                                <button
+                                                    key={preset}
+                                                    type="button"
+                                                    onClick={() => handleRegistrationOtherSpecifyChange(preset)}
+                                                    disabled={!regCanUseOtherSpecify}
+                                                    className={`rounded-lg border px-2 py-0.5 text-[10px] font-bold transition ${
+                                                        f.other_role_specify === preset
+                                                            ? 'border-[#22C55E] bg-[#22C55E] text-white'
+                                                            : 'border-[#2563EB]/30 bg-white text-[#2563EB] hover:bg-[#2563EB]/10'
+                                                    }`}
+                                                >
+                                                    {preset}
+                                                </button>
+                                            ))}
                                         </div>
-
-                                        {f.campus_role === 'campus_organization' && (
-                                            <div>
-                                                <label htmlFor="reg_organization_name" className="block text-xs font-bold text-[#2563EB]">
-                                                    Organization Name <span className="text-[#22C55E]">*</span>
-                                                </label>
-                                                <input
-                                                    id="reg_organization_name"
-                                                    type="text"
-                                                    placeholder="Enter your campus organization name"
-                                                    className={`field mt-1 text-xs py-2 ${!regCanUseConditional ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                                    value={f.organization_name}
-                                                    onChange={(e) => handleRegistrationConditionalChange('organization_name', e.target.value)}
-                                                    disabled={!regCanUseConditional}
-                                                    maxLength={255}
-                                                    required
-                                                />
-                                            </div>
-                                        )}
-
-                                        {f.campus_role === 'other' && (
-                                            <div>
-                                                <label htmlFor="reg_other_role" className="block text-xs font-bold text-[#2563EB]">
-                                                    Please Specify Donor Type <span className="text-[#22C55E]">*</span>
-                                                </label>
-                                                <input
-                                                    id="reg_other_role"
-                                                    type="text"
-                                                    placeholder="Specify your donor type"
-                                                    className={`field mt-1 text-xs py-2 ${!regCanUseConditional ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                                    value={f.other_role_specify}
-                                                    onChange={(e) => handleRegistrationConditionalChange('other_role_specify', e.target.value)}
-                                                    disabled={!regCanUseConditional}
-                                                    maxLength={100}
-                                                    required
-                                                />
-                                            </div>
-                                        )}
-
-                                        <div>
-                                            <label htmlFor="reg_contact_number" className="block text-xs font-bold text-[#2563EB]">
-                                                Contact Number <span className="text-[#22C55E]">*</span>
-                                            </label>
-                                            <input
-                                                id="reg_contact_number"
-                                                type="tel"
-                                                placeholder="Enter your contact number"
-                                                className={`field mt-1 text-xs py-2 ${!regCanUseContact ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                                value={f.contact_number}
-                                                onChange={handleRegistrationContactChange}
-                                                disabled={!regCanUseContact}
-                                                maxLength={20}
-                                                required
-                                            />
-                                        </div>
-                                    </>
+                                    </div>
                                 )}
 
-                                {f.role === 'beneficiary' && (
-                                    <>
-                                        <div>
-                                            <label htmlFor="reg_campus_role" className="block text-xs font-bold text-[#2563EB]">
-                                                Beneficiary Type / Campus Role <span className="text-[#22C55E]">*</span>
-                                            </label>
-                                            <select
-                                                id="reg_campus_role"
-                                                className={`field mt-1 text-xs py-2 ${!regCanUseCampusRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                                value={f.campus_role}
-                                                onChange={handleRegistrationCampusRoleChange}
-                                                disabled={!regCanUseCampusRole}
-                                                required
-                                            >
-                                                <option value="">Select your campus role</option>
-                                                <option value="student">Student</option>
-                                                <option value="faculty">Faculty</option>
-                                                <option value="staff">Staff</option>
-                                                <option value="other">Other</option>
-                                            </select>
-                                        </div>
-
-                                        {f.campus_role === 'other' && (
-                                            <div>
-                                                <label htmlFor="reg_other_role" className="block text-xs font-bold text-[#2563EB]">
-                                                    Please Specify Campus Role <span className="text-[#22C55E]">*</span>
-                                                </label>
-                                                <input
-                                                    id="reg_other_role"
-                                                    type="text"
-                                                    placeholder="Specify your campus role"
-                                                    className={`field mt-1 text-xs py-2 ${!regCanUseConditional ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                                    value={f.other_role_specify}
-                                                    onChange={(e) => handleRegistrationConditionalChange('other_role_specify', e.target.value)}
-                                                    disabled={!regCanUseConditional}
-                                                    maxLength={100}
-                                                    required
-                                                />
-                                            </div>
-                                        )}
-
-                                        <div>
-                                            <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">
-                                                Campus ID / Student ID <span className="text-[#22C55E]">*</span>
-                                            </label>
-                                            <input
-                                                id="reg_campus_id"
-                                                type="text"
-                                                placeholder="Enter your Campus ID / Student ID"
-                                                className={`field mt-1 text-xs py-2 ${!regCanUseCampusId ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                                value={f.campus_id}
-                                                onChange={(e) => handleRegistrationConditionalChange('campus_id', e.target.value)}
-                                                disabled={!regCanUseCampusId}
-                                                maxLength={50}
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label htmlFor="reg_contact_number" className="block text-xs font-bold text-[#2563EB]">
-                                                Contact Number <span className="text-[#22C55E]">*</span>
-                                            </label>
-                                            <input
-                                                id="reg_contact_number"
-                                                type="tel"
-                                                placeholder="Enter your contact number"
-                                                className={`field mt-1 text-xs py-2 ${!regCanUseContact ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                                value={f.contact_number}
-                                                onChange={handleRegistrationContactChange}
-                                                disabled={!regCanUseContact}
-                                                maxLength={20}
-                                                required
-                                            />
-                                        </div>
-                                    </>
+                                {isInternational && (
+                                    <div>
+                                        <label htmlFor="reg_country" className="block text-xs font-bold text-[#2563EB]">
+                                            Country <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <select
+                                            id="reg_country"
+                                            className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseCountry ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                            value={f.country}
+                                            onChange={(e) => handleRegistrationCountryChange(e.target.value)}
+                                            disabled={!regCanUseCountry}
+                                            required
+                                        >
+                                            <option value="">Select your country</option>
+                                            {COUNTRY_LIST.map((c) => (
+                                                <option key={c.code} value={c.name}>
+                                                    {c.flag} {c.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 )}
+
+                                <div>
+                                    <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">
+                                        {getIdLabel(f.campus_role)} <span className="text-[#22C55E]">*</span>
+                                    </label>
+                                    <input
+                                        id="reg_campus_id"
+                                        type="text"
+                                        placeholder={getIdPlaceholder(f.campus_role)}
+                                        className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseId ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                        value={f.campus_id}
+                                        onChange={handleRegistrationIdChange}
+                                        disabled={!regCanUseId}
+                                        maxLength={50}
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="reg_contact_number" className="block text-xs font-bold text-[#2563EB]">
+                                        Contact Number <span className="text-[#22C55E]">*</span>
+                                    </label>
+                                    <InternationalPhoneInput
+                                        id="reg_contact_number"
+                                        value={f.contact_number}
+                                        onChange={handleRegistrationPhoneChange}
+                                        disabled={!regCanUseContact}
+                                        placeholder="Enter contact number"
+                                    />
+                                </div>
 
                                 <div>
                                     <label htmlFor="reg_email" className="block text-xs font-bold text-[#2563EB]">
@@ -1396,7 +1405,7 @@ function Auth({ register = false }) {
                                         required
                                         type="email"
                                         placeholder="Enter your email address"
-                                        className={`field mt-1 text-xs py-2 ${!regCanUseEmail ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                        className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseEmail ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                         value={f.email}
                                         onChange={handleRegistrationEmailChange}
                                         disabled={!regCanUseEmail}
@@ -1408,20 +1417,39 @@ function Auth({ register = false }) {
                                     <label htmlFor="reg_password" className="block text-xs font-bold text-[#2563EB]">
                                         Password <span className="text-[#22C55E]">*</span>
                                     </label>
-                                    <div className="mt-1">
+                                    <div className="relative mt-1">
                                         <input
                                             id="reg_password"
                                             required
                                             minLength={8}
                                             maxLength={64}
-                                            type="password"
+                                            type={showPassword ? 'text' : 'password'}
                                             autoComplete="new-password"
-                                            placeholder="At least 8 characters"
-                                            className={`field text-xs py-2 font-semibold ${!regCanUsePassword ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                            placeholder="Create a password"
+                                            className={`field text-xs py-2 pr-10 font-semibold ${!regCanUsePassword ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                             value={f.password}
                                             onChange={handleRegistrationPasswordChange}
                                             disabled={!regCanUsePassword}
                                         />
+                                        <button
+                                            type="button"
+                                            tabIndex={-1}
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            disabled={!regCanUsePassword}
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#2563EB] hover:text-[#22C55E] disabled:opacity-40 disabled:cursor-not-allowed bg-transparent border-0 p-1 cursor-pointer transition"
+                                        >
+                                            {showPassword ? (
+                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            )}
+                                        </button>
                                     </div>
 
                                     {/* Password Strength Meter */}
@@ -1474,24 +1502,43 @@ function Auth({ register = false }) {
                                     <label htmlFor="reg_confirm" className="block text-xs font-bold text-[#2563EB]">
                                         Confirm Password <span className="text-[#22C55E]">*</span>
                                     </label>
-                                    <div className="mt-1">
+                                    <div className="relative mt-1">
                                         <input
                                             id="reg_confirm"
                                             required
                                             minLength={8}
                                             maxLength={64}
-                                            type="password"
+                                            type={showConfirmPassword ? 'text' : 'password'}
                                             autoComplete="new-password"
-                                            placeholder="Re-enter password"
-                                            className={`field text-xs py-2 font-semibold ${!regCanUseConfirm ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                            placeholder="Re-enter your password"
+                                            className={`field text-xs py-2 pr-10 font-semibold ${!regCanUseConfirm ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                             value={f.password_confirmation}
                                             onChange={handleRegistrationConfirmPasswordChange}
                                             disabled={!regCanUseConfirm}
                                         />
+                                        <button
+                                            type="button"
+                                            tabIndex={-1}
+                                            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                            disabled={!regCanUseConfirm}
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#2563EB] hover:text-[#22C55E] disabled:opacity-40 disabled:cursor-not-allowed bg-transparent border-0 p-1 cursor-pointer transition"
+                                        >
+                                            {showConfirmPassword ? (
+                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            )}
+                                        </button>
                                     </div>
                                     {f.password_confirmation && (
-                                        <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '• Passwords do not match'}</span>
+                                        <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
+                                            <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '✕ Passwords do not match.'}</span>
                                         </div>
                                     )}
                                 </div>
@@ -1522,12 +1569,13 @@ function Auth({ register = false }) {
                                             email: '',
                                             password: '',
                                             password_confirmation: '',
-                                            role: 'donor',
+                                            role: '',
                                             campus_role: '',
-                                            contact_number: '',
-                                            campus_id: '',
-                                            organization_name: '',
                                             other_role_specify: '',
+                                            country: '',
+                                            campus_id: '',
+                                            contact_number: '',
+                                            organization_name: '',
                                         });
                                     }}
                                 >
@@ -3241,16 +3289,34 @@ function ResourceForm({ donation }) {
 }
 
 function EditModal({item, kind, admin, close, done}){
-    const [f, setF] = useState(item);
+    const [f, setF] = useState({
+        ...item,
+        contact_number: item.contact_number || '',
+        campus_role: item.campus_role || (item.role === 'beneficiary' ? 'student' : item.role === 'donor' ? 'student' : ''),
+        campus_id: item.campus_id || '',
+        other_role_specify: item.other_role_specify || '',
+        country: item.country || '',
+        organization_name: item.organization_name || '',
+        password: '',
+    });
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+
+    const isUserKind = kind === 'users';
 
     const save = async e => {
         e.preventDefault();
         setSaving(true);
+        setError('');
+
+        const payload = { ...f };
+        if (isUserKind && !payload.password) {
+            delete payload.password;
+        }
+
         try {
-            const path = admin && kind === 'users' ? `/admin/users${item.id ? `/${item.id}` : ''}` : `/${kind}/${item.id}`;
-            await (item.id ? api.patch(path, f) : api.post(path, f));
+            const path = admin && isUserKind ? `/admin/users${item.id ? `/${item.id}` : ''}` : `/${kind}/${item.id}`;
+            await (item.id ? api.patch(path, payload) : api.post(path, payload));
             await done();
             close();
         } catch (e) {
@@ -3261,31 +3327,187 @@ function EditModal({item, kind, admin, close, done}){
     };
 
     return (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB] p-4">
-            <form className="panel w-full max-w-md p-6" onSubmit={save}>
-                <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-extrabold">{item.id ? 'Edit entry' : 'Add member'}</h2>
-                    <button type="button" title="Close" className="nav-link" onClick={close}><Icon name="close"/></button>
+        <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+            <form className="panel w-full max-w-lg p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4" onSubmit={save}>
+                <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
+                    <h2 className="text-lg font-extrabold text-[#2563EB]">{item.id ? (isUserKind ? 'Edit Member Account' : 'Edit entry') : (isUserKind ? 'Add New Member' : 'Add entry')}</h2>
+                    <button type="button" title="Close" className="nav-link p-1" onClick={close}><Icon name="close"/></button>
                 </div>
-                {Object.entries(f).filter(([k]) => !['id','status','created_at','beneficiary','donor','profile_photo_url'].includes(k)).map(([k, v]) => (typeof v === 'string' || typeof v === 'number') && (
-                    <label key={k} className="mt-3 block text-sm font-bold">
-                        {title(k)}
-                        {k === 'role' ? (
-                            <select className="field mt-1" value={v} onChange={e => setF({...f, [k]: e.target.value})}>
-                                <option value="donor">donor</option>
-                                <option value="beneficiary">beneficiary</option>
-                                <option value="staff">staff</option>
-                                <option value="admin">admin</option>
-                            </select>
-                        ) : (
-                            <input required={k !== 'password'} className="field mt-1" type={k === 'password' ? 'password' : 'text'} value={v ?? ''} onChange={e => setF({...f, [k]: e.target.value})}/>
+
+                {isUserKind ? (
+                    <div className="space-y-3 text-left">
+                        <div>
+                            <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                Full Name <span className="text-[#22C55E]">*</span>
+                            </label>
+                            <input
+                                required
+                                type="text"
+                                className="field w-full text-xs font-semibold"
+                                placeholder="Enter full name"
+                                value={f.name || ''}
+                                onChange={e => setF({...f, name: e.target.value})}
+                            />
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Email Address <span className="text-[#22C55E]">*</span>
+                                </label>
+                                <input
+                                    required
+                                    type="email"
+                                    className="field w-full text-xs font-semibold"
+                                    placeholder="Enter email address"
+                                    value={f.email || ''}
+                                    onChange={e => setF({...f, email: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Contact Number
+                                </label>
+                                <input
+                                    type="text"
+                                    className="field w-full text-xs font-semibold"
+                                    placeholder="+63 912 345 6789"
+                                    value={f.contact_number || ''}
+                                    onChange={e => setF({...f, contact_number: e.target.value})}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Account Role <span className="text-[#22C55E]">*</span>
+                                </label>
+                                <select
+                                    required
+                                    className="field w-full text-xs font-semibold"
+                                    value={f.role || 'donor'}
+                                    onChange={e => setF({...f, role: e.target.value})}
+                                >
+                                    <option value="donor">Donor</option>
+                                    <option value="beneficiary">Beneficiary</option>
+                                    <option value="staff">Staff</option>
+                                    <option value="admin">Administrator</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Campus Role / Member Type
+                                </label>
+                                <select
+                                    className="field w-full text-xs font-semibold"
+                                    value={f.campus_role || 'student'}
+                                    onChange={e => setF({...f, campus_role: e.target.value})}
+                                >
+                                    <option value="student">Student</option>
+                                    <option value="faculty">Faculty</option>
+                                    <option value="staff">Staff</option>
+                                    <option value="other">Other</option>
+                                    <option value="alumni">Alumni</option>
+                                    <option value="campus_organization">Campus Organization</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Student / Campus ID Number
+                                </label>
+                                <input
+                                    type="text"
+                                    className="field w-full text-xs font-semibold"
+                                    placeholder="e.g. 2024-019852"
+                                    value={f.campus_id || ''}
+                                    onChange={e => setF({...f, campus_id: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Country / Region
+                                </label>
+                                <input
+                                    type="text"
+                                    className="field w-full text-xs font-semibold"
+                                    placeholder="e.g. Philippines"
+                                    value={f.country || ''}
+                                    onChange={e => setF({...f, country: e.target.value})}
+                                />
+                            </div>
+                        </div>
+
+                        {f.campus_role === 'other' && (
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Specify Other Role
+                                </label>
+                                <input
+                                    type="text"
+                                    className="field w-full text-xs font-semibold"
+                                    placeholder="e.g. Community Donor, Maintenance Worker"
+                                    value={f.other_role_specify || ''}
+                                    onChange={e => setF({...f, other_role_specify: e.target.value})}
+                                />
+                            </div>
                         )}
-                    </label>
-                ))}
+
+                        {f.campus_role === 'campus_organization' && (
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Organization Name
+                                </label>
+                                <input
+                                    type="text"
+                                    className="field w-full text-xs font-semibold"
+                                    placeholder="e.g. Student Council, Red Cross Youth"
+                                    value={f.organization_name || ''}
+                                    onChange={e => setF({...f, organization_name: e.target.value})}
+                                />
+                            </div>
+                        )}
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                {item.id ? 'New Password (leave empty to keep unchanged)' : 'Account Password *'}
+                            </label>
+                            <input
+                                required={!item.id}
+                                type="password"
+                                className="field w-full text-xs font-semibold"
+                                placeholder={item.id ? 'Enter new password if changing' : 'Enter strong password (min 8 characters)'}
+                                value={f.password || ''}
+                                onChange={e => setF({...f, password: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    Object.entries(f).filter(([k]) => !['id','status','created_at','beneficiary','donor','profile_photo_url','profile_photo_path','email_verified_at','updated_at'].includes(k)).map(([k, v]) => (typeof v === 'string' || typeof v === 'number') && (
+                        <label key={k} className="mt-3 block text-sm font-bold text-left text-[#2563EB]">
+                            {title(k)}
+                            {k === 'role' ? (
+                                <select className="field mt-1 w-full" value={v} onChange={e => setF({...f, [k]: e.target.value})}>
+                                    <option value="donor">donor</option>
+                                    <option value="beneficiary">beneficiary</option>
+                                    <option value="staff">staff</option>
+                                    <option value="admin">admin</option>
+                                </select>
+                            ) : (
+                                <input required={k !== 'password'} className="field mt-1 w-full" type={k === 'password' ? 'password' : 'text'} value={v ?? ''} onChange={e => setF({...f, [k]: e.target.value})}/>
+                            )}
+                        </label>
+                    ))
+                )}
+
                 <Error>{error}</Error>
-                <div className="mt-5 flex flex-wrap gap-3">
-                    <Button loading={saving}><Icon name="save"/><span className="ml-2">Save changes</span></Button>
-                    <Button type="button" variant="secondary" onClick={close}><Icon name="close"/><span className="ml-2">Cancel</span></Button>
+
+                <div className="mt-5 flex flex-wrap justify-end gap-3 border-t border-[#2563EB]/20 pt-3">
+                    <Button type="button" variant="secondary" onClick={close}><Icon name="close"/><span className="ml-1.5">Cancel</span></Button>
+                    <Button loading={saving}><Icon name="save"/><span className="ml-1.5">{item.id ? 'Save Changes' : 'Create Account'}</span></Button>
                 </div>
             </form>
         </div>
@@ -3320,9 +3542,16 @@ function PeopleManager(){
 
     let filtered = state.data.filter(u => {
         const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+        const q = search.toLowerCase();
         const matchesSearch = !search ||
-            u.name?.toLowerCase().includes(search.toLowerCase()) ||
-            u.email?.toLowerCase().includes(search.toLowerCase());
+            (u.name && u.name.toLowerCase().includes(q)) ||
+            (u.email && u.email.toLowerCase().includes(q)) ||
+            (u.contact_number && u.contact_number.toLowerCase().includes(q)) ||
+            (u.campus_id && u.campus_id.toLowerCase().includes(q)) ||
+            (u.campus_role && u.campus_role.toLowerCase().includes(q)) ||
+            (u.other_role_specify && u.other_role_specify.toLowerCase().includes(q)) ||
+            (u.organization_name && u.organization_name.toLowerCase().includes(q)) ||
+            (u.country && u.country.toLowerCase().includes(q));
         return matchesRole && matchesSearch;
     });
 
@@ -3368,7 +3597,7 @@ function PeopleManager(){
                         Manage user roles, inspect account profiles, and authorize campus accounts.
                     </p>
                 </div>
-                <Button onClick={() => setEditing({name: '', email: '', role: 'donor', password: ''})}>
+                <Button onClick={() => setEditing({name: '', email: '', role: 'donor', campus_role: 'student', contact_number: '', campus_id: '', password: ''})}>
                     <Icon name="plus"/><span className="ml-2">Add Member</span>
                 </Button>
             </div>
@@ -3422,7 +3651,7 @@ function PeopleManager(){
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Members</label>
                     <input
                         type="text"
-                        placeholder="Search by name or email..."
+                        placeholder="Search by name, email, contact, ID number, or role..."
                         className="field w-full text-sm"
                         value={search}
                         onChange={e => { setSearch(e.target.value); setPage(1); }}
@@ -3475,82 +3704,171 @@ function PeopleManager(){
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
+                                    <th>Member</th>
                                     <th>Email Address</th>
-                                    <th>Role</th>
+                                    <th>Contact Number</th>
+                                    <th>Account Type</th>
+                                    <th>Campus Role</th>
+                                    <th>ID Number</th>
+                                    <th>Status</th>
                                     <th>Joined</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {paginated.map(userItem => (
-                                    <tr key={userItem.id}>
-                                        <td className="max-w-[200px] truncate" title={userItem.name}>
-                                            <strong>{userItem.name}</strong>
-                                        </td>
-                                        <td className="max-w-[240px] truncate" title={userItem.email}>
-                                            <span className="text-sm text-[#2563EB]">{userItem.email}</span>
-                                        </td>
-                                        <td>
-                                            <Badge status={userItem.role}/>
-                                        </td>
-                                        <td>
-                                            <span className="text-xs font-semibold text-[#2563EB]/80">
-                                                {userItem.created_at ? new Date(userItem.created_at).toLocaleDateString() : 'N/A'}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="flex flex-wrap gap-2">
-                                                <Button title="View Details" variant="secondary" onClick={() => setViewingUser(userItem)}>
-                                                    <Icon name="profile"/>
-                                                    <span className="ml-1 text-xs">Inspect</span>
-                                                </Button>
-                                                <Button title="Edit Member" variant="secondary" onClick={() => setEditing(userItem)}>
-                                                    <Icon name="edit"/>
-                                                    <span className="ml-1 text-xs">Edit</span>
-                                                </Button>
-                                                <Button title="Delete Member" variant="secondary" onClick={() => setDeletingUser(userItem)}>
-                                                    <Icon name="delete"/>
-                                                    <span className="ml-1 text-xs">Delete</span>
-                                                </Button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {paginated.map(userItem => {
+                                    const initial = userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U';
+                                    return (
+                                        <tr key={userItem.id}>
+                                            <td>
+                                                <div className="flex items-center gap-2.5">
+                                                    {userItem.profile_photo_url ? (
+                                                        <img
+                                                            src={userItem.profile_photo_url}
+                                                            alt={userItem.name}
+                                                            className="h-8 w-8 rounded-full object-cover border border-[#2563EB]/20 shrink-0"
+                                                        />
+                                                    ) : (
+                                                        <span className="grid h-8 w-8 place-items-center rounded-full bg-[#2563EB] text-xs font-extrabold text-white shrink-0">
+                                                            {initial}
+                                                        </span>
+                                                    )}
+                                                    <div className="min-w-0">
+                                                        <strong className="block text-xs font-bold text-[#2563EB] truncate max-w-[150px]" title={userItem.name}>
+                                                            {userItem.name}
+                                                        </strong>
+                                                        {userItem.campus_id && (
+                                                            <span className="text-[10px] font-semibold text-[#2563EB]/70 block truncate max-w-[150px]">
+                                                                ID: {userItem.campus_id}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="max-w-[200px] truncate" title={userItem.email}>
+                                                <span className="text-xs font-medium text-[#2563EB]">{userItem.email}</span>
+                                            </td>
+                                            <td>
+                                                <span className="text-xs font-semibold text-[#2563EB]/80">
+                                                    {userItem.contact_number || '—'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <Badge status={userItem.role}/>
+                                            </td>
+                                            <td>
+                                                <div className="text-xs font-semibold text-[#2563EB]">
+                                                    {title(userItem.campus_role || 'Standard')}
+                                                    {userItem.other_role_specify && (
+                                                        <span className="block text-[10px] text-[#2563EB]/70 truncate max-w-[120px]">
+                                                            ({userItem.other_role_specify})
+                                                        </span>
+                                                    )}
+                                                    {userItem.organization_name && (
+                                                        <span className="block text-[10px] text-[#2563EB]/70 truncate max-w-[120px]">
+                                                            ({userItem.organization_name})
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="text-xs font-mono font-bold text-[#2563EB]">
+                                                    {userItem.campus_id || '—'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className="rounded bg-[#22C55E] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider">
+                                                    Active
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className="text-xs font-semibold text-[#2563EB]/80">
+                                                    {userItem.created_at ? new Date(userItem.created_at).toLocaleDateString() : 'N/A'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    <Button title="View Details" variant="secondary" onClick={() => setViewingUser(userItem)}>
+                                                        <Icon name="profile"/>
+                                                        <span className="ml-1 text-xs">Inspect</span>
+                                                    </Button>
+                                                    <Button title="Edit Member" variant="secondary" onClick={() => setEditing(userItem)}>
+                                                        <Icon name="edit"/>
+                                                        <span className="ml-1 text-xs">Edit</span>
+                                                    </Button>
+                                                    <Button title="Delete Member" variant="secondary" onClick={() => setDeletingUser(userItem)}>
+                                                        <Icon name="delete"/>
+                                                        <span className="ml-1 text-xs">Delete</span>
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
 
                     <div className="grid gap-3 sm:hidden">
-                        {paginated.map(userItem => (
-                            <article key={userItem.id} className="panel p-4 space-y-3 bg-white">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div>
-                                        <strong className="text-base text-[#2563EB] block">{userItem.name}</strong>
-                                        <span className="text-xs font-medium text-[#2563EB]/80 break-all">{userItem.email}</span>
+                        {paginated.map(userItem => {
+                            const initial = userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U';
+                            return (
+                                <article key={userItem.id} className="panel p-4 space-y-3 bg-white">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-center gap-3">
+                                            {userItem.profile_photo_url ? (
+                                                <img
+                                                    src={userItem.profile_photo_url}
+                                                    alt={userItem.name}
+                                                    className="h-10 w-10 rounded-full object-cover border border-[#2563EB]/20 shrink-0"
+                                                />
+                                            ) : (
+                                                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#2563EB] text-sm font-extrabold text-white shrink-0">
+                                                    {initial}
+                                                </span>
+                                            )}
+                                            <div>
+                                                <strong className="text-base text-[#2563EB] block">{userItem.name}</strong>
+                                                <span className="text-xs font-medium text-[#2563EB]/80 break-all">{userItem.email}</span>
+                                            </div>
+                                        </div>
+                                        <Badge status={userItem.role}/>
                                     </div>
-                                    <Badge status={userItem.role}/>
-                                </div>
-                                <div className="text-xs font-semibold text-[#2563EB]/70 border-t border-[#2563EB]/20 pt-2 flex items-center justify-between">
-                                    <span>Joined: {userItem.created_at ? new Date(userItem.created_at).toLocaleDateString() : 'N/A'}</span>
-                                    <span className="text-[#22C55E] font-bold">Active</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2 pt-1">
-                                    <Button title="View Details" variant="secondary" onClick={() => setViewingUser(userItem)}>
-                                        <Icon name="profile"/>
-                                        <span className="ml-1 text-xs">Inspect</span>
-                                    </Button>
-                                    <Button title="Edit Member" variant="secondary" onClick={() => setEditing(userItem)}>
-                                        <Icon name="edit"/>
-                                        <span className="ml-1 text-xs">Edit</span>
-                                    </Button>
-                                    <Button title="Delete Member" variant="secondary" onClick={() => setDeletingUser(userItem)}>
-                                        <Icon name="delete"/>
-                                        <span className="ml-1 text-xs">Delete</span>
-                                    </Button>
-                                </div>
-                            </article>
-                        ))}
+                                    <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-[#2563EB]/80 border-t border-[#2563EB]/15 pt-2">
+                                        <div>
+                                            <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">Contact</span>
+                                            <span>{userItem.contact_number || '—'}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">Campus Role</span>
+                                            <span>{title(userItem.campus_role || 'Standard')}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">ID Number</span>
+                                            <span className="font-mono">{userItem.campus_id || '—'}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">Joined</span>
+                                            <span>{userItem.created_at ? new Date(userItem.created_at).toLocaleDateString() : 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 pt-1 border-t border-[#2563EB]/15">
+                                        <Button title="View Details" variant="secondary" onClick={() => setViewingUser(userItem)}>
+                                            <Icon name="profile"/>
+                                            <span className="ml-1 text-xs">Inspect</span>
+                                        </Button>
+                                        <Button title="Edit Member" variant="secondary" onClick={() => setEditing(userItem)}>
+                                            <Icon name="edit"/>
+                                            <span className="ml-1 text-xs">Edit</span>
+                                        </Button>
+                                        <Button title="Delete Member" variant="secondary" onClick={() => setDeletingUser(userItem)}>
+                                            <Icon name="delete"/>
+                                            <span className="ml-1 text-xs">Delete</span>
+                                        </Button>
+                                    </div>
+                                </article>
+                            );
+                        })}
                     </div>
 
                     {totalPages > 1 && (
@@ -3584,7 +3902,7 @@ function PeopleManager(){
 
             {viewingUser && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-md p-6 bg-white space-y-4">
+                    <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Member Account Details</h2>
                             <button className="nav-link p-1" onClick={() => setViewingUser(null)} title="Close">
@@ -3592,41 +3910,83 @@ function PeopleManager(){
                             </button>
                         </div>
                         <div className="flex items-center gap-4 py-2">
-                            <span className="grid h-12 w-12 place-items-center rounded-full bg-[#2563EB] text-lg font-extrabold text-white">
-                                {viewingUser.name ? viewingUser.name.charAt(0).toUpperCase() : 'U'}
-                            </span>
+                            {viewingUser.profile_photo_url ? (
+                                <img
+                                    src={viewingUser.profile_photo_url}
+                                    alt={viewingUser.name}
+                                    className="h-16 w-16 rounded-2xl border-2 border-[#2563EB] object-cover shrink-0"
+                                />
+                            ) : (
+                                <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#2563EB] text-xl font-extrabold text-white shrink-0">
+                                    {viewingUser.name ? viewingUser.name.charAt(0).toUpperCase() : 'U'}
+                                </span>
+                            )}
                             <div className="min-w-0 flex-1">
-                                <h3 className="text-base font-extrabold text-[#2563EB] truncate">{viewingUser.name}</h3>
+                                <h3 className="text-lg font-extrabold text-[#2563EB] truncate">{viewingUser.name}</h3>
                                 <p className="text-xs font-semibold text-[#2563EB]/80 truncate">{viewingUser.email}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <Badge status={viewingUser.role}/>
+                                    <span className="rounded bg-[#22C55E] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase">Active</span>
+                                </div>
                             </div>
                         </div>
                         <div className="space-y-2 border-t border-b border-[#2563EB]/20 py-3 text-sm">
-                            <div className="flex justify-between">
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                 <span className="font-bold text-[#2563EB]/70">Account ID:</span>
                                 <span className="font-extrabold text-[#2563EB]">#{viewingUser.id}</span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-bold text-[#2563EB]/70">Assigned Role:</span>
-                                <Badge status={viewingUser.role}/>
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">Full Name:</span>
+                                <span className="font-extrabold text-[#2563EB]">{viewingUser.name}</span>
                             </div>
-                            <div className="flex justify-between">
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">Email Address:</span>
+                                <span className="font-semibold text-[#2563EB]">{viewingUser.email}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">Contact Number:</span>
+                                <span className="font-semibold text-[#2563EB]">{viewingUser.contact_number || 'Not provided'}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">Campus Role:</span>
+                                <span className="font-semibold text-[#2563EB]">{title(viewingUser.campus_role || 'Standard')}</span>
+                            </div>
+                            {viewingUser.other_role_specify && (
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Specified Role:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.other_role_specify}</span>
+                                </div>
+                            )}
+                            {viewingUser.organization_name && (
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Organization:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.organization_name}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">Student / Campus ID:</span>
+                                <span className="font-mono font-bold text-[#2563EB]">{viewingUser.campus_id || 'N/A'}</span>
+                            </div>
+                            {viewingUser.country && (
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Country:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.country}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between py-1">
                                 <span className="font-bold text-[#2563EB]/70">Registration Date:</span>
                                 <span className="font-semibold text-[#2563EB]">
                                     {viewingUser.created_at ? new Date(viewingUser.created_at).toLocaleString() : 'N/A'}
                                 </span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-bold text-[#2563EB]/70">Account Status:</span>
-                                <span className="rounded bg-[#22C55E] px-2 py-0.5 text-xs font-extrabold text-white">Active</span>
-                            </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 pt-2">
+                        <div className="flex flex-wrap justify-end gap-2 pt-2">
+                            <Button variant="secondary" onClick={() => setViewingUser(null)}>
+                                Close
+                            </Button>
                             <Button onClick={() => { setEditing(viewingUser); setViewingUser(null); }}>
                                 <Icon name="edit"/>
                                 <span className="ml-1">Edit Account</span>
-                            </Button>
-                            <Button variant="secondary" onClick={() => setViewingUser(null)}>
-                                Close
                             </Button>
                         </div>
                     </div>
@@ -12441,12 +12801,24 @@ function AdminSettings(){
 
 function Profile(){
     const{user,refresh}=useAuth();
-    const[f,setF]=useState({name:user?.name||'',email:user?.email||'',password:'',password_confirmation:''});
+    const[f,setF]=useState({
+        name:user?.name||'',
+        email:user?.email||'',
+        contact_number:user?.contact_number||'',
+        campus_role:user?.campus_role||'',
+        campus_id:user?.campus_id||'',
+        organization_name:user?.organization_name||'',
+        other_role_specify:user?.other_role_specify||'',
+        country:user?.country||'',
+        password:'',
+        password_confirmation:''
+    });
     const[message,setMessage]=useState('');
     const[messageType,setMessageType]=useState('success');
     const[saving,setSaving]=useState(false);
     const[photoPreview,setPhotoPreview]=useState(null);
     const[photoFile,setPhotoFile]=useState(null);
+    const[photoRemoved,setPhotoRemoved]=useState(false);
     const[isPhotoViewerOpen,setIsPhotoViewerOpen]=useState(false);
     const[showPassword,setShowPassword]=useState(false);
     const[showConfirm,setShowConfirm]=useState(false);
@@ -12455,7 +12827,19 @@ function Profile(){
 
     useEffect(()=>{
         if(user){
-            setF({name:user.name||'',email:user.email||'',password:'',password_confirmation:''});
+            setF({
+                name:user.name||'',
+                email:user.email||'',
+                contact_number:user.contact_number||'',
+                campus_role:user.campus_role||'',
+                campus_id:user.campus_id||'',
+                organization_name:user.organization_name||'',
+                other_role_specify:user.other_role_specify||'',
+                country:user.country||'',
+                password:'',
+                password_confirmation:''
+            });
+            setPhotoRemoved(false);
         }
     },[user]);
 
@@ -12466,7 +12850,7 @@ function Profile(){
         }
     },[message]);
 
-    const profileImage=photoPreview||user?.profile_photo_url||null;
+    const profileImage=photoRemoved?null:(photoPreview||user?.profile_photo_url||null);
 
     useEffect(()=>{
         if(!isPhotoViewerOpen) return undefined;
@@ -12488,6 +12872,7 @@ function Profile(){
             return;
         }
         setPhotoFile(file);
+        setPhotoRemoved(false);
         const reader=new FileReader();
         reader.onload=(ev)=>setPhotoPreview(ev.target.result);
         reader.readAsDataURL(file);
@@ -12496,6 +12881,7 @@ function Profile(){
     const removePhoto=()=>{
         setPhotoPreview(null);
         setPhotoFile(null);
+        setPhotoRemoved(true);
         if(fileRef.current)fileRef.current.value='';
     };
 
@@ -12532,13 +12918,21 @@ function Profile(){
         }
         setSaving(true);
         const data=new FormData();
-        data.append('name',f.name);
-        data.append('email',f.email);
+        data.append('name',f.name.trim());
+        data.append('email',f.email.trim());
+        if(f.contact_number) data.append('contact_number',f.contact_number.trim());
+        if(f.campus_role) data.append('campus_role',f.campus_role);
+        if(f.campus_id) data.append('campus_id',f.campus_id.trim());
+        if(f.other_role_specify) data.append('other_role_specify',f.other_role_specify.trim());
+        if(f.country) data.append('country',f.country.trim());
+        if(f.organization_name) data.append('organization_name',f.organization_name.trim());
         if(f.password){
             data.append('password',f.password);
             data.append('password_confirmation',f.password_confirmation);
         }
         if(photoFile) data.append('profile_photo',photoFile);
+        if(photoRemoved) data.append('remove_photo','1');
+
         try{
             await api.post('/profile',data);
             await refresh();
@@ -12547,6 +12941,7 @@ function Profile(){
             setF(prev=>({...prev,password:'',password_confirmation:''}));
             setPhotoFile(null);
             setPhotoPreview(null);
+            setPhotoRemoved(false);
             if(fileRef.current)fileRef.current.value='';
         }catch(e){
             setMessage(e.response?.data?.message||'Could not update profile. Please check your input and try again.');
@@ -12556,9 +12951,18 @@ function Profile(){
         }
     };
 
-    const initials=(user.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const initials=(user.name||'U').split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const memberSince=user.created_at?new Date(user.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}):'N/A';
-    const roleLabel=(user.role||'user').charAt(0).toUpperCase()+(user.role||'user').slice(1);
+    const roleBadgeLabel=user.role==='beneficiary'?'BENEFICIARY':user.role==='donor'?'DONOR':(user.role||'user').toUpperCase();
+    const campusRoleLabel=user.campus_role?title(user.campus_role):null;
+
+    const idLabel = f.campus_role === 'student'
+        ? 'Student ID Number'
+        : f.campus_role === 'faculty'
+            ? 'Faculty/Employee ID Number'
+            : f.campus_role === 'staff'
+                ? 'Staff/Employee ID Number'
+                : 'Campus ID / Identification Number';
 
     const sections=[
         {key:'personal',label:'Personal Info',icon:'person'},
@@ -12630,8 +13034,13 @@ function Profile(){
                     <p className="text-sm font-semibold text-[#2563EB]/70 truncate">{user.email}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-2">
                         <span className="inline-block rounded-lg bg-[#2563EB] text-white px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider">
-                            {roleLabel}
+                            {roleBadgeLabel}
                         </span>
+                        {campusRoleLabel&&(
+                            <span className="inline-block rounded-lg bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider">
+                                {campusRoleLabel}
+                            </span>
+                        )}
                         <span className="text-[11px] font-semibold text-[#2563EB]/60">
                             Member since {memberSince}
                         </span>
@@ -12690,6 +13099,89 @@ function Profile(){
                                     />
                                 </div>
                             </div>
+
+                            <div className="grid gap-5 sm:grid-cols-2">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Contact Number</label>
+                                    <InternationalPhoneInput
+                                        id="profile_contact_number"
+                                        value={f.contact_number}
+                                        onChange={val=>setF({...f,contact_number:val})}
+                                        placeholder="Enter contact number"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">
+                                        {user.role==='donor'?'Donor Type / Campus Role':'Beneficiary Type / Campus Role'}
+                                    </label>
+                                    <select
+                                        className="field w-full"
+                                        value={f.campus_role}
+                                        onChange={e=>setF({...f,campus_role:e.target.value})}
+                                    >
+                                        <option value="">Select campus role</option>
+                                        <option value="student">Student</option>
+                                        <option value="faculty">Faculty</option>
+                                        <option value="staff">Staff</option>
+                                        <option value="other">Other</option>
+                                        {user.role==='donor'&&(
+                                            <>
+                                                <option value="alumni">Alumni</option>
+                                                <option value="campus_organization">Campus Organization</option>
+                                            </>
+                                        )}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid gap-5 sm:grid-cols-2">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">
+                                        {idLabel}
+                                    </label>
+                                    <input
+                                        className="field w-full"
+                                        placeholder="Enter your ID number (e.g. 2024-019852)"
+                                        value={f.campus_id}
+                                        onChange={e=>setF({...f,campus_id:e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region</label>
+                                    <input
+                                        className="field w-full"
+                                        placeholder="Enter your country or region"
+                                        value={f.country}
+                                        onChange={e=>setF({...f,country:e.target.value})}
+                                    />
+                                </div>
+                            </div>
+
+                            {f.campus_role==='other'&&(
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">
+                                        {user.role==='donor'?'Specify Donor Type':'Specify Beneficiary Type'}
+                                    </label>
+                                    <input
+                                        className="field w-full"
+                                        placeholder="e.g. Community Donor, Maintenance Staff"
+                                        value={f.other_role_specify}
+                                        onChange={e=>setF({...f,other_role_specify:e.target.value})}
+                                    />
+                                </div>
+                            )}
+
+                            {f.campus_role==='campus_organization'&&(
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Organization Name</label>
+                                    <input
+                                        className="field w-full"
+                                        placeholder="Enter your campus organization name"
+                                        value={f.organization_name}
+                                        onChange={e=>setF({...f,organization_name:e.target.value})}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         <div className="panel p-5 sm:p-6 bg-white space-y-5">
@@ -12741,14 +13233,16 @@ function Profile(){
                                         className="hidden"
                                         onChange={handlePhotoSelect}
                                     />
-                                    {photoPreview&&(
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-bold text-[#22C55E] flex items-center gap-1">
-                                                <Icon name="check" size={12}/>
-                                                New photo selected
-                                            </span>
-                                            <button type="button" className="text-xs font-bold text-[#2563EB] underline" onClick={removePhoto}>
-                                                Remove
+                                    {(photoPreview||user?.profile_photo_url)&&(
+                                        <div className="flex items-center gap-3">
+                                            {photoPreview&&(
+                                                <span className="text-xs font-bold text-[#22C55E] flex items-center gap-1">
+                                                    <Icon name="check" size={12}/>
+                                                    New photo selected
+                                                </span>
+                                            )}
+                                            <button type="button" className="text-xs font-bold text-[#2563EB] underline hover:text-[#2563EB]/80" onClick={removePhoto}>
+                                                Remove photo
                                             </button>
                                         </div>
                                     )}
@@ -12866,13 +13360,18 @@ function Profile(){
                                     {label:'Account ID',value:`#${user.id||'—'}`},
                                     {label:'Full Name',value:user.name||'—'},
                                     {label:'Email Address',value:user.email||'—'},
-                                    {label:'Account Role',value:roleLabel},
+                                    {label:'Contact Number',value:user.contact_number||'Not provided'},
+                                    {label:'Account Type',value:user.role==='beneficiary'?'Request Support (Student Beneficiary)':user.role==='donor'?'Make a Donation (Donor)':title(user.role)},
+                                    {label:'Campus Role',value:user.campus_role?title(user.campus_role):'Standard'},
+                                    {label:idLabel,value:user.campus_id||'N/A',isMono:true},
+                                    {label:'Role Specification',value:user.other_role_specify||user.organization_name||'Standard Registration'},
+                                    {label:'Country / Region',value:user.country||'Campus Resident'},
                                     {label:'Member Since',value:memberSince},
                                     {label:'Account Status',value:'Active',accent:true}
                                 ].map((item,i)=>(
                                     <div key={i} className="bg-[#2563EB]/5 rounded-xl p-4 border border-[#2563EB]/10">
                                         <p className="text-[10px] font-bold uppercase tracking-wider text-[#2563EB]/60 mb-1">{item.label}</p>
-                                        <p className={`text-sm font-extrabold ${item.accent?'text-[#22C55E]':'text-[#2563EB]'}`}>{item.value}</p>
+                                        <p className={`text-sm font-extrabold ${item.accent?'text-[#22C55E]':'text-[#2563EB]'} ${item.isMono?'font-mono':''}`}>{item.value}</p>
                                     </div>
                                 ))}
                             </div>
@@ -14046,7 +14545,6 @@ export default function App(){
 
     return (
         <div className="min-h-screen bg-white lg:flex">
-            <RememberAuthenticatedRoute />
             <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
             <div className="flex flex-1 flex-col min-w-0 min-h-screen">
                 <Header setMobileOpen={setMobileOpen} />

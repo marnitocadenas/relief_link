@@ -206,17 +206,29 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $u->id,
             'password' => 'nullable|min:8|confirmed',
-            'profile_photo' => 'nullable|image|max:2048'
+            'profile_photo' => 'nullable|image|max:2048',
+            'remove_photo' => 'nullable|boolean',
+            'contact_number' => 'nullable|string|max:30',
+            'campus_role' => 'nullable|string|max:50',
+            'campus_id' => 'nullable|string|max:50',
+            'organization_name' => 'nullable|string|max:255',
+            'other_role_specify' => 'nullable|string|max:100',
+            'country' => 'nullable|string|max:100',
         ]);
+
         if ($r->hasFile('profile_photo')) {
             $data['profile_photo_path'] = $r->file('profile_photo')->store('profiles', 'public');
+        } elseif ($r->boolean('remove_photo')) {
+            $data['profile_photo_path'] = null;
         }
+
         if (empty($data['password'])) {
             unset($data['password']);
         } else {
             $data['password'] = Hash::make($data['password']);
         }
-        unset($data['profile_photo']);
+
+        unset($data['profile_photo'], $data['remove_photo']);
         $u->update($data);
         if (isset($data['password'])) $u->tokens()->where('id', '!=', $u->currentAccessToken()?->id)->delete();
         return new UserResource($u->fresh());

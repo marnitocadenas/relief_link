@@ -19,86 +19,290 @@ class ReliefLinkWorkflowTest extends TestCase
     {
         $password = 'Strong!Pass123';
 
+        // Missing campus_role
         $this->postJson('/api/register', [
             'name' => 'Donor User',
             'email' => 'donor-sequence@example.test',
             'role' => 'donor',
-            'contact_number' => '555-0100',
+            'campus_id' => 'ID-001',
+            'contact_number' => '+639171234567',
             'password' => $password,
             'password_confirmation' => $password,
         ])->assertUnprocessable()->assertJsonValidationErrors('campus_role');
 
+        // Missing identification number for Student Donor
         $this->postJson('/api/register', [
-            'name' => 'Donor Organization',
-            'email' => 'donor-organization@example.test',
+            'name' => 'Donor Student Missing ID',
+            'email' => 'donor-student-noid@example.test',
             'role' => 'donor',
-            'campus_role' => 'campus_organization',
-            'contact_number' => '555-0101',
+            'campus_role' => 'student',
+            'contact_number' => '+639171234567',
             'password' => $password,
             'password_confirmation' => $password,
-        ])->assertUnprocessable()->assertJsonValidationErrors('organization_name');
+        ])->assertUnprocessable()->assertJsonValidationErrors('campus_id');
 
+        // Missing other_role_specify for Donor Other
         $this->postJson('/api/register', [
             'name' => 'Donor Other',
             'email' => 'donor-other@example.test',
             'role' => 'donor',
             'campus_role' => 'other',
-            'contact_number' => '555-0102',
+            'campus_id' => 'VALID-ID-01',
+            'contact_number' => '+639171234567',
             'password' => $password,
             'password_confirmation' => $password,
         ])->assertUnprocessable()->assertJsonValidationErrors('other_role_specify');
 
+        // Missing country for International Donor
+        $this->postJson('/api/register', [
+            'name' => 'Intl Donor No Country',
+            'email' => 'donor-intl-nocountry@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Donor',
+            'campus_id' => 'PASS-12345',
+            'contact_number' => '+12025550123',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('country');
+
+        // Missing identification number and other_role_specify for Beneficiary Other
         $this->postJson('/api/register', [
             'name' => 'Beneficiary Other',
             'email' => 'beneficiary-other@example.test',
             'role' => 'beneficiary',
             'campus_role' => 'other',
-            'contact_number' => '555-0103',
+            'contact_number' => '+639171234567',
             'password' => $password,
             'password_confirmation' => $password,
         ])->assertUnprocessable()->assertJsonValidationErrors(['other_role_specify', 'campus_id']);
+
+        // Missing country for International Beneficiary
+        $this->postJson('/api/register', [
+            'name' => 'Intl Beneficiary No Country',
+            'email' => 'ben-intl-nocountry@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Beneficiary',
+            'campus_id' => 'PASS-98765',
+            'contact_number' => '+447911123456',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('country');
     }
 
-    public function test_api_registration_creates_valid_donor_and_beneficiary_accounts(): void
+    public function test_api_registration_creates_all_donor_campus_roles(): void
     {
         $password = 'Strong!Pass123';
 
+        // 1. Student Donor
         $this->postJson('/api/register', [
-            'name' => 'Donor Account',
-            'email' => 'donor-account@example.test',
+            'name' => 'Student Donor',
+            'email' => 'student-donor@example.test',
             'role' => 'donor',
             'campus_role' => 'student',
-            'contact_number' => '555-0200',
+            'campus_id' => 'STU-2026-001',
+            'contact_number' => '+639171234567',
             'password' => $password,
             'password_confirmation' => $password,
         ])->assertCreated();
 
         $this->assertDatabaseHas('users', [
-            'email' => 'donor-account@example.test',
+            'email' => 'student-donor@example.test',
             'role' => 'donor',
             'campus_role' => 'student',
-            'contact_number' => '555-0200',
+            'campus_id' => 'STU-2026-001',
+            'contact_number' => '+639171234567',
         ]);
 
+        // 2. Faculty Donor
         $this->postJson('/api/register', [
-            'name' => 'Beneficiary Account',
-            'email' => 'beneficiary-account@example.test',
-            'role' => 'beneficiary',
-            'campus_role' => 'other',
-            'other_role_specify' => 'Visiting Researcher',
-            'campus_id' => 'BEN-001',
-            'contact_number' => '555-0201',
+            'name' => 'Faculty Donor',
+            'email' => 'faculty-donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'faculty',
+            'campus_id' => 'FAC-2026-002',
+            'contact_number' => '+639171234568',
             'password' => $password,
             'password_confirmation' => $password,
         ])->assertCreated();
 
         $this->assertDatabaseHas('users', [
-            'email' => 'beneficiary-account@example.test',
+            'email' => 'faculty-donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'faculty',
+            'campus_id' => 'FAC-2026-002',
+        ]);
+
+        // 3. Staff Donor
+        $this->postJson('/api/register', [
+            'name' => 'Staff Donor',
+            'email' => 'staff-donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'staff',
+            'campus_id' => 'STAFF-2026-003',
+            'contact_number' => '+639171234569',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'staff-donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'staff',
+            'campus_id' => 'STAFF-2026-003',
+        ]);
+
+        // 4. Other Donor (Alumni)
+        $this->postJson('/api/register', [
+            'name' => 'Alumni Donor',
+            'email' => 'alumni-donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'other_role_specify' => 'Alumni',
+            'campus_id' => 'ALUM-999',
+            'contact_number' => '+639171234570',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'alumni-donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'other_role_specify' => 'Alumni',
+            'campus_id' => 'ALUM-999',
+        ]);
+
+        // 5. International Donor
+        $this->postJson('/api/register', [
+            'name' => 'International Donor User',
+            'email' => 'intl-donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Donor',
+            'country' => 'United States',
+            'campus_id' => 'US-PASSPORT-4455',
+            'contact_number' => '+12025550123',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'intl-donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Donor',
+            'country' => 'United States',
+            'campus_id' => 'US-PASSPORT-4455',
+            'contact_number' => '+12025550123',
+        ]);
+    }
+
+    public function test_api_registration_creates_all_beneficiary_campus_roles(): void
+    {
+        $password = 'Strong!Pass123';
+
+        // 1. Student Beneficiary
+        $this->postJson('/api/register', [
+            'name' => 'Student Beneficiary',
+            'email' => 'student-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'student',
+            'campus_id' => 'BEN-STU-001',
+            'contact_number' => '+639171234571',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'student-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'student',
+            'campus_id' => 'BEN-STU-001',
+        ]);
+
+        // 2. Faculty Beneficiary
+        $this->postJson('/api/register', [
+            'name' => 'Faculty Beneficiary',
+            'email' => 'faculty-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'faculty',
+            'campus_id' => 'BEN-FAC-002',
+            'contact_number' => '+639171234572',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'faculty-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'faculty',
+            'campus_id' => 'BEN-FAC-002',
+        ]);
+
+        // 3. Staff Beneficiary (cleaner, maintenance, security classified as Staff)
+        $this->postJson('/api/register', [
+            'name' => 'Staff Beneficiary',
+            'email' => 'staff-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'staff',
+            'campus_id' => 'BEN-STAFF-003',
+            'contact_number' => '+639171234573',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'staff-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'staff',
+            'campus_id' => 'BEN-STAFF-003',
+        ]);
+
+        // 4. Other Beneficiary (Campus Cleaner / Community)
+        $this->postJson('/api/register', [
+            'name' => 'Cleaner Beneficiary',
+            'email' => 'cleaner-ben@example.test',
             'role' => 'beneficiary',
             'campus_role' => 'other',
-            'other_role_specify' => 'Visiting Researcher',
-            'campus_id' => 'BEN-001',
-            'contact_number' => '555-0201',
+            'other_role_specify' => 'Campus Cleaner',
+            'campus_id' => 'CLEAN-ID-101',
+            'contact_number' => '+639171234574',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'cleaner-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'other',
+            'other_role_specify' => 'Campus Cleaner',
+            'campus_id' => 'CLEAN-ID-101',
+        ]);
+
+        // 5. International Beneficiary
+        $this->postJson('/api/register', [
+            'name' => 'International Beneficiary User',
+            'email' => 'intl-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Beneficiary',
+            'country' => 'Japan',
+            'campus_id' => 'JP-RES-7788',
+            'contact_number' => '+819012345678',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'intl-ben@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Beneficiary',
+            'country' => 'Japan',
+            'campus_id' => 'JP-RES-7788',
+            'contact_number' => '+819012345678',
         ]);
     }
 
@@ -479,8 +683,185 @@ class ReliefLinkWorkflowTest extends TestCase
         $this->postJson('/api/register', [
             'name' => 'Blocked User', 'email' => 'blocked@example.test', 'role' => 'donor',
             'campus_role' => 'student',
-            'contact_number' => '1234567890',
+            'campus_id' => 'STU-BLOCKED-01',
+            'contact_number' => '+639171234567',
             'password' => 'Strong!Pass123', 'password_confirmation' => 'Strong!Pass123',
         ])->assertForbidden();
     }
+
+    public function test_registration_negative_validation_cases(): void
+    {
+        $password = 'Strong!Pass123';
+
+        // 1. Empty Full Name
+        $this->postJson('/api/register', [
+            'name' => '',
+            'email' => 'empty-name@example.test',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'campus_id' => 'STU-123',
+            'contact_number' => '+639171234567',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('name');
+
+        // 2. Invalid Role (e.g. attempting to self-register as admin)
+        $this->postJson('/api/register', [
+            'name' => 'Admin Exploiter',
+            'email' => 'admin-exploit@example.test',
+            'role' => 'admin',
+            'campus_role' => 'staff',
+            'campus_id' => 'ADMIN-001',
+            'contact_number' => '+639171234567',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('role');
+
+        // 3. Invalid Email Format
+        $this->postJson('/api/register', [
+            'name' => 'Bad Email User',
+            'email' => 'not-an-email',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'campus_id' => 'STU-123',
+            'contact_number' => '+639171234567',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
+
+        // 4. Duplicate Email
+        User::factory()->create(['email' => 'existing@example.test']);
+        $this->postJson('/api/register', [
+            'name' => 'Duplicate User',
+            'email' => 'existing@example.test',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'campus_id' => 'STU-124',
+            'contact_number' => '+639171234567',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
+
+        // 5. Password Mismatch
+        $this->postJson('/api/register', [
+            'name' => 'Mismatch User',
+            'email' => 'mismatch@example.test',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'campus_id' => 'STU-125',
+            'contact_number' => '+639171234567',
+            'password' => 'Strong!Pass123',
+            'password_confirmation' => 'Different!Pass123',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password');
+
+        // 6. Weak Password (missing special character)
+        $this->postJson('/api/register', [
+            'name' => 'Weak Pass User',
+            'email' => 'weakpass@example.test',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'campus_id' => 'STU-126',
+            'contact_number' => '+639171234567',
+            'password' => 'PlainPassword123',
+            'password_confirmation' => 'PlainPassword123',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password');
+    }
+
+    public function test_end_to_end_registration_to_profile_to_admin_user_management_flow(): void
+    {
+        // 1. Create Account / Registration
+        $regPassword = 'Secure!PassWord2026';
+        $regResponse = $this->postJson('/api/register', [
+            'name' => 'John Doe',
+            'email' => 'john.doe@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'student',
+            'campus_id' => '2024-019852',
+            'contact_number' => '+639123456789',
+            'password' => $regPassword,
+            'password_confirmation' => $regPassword,
+        ]);
+
+        $regResponse->assertCreated()
+            ->assertJsonPath('user.name', 'John Doe')
+            ->assertJsonPath('user.email', 'john.doe@example.test')
+            ->assertJsonPath('user.role', 'beneficiary')
+            ->assertJsonPath('user.campus_role', 'student')
+            ->assertJsonPath('user.campus_id', '2024-019852')
+            ->assertJsonPath('user.contact_number', '+639123456789');
+
+        $user = User::where('email', 'john.doe@example.test')->firstOrFail();
+        $this->assertSame('John Doe', $user->name);
+        $this->assertSame('beneficiary', $user->role);
+        $this->assertSame('student', $user->campus_role);
+        $this->assertSame('2024-019852', $user->campus_id);
+        $this->assertSame('+639123456789', $user->contact_number);
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check($regPassword, $user->password));
+
+        // 2. Beneficiary Profile Retrieval
+        Sanctum::actingAs($user);
+        $profileResponse = $this->getJson('/api/user');
+        $profileResponse->assertOk()
+            ->assertJsonPath('data.name', 'John Doe')
+            ->assertJsonPath('data.email', 'john.doe@example.test')
+            ->assertJsonPath('data.role', 'beneficiary')
+            ->assertJsonPath('data.campus_role', 'student')
+            ->assertJsonPath('data.campus_id', '2024-019852')
+            ->assertJsonPath('data.contact_number', '+639123456789');
+
+        // 3. Beneficiary Profile Update
+        $updateProfileResponse = $this->postJson('/api/profile', [
+            'name' => 'John A. Doe',
+            'email' => 'john.doe@example.test',
+            'contact_number' => '+639998887777',
+            'campus_role' => 'student',
+            'campus_id' => '2024-019852-B',
+        ]);
+
+        $updateProfileResponse->assertOk()
+            ->assertJsonPath('data.name', 'John A. Doe')
+            ->assertJsonPath('data.contact_number', '+639998887777')
+            ->assertJsonPath('data.campus_id', '2024-019852-B');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'John A. Doe',
+            'contact_number' => '+639998887777',
+            'campus_id' => '2024-019852-B',
+        ]);
+
+        // 4. Admin User Management View
+        $admin = User::factory()->create(['role' => 'admin']);
+        Sanctum::actingAs($admin);
+
+        $adminUsersResponse = $this->getJson('/api/admin/users');
+        $adminUsersResponse->assertOk();
+        $beneficiaryInList = collect($adminUsersResponse->json('data'))->firstWhere('id', $user->id);
+        $this->assertNotNull($beneficiaryInList);
+        $this->assertSame('John A. Doe', $beneficiaryInList['name']);
+        $this->assertSame('john.doe@example.test', $beneficiaryInList['email']);
+        $this->assertSame('beneficiary', $beneficiaryInList['role']);
+        $this->assertSame('student', $beneficiaryInList['campus_role']);
+        $this->assertSame('2024-019852-B', $beneficiaryInList['campus_id']);
+        $this->assertSame('+639998887777', $beneficiaryInList['contact_number']);
+
+        // 5. Admin updates user record
+        $this->patchJson('/api/admin/users/' . $user->id, [
+            'name' => 'John A. Doe Jr.',
+            'contact_number' => '+639112223344',
+            'campus_id' => '2024-019852-C',
+        ])->assertOk()
+            ->assertJsonPath('data.name', 'John A. Doe Jr.')
+            ->assertJsonPath('data.contact_number', '+639112223344')
+            ->assertJsonPath('data.campus_id', '2024-019852-C');
+
+        // 6. Beneficiary checks Profile again (Single Source of Truth)
+        Sanctum::actingAs($user->fresh());
+        $this->getJson('/api/user')
+            ->assertOk()
+            ->assertJsonPath('data.name', 'John A. Doe Jr.')
+            ->assertJsonPath('data.contact_number', '+639112223344')
+            ->assertJsonPath('data.campus_id', '2024-019852-C');
+    }
 }
+
