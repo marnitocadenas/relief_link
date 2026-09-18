@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\{
 };
 
 Route::post('register', [AuthController::class, 'register']);
+Route::post('register/check-availability', [AuthController::class, 'checkRegistrationAvailability'])
+    ->middleware('throttle:30,1');
 Route::post('login', [AuthController::class, 'login']);
 
 // OTP Password Reset Routes

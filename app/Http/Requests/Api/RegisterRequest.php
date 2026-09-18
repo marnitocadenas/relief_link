@@ -2,12 +2,76 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use libphonenumber\PhoneNumberUtil;
+use libphonenumber\PhoneNumberFormat;
+use libphonenumber\NumberParseException;
 
 class RegisterRequest extends FormRequest
 {
+    private static array $countryToIso = [
+        'philippines' => 'PH',
+        'ph' => 'PH',
+        'united states' => 'US',
+        'us' => 'US',
+        'usa' => 'US',
+        'canada' => 'CA',
+        'ca' => 'CA',
+        'united kingdom' => 'GB',
+        'uk' => 'GB',
+        'gb' => 'GB',
+        'australia' => 'AU',
+        'au' => 'AU',
+        'japan' => 'JP',
+        'jp' => 'JP',
+        'south korea' => 'KR',
+        'kr' => 'KR',
+        'singapore' => 'SG',
+        'sg' => 'SG',
+        'united arab emirates' => 'AE',
+        'uae' => 'AE',
+        'ae' => 'AE',
+        'saudi arabia' => 'SA',
+        'sa' => 'SA',
+        'germany' => 'DE',
+        'de' => 'DE',
+        'france' => 'FR',
+        'fr' => 'FR',
+        'italy' => 'IT',
+        'it' => 'IT',
+        'spain' => 'ES',
+        'es' => 'ES',
+        'india' => 'IN',
+        'in' => 'IN',
+        'china' => 'CN',
+        'cn' => 'CN',
+        'new zealand' => 'NZ',
+        'nz' => 'NZ',
+        'qatar' => 'QA',
+        'qa' => 'QA',
+        'kuwait' => 'KW',
+        'kw' => 'KW',
+        'malaysia' => 'MY',
+        'my' => 'MY',
+        'indonesia' => 'ID',
+        'id' => 'ID',
+        'thailand' => 'TH',
+        'th' => 'TH',
+        'vietnam' => 'VN',
+        'vn' => 'VN',
+        'hong kong' => 'HK',
+        'hk' => 'HK',
+        'taiwan' => 'TW',
+        'tw' => 'TW',
+        'brazil' => 'BR',
+        'br' => 'BR',
+        'mexico' => 'MX',
+        'mx' => 'MX',
+    ];
+
     public function authorize(): bool
     {
         return true;
@@ -15,17 +79,58 @@ class RegisterRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $countryInput = trim((string) $this->input('country', ''));
+        $contactRaw = self::normalizeContactNumber((string) $this->input('contact_number', ''), $countryInput);
+
         $this->merge([
-            'name' => trim((string) $this->input('name', '')),
-            'email' => trim((string) $this->input('email', '')),
+            'name' => self::normalizeName((string) $this->input('name', '')),
+            // Store one canonical form so an address cannot be registered again
+            // merely by changing its letter case.
+            'email' => self::normalizeEmail((string) $this->input('email', '')),
             'role' => trim((string) $this->input('role', '')),
             'campus_role' => trim((string) $this->input('campus_role', '')),
-            'contact_number' => trim((string) $this->input('contact_number', '')),
-            'campus_id' => trim((string) $this->input('campus_id', '')),
+            'contact_number' => $contactRaw,
+            'campus_id' => self::normalizeId((string) $this->input('campus_id', '')),
             'organization_name' => trim((string) $this->input('organization_name', '')),
             'other_role_specify' => trim((string) $this->input('other_role_specify', '')),
-            'country' => trim((string) $this->input('country', '')),
+            'country' => $countryInput,
         ]);
+    }
+
+    public static function normalizeName(string $value): string
+    {
+        return preg_replace('/\s+/', ' ', trim($value)) ?? '';
+    }
+
+    public static function normalizeEmail(string $value): string
+    {
+        return strtolower(trim($value));
+    }
+
+    public static function normalizeId(string $value): string
+    {
+        return strtoupper(trim($value));
+    }
+
+    public static function normalizeContactNumber(string $value, string $country = ''): string
+    {
+        $value = trim($value);
+        if ($value === '') return '';
+
+        $region = self::$countryToIso[strtolower(trim($country))] ?? 'PH';
+        try {
+            $phoneUtil = PhoneNumberUtil::getInstance();
+            $number = str_starts_with($value, '+')
+                ? $phoneUtil->parse($value, null)
+                : $phoneUtil->parse($value, $region);
+            if ($phoneUtil->isValidNumber($number)) {
+                return $phoneUtil->format($number, PhoneNumberFormat::E164);
+            }
+        } catch (\Throwable) {
+            // The normal validation rule will return the user-facing error.
+        }
+
+        return $value;
     }
 
     public function rules(): array
@@ -35,7 +140,14 @@ class RegisterRequest extends FormRequest
         );
 
         return [
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required', 'string', 'max:255',
+                function ($attribute, $value, $fail) {
+                    if (User::query()->whereRaw('LOWER(name) = ?', [strtolower($value)])->exists()) {
+                        $fail('This name is already taken.');
+                    }
+                },
+            ],
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/'],
             'role' => ['required', Rule::in(['donor', 'beneficiary', 'staff'])],
             'campus_role' => [
@@ -50,7 +162,7 @@ class RegisterRequest extends FormRequest
                             $fail('Invalid donor type selected.');
                         }
                     } elseif ($this->role === 'beneficiary') {
-                        $allowed = ['student', 'faculty', 'staff', 'other'];
+                        $allowed = ['student', 'faculty', 'staff'];
                         if (!in_array($normalized, $allowed, true)) {
                             $fail('Invalid beneficiary type selected.');
                         }
@@ -61,6 +173,7 @@ class RegisterRequest extends FormRequest
                 Rule::requiredIf(fn () => in_array($this->role, ['donor', 'beneficiary'], true)),
                 'string',
                 'max:50',
+                'unique:users,campus_id',
             ],
             'other_role_specify' => [
                 'required_if:campus_role,other',
@@ -84,7 +197,25 @@ class RegisterRequest extends FormRequest
                 'required',
                 'string',
                 'max:30',
-                'regex:/^\+?[0-9\s\-\(\)\.]{7,25}$/',
+                'unique:users,contact_number',
+                function ($attribute, $value, $fail) {
+                    $phoneUtil = PhoneNumberUtil::getInstance();
+                    $countryInput = trim((string) $this->input('country', ''));
+                    $region = self::$countryToIso[strtolower($countryInput)] ?? 'PH';
+
+                    try {
+                        $numberProto = str_starts_with($value, '+')
+                            ? $phoneUtil->parse($value, null)
+                            : $phoneUtil->parse($value, $region);
+
+                        if (!$phoneUtil->isValidNumber($numberProto)) {
+                            $fail('Please enter a valid mobile number for the selected country.');
+                            return;
+                        }
+                    } catch (NumberParseException) {
+                        $fail('Please enter a valid mobile number for the selected country.');
+                    }
+                },
             ],
             'password' => [
                 'required',
@@ -130,18 +261,22 @@ class RegisterRequest extends FormRequest
 
     public function messages(): array
     {
-        $idLabel = 'Identification Number';
+        $idLabel = 'Valid ID Number';
         if ($this->campus_role === 'student') {
             $idLabel = 'Student ID Number';
         } elseif ($this->campus_role === 'faculty') {
             $idLabel = 'Faculty/Employee ID Number';
         } elseif ($this->campus_role === 'staff') {
             $idLabel = 'Staff/Employee ID Number';
-        } elseif ($this->campus_role === 'other') {
+        } else {
             $idLabel = 'Valid ID Number';
         }
 
         return [
+            'name.unique' => 'This name is already taken.',
+            'email.unique' => 'This email address is already taken.',
+            'contact_number.unique' => 'This contact number is already taken.',
+            'campus_id.unique' => 'This ID number is already taken.',
             'campus_role.required' => 'Campus role is required.',
             'campus_id.required' => "{$idLabel} is required.",
             'campus_id.required_if' => "{$idLabel} is required.",
@@ -152,7 +287,6 @@ class RegisterRequest extends FormRequest
             'country.required_if' => 'Country is required for international registration.',
             'organization_name.required_if' => 'Organization name is required for campus organizations.',
             'contact_number.required' => 'Contact number is required.',
-            'contact_number.regex' => 'Please enter a valid international contact number.',
             'email.regex' => 'Please enter a valid email address.',
             'password' => 'The password must contain an allowed special character.',
         ];

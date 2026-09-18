@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Arr;
 use App\Services\SystemSettings;
 
 class AuthController extends Controller
@@ -19,16 +23,71 @@ class AuthController extends Controller
     public function register(RegisterRequest $r)
     {
         abort_unless(SystemSettings::get('allow_self_registration'), 403, 'Self-registration is currently disabled. Please contact an administrator.');
-        $u = User::create([
-            ...$r->validated(),
-            'password' => Hash::make($r->password),
-            'email_verified_at' => now(),
-            'remember_token' => \Illuminate\Support\Str::random(10),
-        ]);
+        try {
+            $u = DB::transaction(function () use ($r) {
+                return User::create([
+                    ...Arr::except($r->validated(), ['password', 'password_confirmation']),
+                    'password' => Hash::make($r->password),
+                    'email_verified_at' => now(),
+                    'remember_token' => \Illuminate\Support\Str::random(10),
+                ]);
+            });
+        } catch (QueryException $exception) {
+            // Unique indexes remain the final authority if two requests pass
+            // validation at the same time.
+            $message = strtolower($exception->getMessage());
+            $field = str_contains($message, 'campus_id') ? 'campus_id'
+                : (str_contains($message, 'contact_number') ? 'contact_number' : 'email');
+            $messages = [
+                'email' => 'This email address is already taken.',
+                'contact_number' => 'This contact number is already taken.',
+                'campus_id' => 'This ID number is already taken.',
+            ];
+            throw ValidationException::withMessages([$field => $messages[$field]]);
+        }
         return response()->json([
             'user' => new UserResource($u),
             'token' => $u->createToken('react-spa')->plainTextToken
         ], 201);
+    }
+
+    /** Return database-backed availability for one registration identity field. */
+    public function checkRegistrationAvailability(Request $r)
+    {
+        $data = $r->validate([
+            'field' => ['required', 'in:name,email,contact_number,campus_id'],
+            'value' => ['required', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $field = $data['field'];
+        $value = $data['value'];
+        if ($field === 'name') {
+            $value = RegisterRequest::normalizeName($value);
+            $exists = User::query()->whereRaw('LOWER(name) = ?', [strtolower($value)])->exists();
+            $message = 'This name is already taken.';
+        } elseif ($field === 'email') {
+            $value = RegisterRequest::normalizeEmail($value);
+            $exists = User::query()->where('email', $value)->exists();
+            $message = 'This email address is already taken.';
+        } elseif ($field === 'campus_id') {
+            $value = RegisterRequest::normalizeId($value);
+            $exists = User::query()->where('campus_id', $value)->exists();
+            $message = 'This ID number is already taken.';
+        } else {
+            // The registration request stores valid phone numbers in E.164.
+            // Normalize here as well, so this endpoint treats equivalent local
+            // formats exactly as the final registration request does.
+            $value = RegisterRequest::normalizeContactNumber($value, $data['country'] ?? '');
+            $exists = User::query()->where('contact_number', $value)->exists();
+            $message = 'This contact number is already taken.';
+        }
+
+        return response()->json([
+            'field' => $field,
+            'available' => ! $exists,
+            'message' => $exists ? $message : null,
+        ]);
     }
 
     public function login(Request $r)

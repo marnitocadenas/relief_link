@@ -569,18 +569,18 @@ const BENEFICIARY_OTHER_PRESETS = [
     'Other Approved Beneficiary',
 ];
 
-const getIdLabel = (campusRole) => {
+const getIdLabel = (campusRole, role) => {
     if (campusRole === 'student') return 'Student ID Number';
     if (campusRole === 'faculty') return 'Faculty/Employee ID Number';
     if (campusRole === 'staff') return 'Staff/Employee ID Number';
-    return 'Campus ID';
+    return 'Valid ID Number';
 };
 
-const getIdPlaceholder = (campusRole) => {
+const getIdPlaceholder = (campusRole, role) => {
     if (campusRole === 'student') return 'Enter your Student ID Number (e.g., 2026-12345)';
     if (campusRole === 'faculty') return 'Enter your faculty/employee ID number';
     if (campusRole === 'staff') return 'Enter your staff/employee ID number';
-    return 'Enter your campus ID number';
+    return 'Enter your valid ID number';
 };
 
 function Auth({ register = false }) {
@@ -604,6 +604,13 @@ function Auth({ register = false }) {
         organization_name: '',
     });
     const [isPhoneValid, setIsPhoneValid] = useState(false);
+    // Each state is sourced from Laravel, never from a local list of accounts.
+    const [uniqueness, setUniqueness] = useState({
+        name: { status: 'idle', message: '' },
+        campus_id: { status: 'idle', message: '' },
+        contact_number: { status: 'idle', message: '' },
+        email: { status: 'idle', message: '' },
+    });
 
     // Password Visibility Toggles
     const [showPassword, setShowPassword] = useState(false);
@@ -662,7 +669,9 @@ function Auth({ register = false }) {
         && nameTrimmed.length >= 3
         && nameTrimmed.length <= 255;
     const regRoleValid = ['donor', 'beneficiary'].includes(f.role);
-    const regCampusRoleValid = ['student', 'faculty', 'staff', 'other'].includes(f.campus_role);
+    const regCampusRoleValid = f.role === 'beneficiary'
+        ? ['student', 'faculty', 'staff'].includes(f.campus_role)
+        : ['student', 'faculty', 'staff', 'other'].includes(f.campus_role);
 
     const isOther = f.campus_role === 'other';
     const regOtherSpecifyValid = !isOther || ((f.other_role_specify || '').trim() !== '' && (f.other_role_specify || '').trim().length <= 100);
@@ -676,21 +685,33 @@ function Auth({ register = false }) {
     const regIdValid = regIdTrimmed.length >= 3 && regIdTrimmed.length <= 50;
 
     const regContactNumber = f.contact_number || '';
-    const regContactValid = regContactNumber.trim().length >= 7 && (isPhoneValid || /^\+?[0-9\s\-()]{7,25}$/.test(regContactNumber.trim()));
+    const regContactValid = isPhoneValid === true && regContactNumber.trim().length >= 7;
 
     const regEmailValid = regEmailStr.trim() !== ''
         && regEmailStr.trim().length <= 255
         && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmailStr.trim());
 
+    const duplicateCandidates = {
+        name: regNameValid ? nameTrimmed : '',
+        campus_id: (regCampusRoleValid && regConditionalValid && regIdValid) ? regIdTrimmed : '',
+        contact_number: regContactValid ? regContactNumber.trim() : '',
+        email: regEmailValid ? regEmailStr.trim() : '',
+    };
+    const duplicateCandidateKey = JSON.stringify(duplicateCandidates);
+    const regNameAvailable = uniqueness.name.status === 'available';
+    const regIdAvailable = uniqueness.campus_id.status === 'available';
+    const regContactAvailable = uniqueness.contact_number.status === 'available';
+    const regEmailAvailable = uniqueness.email.status === 'available';
+
     // Strict Sequential Field Progression Gates
-    const regCanUseRole = regNameValid;
+    const regCanUseRole = regNameValid && regNameAvailable;
     const regCanUseCampusRole = regCanUseRole && regRoleValid;
     const regCanUseOtherSpecify = regCanUseCampusRole && isOther;
     const regCanUseCountry = regCanUseOtherSpecify && isInternational && regOtherSpecifyValid;
     const regCanUseId = regCanUseCampusRole && regCampusRoleValid && regConditionalValid;
-    const regCanUseContact = regCanUseId && regIdValid;
-    const regCanUseEmail = regCanUseContact && regContactValid;
-    const regCanUsePassword = regCanUseEmail && regEmailValid;
+    const regCanUseContact = regCanUseId && regIdValid && regIdAvailable;
+    const regCanUseEmail = regCanUseContact && regContactValid && regContactAvailable;
+    const regCanUsePassword = regCanUseEmail && regEmailValid && regEmailAvailable;
     const regCanUseConfirm = regCanUsePassword && regIsPasswordValid;
     const regIsFormValid = regCanUseConfirm && regMatchesConfirm;
 
@@ -699,6 +720,64 @@ function Auth({ register = false }) {
             ...prev,
             name: e.target.value,
         }));
+    };
+
+    // Debounce real-time identity checks so every completed field is verified by
+    // the API, while typing stays responsive. Cancelling stale responses avoids
+    // an older value overwriting the state of a newer value.
+    useEffect(() => {
+        const candidates = JSON.parse(duplicateCandidateKey);
+        let cancelled = false;
+        const fields = Object.keys(candidates);
+
+        setUniqueness((previous) => {
+            const next = { ...previous };
+            fields.forEach((field) => {
+                const value = candidates[field];
+                const old = previous[field];
+                if (!value) next[field] = { status: 'idle', message: '' };
+                else if (old.checkedValue !== value) next[field] = { status: 'checking', message: '', checkedValue: value };
+            });
+            return next;
+        });
+
+        const timer = setTimeout(async () => {
+            await Promise.all(fields.filter((field) => candidates[field]).map(async (field) => {
+                const value = candidates[field];
+                try {
+                    const { data } = await api.post('/register/check-availability', { field, value, country: f.country });
+                    if (!cancelled) {
+                        setUniqueness((previous) => ({
+                            ...previous,
+                            [field]: { status: data.available ? 'available' : 'taken', message: data.message || '', checkedValue: value },
+                        }));
+                    }
+                } catch (requestError) {
+                    if (!cancelled) {
+                        const message = requestError.response?.data?.errors?.value?.[0]
+                            || 'Could not verify this value. Please try again.';
+                        setUniqueness((previous) => ({
+                            ...previous,
+                            [field]: { status: 'error', message, checkedValue: value },
+                        }));
+                    }
+                }
+            }));
+        }, 400);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [duplicateCandidateKey]);
+
+    const renderDuplicateStatus = (field) => {
+        const state = uniqueness[field];
+        if (!state || state.status === 'idle' || state.status === 'available') return null;
+        if (state.status === 'checking') {
+            return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availability…</p>;
+        }
+        return <p className="mt-1 text-[11px] font-semibold text-red-600">{state.message}</p>;
     };
 
     const handleRegistrationRoleChange = (e) => {
@@ -711,6 +790,7 @@ function Auth({ register = false }) {
             campus_id: '',
             organization_name: '',
         }));
+        setUniqueness((previous) => ({ ...previous, campus_id: { status: 'idle', message: '' }, contact_number: { status: 'idle', message: '' }, email: { status: 'idle', message: '' } }));
     };
 
     const handleRegistrationCampusRoleChange = (e) => {
@@ -722,6 +802,7 @@ function Auth({ register = false }) {
             campus_id: '',
             organization_name: '',
         }));
+        setUniqueness((previous) => ({ ...previous, campus_id: { status: 'idle', message: '' }, contact_number: { status: 'idle', message: '' }, email: { status: 'idle', message: '' } }));
     };
 
     const handleRegistrationOtherSpecifyChange = (val) => {
@@ -892,6 +973,22 @@ function Auth({ register = false }) {
             }
             navigate(getRoleDashboard(u.role), { replace: true });
         } catch (e) {
+            const validationErrors = e.response?.data?.errors;
+            if (mode === 'register' && validationErrors) {
+                const messages = {
+                    name: validationErrors.name?.[0],
+                    campus_id: validationErrors.campus_id?.[0],
+                    contact_number: validationErrors.contact_number?.[0],
+                    email: validationErrors.email?.[0],
+                };
+                setUniqueness((previous) => {
+                    const next = { ...previous };
+                    Object.entries(messages).forEach(([field, message]) => {
+                        if (message) next[field] = { status: 'taken', message, checkedValue: f[field] };
+                    });
+                    return next;
+                });
+            }
             setError(e.response?.data?.message || 'Unable to authenticate. Please check your credentials.');
         } finally {
             setLoading(false);
@@ -1246,7 +1343,7 @@ function Auth({ register = false }) {
                                         required
                                         type="text"
                                         placeholder="Enter your first name and last name"
-                                        className="field mt-1 text-xs py-2 font-semibold"
+                                        className={`field mt-1 text-xs py-2 font-semibold ${uniqueness.name.status === 'taken' || uniqueness.name.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                                         value={f.name}
                                         onChange={handleRegistrationNameChange}
                                         maxLength={255}
@@ -1256,6 +1353,7 @@ function Auth({ register = false }) {
                                             Please enter both your first name and last name (e.g., Juan Dela Cruz).
                                         </p>
                                     )}
+                                    {renderDuplicateStatus('name')}
                                 </div>
 
                                 <div>
@@ -1270,8 +1368,8 @@ function Auth({ register = false }) {
                                         disabled={!regCanUseRole}
                                         required
                                     >
-                                        <option value="">Select account type</option>
-                                        <option value="beneficiary">Request Support (Student Beneficiary)</option>
+                                        <option value="" disabled hidden>Select account type</option>
+                                        <option value="beneficiary">Request Support (Beneficiary)</option>
                                         <option value="donor">Make a Donation (Donor)</option>
                                     </select>
                                 </div>
@@ -1293,11 +1391,11 @@ function Auth({ register = false }) {
                                         disabled={!regCanUseCampusRole}
                                         required
                                     >
-                                        <option value="">Select your campus role</option>
+                                        <option value="" disabled hidden>Select your campus role</option>
                                         <option value="student">Student</option>
                                         <option value="faculty">Faculty</option>
                                         <option value="staff">Staff</option>
-                                        <option value="other">Other</option>
+                                        {f.role !== 'beneficiary' && <option value="other">Other</option>}
                                     </select>
                                 </div>
 
@@ -1366,22 +1464,25 @@ function Auth({ register = false }) {
                                     </div>
                                 )}
 
-                                <div>
-                                    <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">
-                                        {getIdLabel(f.campus_role)} <span className="text-[#22C55E]">*</span>
-                                    </label>
-                                    <input
-                                        id="reg_campus_id"
-                                        type="text"
-                                        placeholder={getIdPlaceholder(f.campus_role)}
-                                        className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseId ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                        value={f.campus_id}
-                                        onChange={handleRegistrationIdChange}
-                                        disabled={!regCanUseId}
-                                        maxLength={50}
-                                        required
-                                    />
-                                </div>
+                                {Boolean(f.campus_role) && (
+                                    <div>
+                                        <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">
+                                            {getIdLabel(f.campus_role, f.role)} <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            id="reg_campus_id"
+                                            type="text"
+                                            placeholder={getIdPlaceholder(f.campus_role, f.role)}
+                                            className={`field mt-1 text-xs py-2 font-semibold ${uniqueness.campus_id.status === 'taken' || uniqueness.campus_id.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''} ${!regCanUseId ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                            value={f.campus_id}
+                                            onChange={handleRegistrationIdChange}
+                                            disabled={!regCanUseId}
+                                            maxLength={50}
+                                            required
+                                        />
+                                        {renderDuplicateStatus('campus_id')}
+                                    </div>
+                                )}
 
                                 <div>
                                     <label htmlFor="reg_contact_number" className="block text-xs font-bold text-[#2563EB]">
@@ -1394,6 +1495,7 @@ function Auth({ register = false }) {
                                         disabled={!regCanUseContact}
                                         placeholder="Enter contact number"
                                     />
+                                    {renderDuplicateStatus('contact_number')}
                                 </div>
 
                                 <div>
@@ -1405,12 +1507,13 @@ function Auth({ register = false }) {
                                         required
                                         type="email"
                                         placeholder="Enter your email address"
-                                        className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseEmail ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                        className={`field mt-1 text-xs py-2 font-semibold ${uniqueness.email.status === 'taken' || uniqueness.email.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''} ${!regCanUseEmail ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                         value={f.email}
                                         onChange={handleRegistrationEmailChange}
                                         disabled={!regCanUseEmail}
                                         maxLength={255}
                                     />
+                                    {renderDuplicateStatus('email')}
                                 </div>
 
                                 <div>
@@ -12962,7 +13065,7 @@ function Profile(){
             ? 'Faculty/Employee ID Number'
             : f.campus_role === 'staff'
                 ? 'Staff/Employee ID Number'
-                : 'Campus ID / Identification Number';
+                : 'Valid ID Number';
 
     const sections=[
         {key:'personal',label:'Personal Info',icon:'person'},
@@ -13361,7 +13464,7 @@ function Profile(){
                                     {label:'Full Name',value:user.name||'—'},
                                     {label:'Email Address',value:user.email||'—'},
                                     {label:'Contact Number',value:user.contact_number||'Not provided'},
-                                    {label:'Account Type',value:user.role==='beneficiary'?'Request Support (Student Beneficiary)':user.role==='donor'?'Make a Donation (Donor)':title(user.role)},
+                                    {label:'Account Type',value:user.role==='beneficiary'?'Request Support (Beneficiary)':user.role==='donor'?'Make a Donation (Donor)':title(user.role)},
                                     {label:'Campus Role',value:user.campus_role?title(user.campus_role):'Standard'},
                                     {label:idLabel,value:user.campus_id||'N/A',isMono:true},
                                     {label:'Role Specification',value:user.other_role_specify||user.organization_name||'Standard Registration'},

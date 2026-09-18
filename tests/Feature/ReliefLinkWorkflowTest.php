@@ -30,10 +30,10 @@ class ReliefLinkWorkflowTest extends TestCase
             'password_confirmation' => $password,
         ])->assertUnprocessable()->assertJsonValidationErrors('campus_role');
 
-        // Missing identification number for Student Donor
+        // Missing campus_id
         $this->postJson('/api/register', [
-            'name' => 'Donor Student Missing ID',
-            'email' => 'donor-student-noid@example.test',
+            'name' => 'Donor User',
+            'email' => 'donor-sequence@example.test',
             'role' => 'donor',
             'campus_role' => 'student',
             'contact_number' => '+639171234567',
@@ -66,29 +66,18 @@ class ReliefLinkWorkflowTest extends TestCase
             'password_confirmation' => $password,
         ])->assertUnprocessable()->assertJsonValidationErrors('country');
 
-        // Missing identification number and other_role_specify for Beneficiary Other
+        // Beneficiary Other is rejected as invalid beneficiary type
         $this->postJson('/api/register', [
             'name' => 'Beneficiary Other',
             'email' => 'beneficiary-other@example.test',
             'role' => 'beneficiary',
             'campus_role' => 'other',
+            'other_role_specify' => 'Campus Cleaner',
+            'campus_id' => 'PASS-98765',
             'contact_number' => '+639171234567',
             'password' => $password,
             'password_confirmation' => $password,
-        ])->assertUnprocessable()->assertJsonValidationErrors(['other_role_specify', 'campus_id']);
-
-        // Missing country for International Beneficiary
-        $this->postJson('/api/register', [
-            'name' => 'Intl Beneficiary No Country',
-            'email' => 'ben-intl-nocountry@example.test',
-            'role' => 'beneficiary',
-            'campus_role' => 'other',
-            'other_role_specify' => 'International Beneficiary',
-            'campus_id' => 'PASS-98765',
-            'contact_number' => '+447911123456',
-            'password' => $password,
-            'password_confirmation' => $password,
-        ])->assertUnprocessable()->assertJsonValidationErrors('country');
+        ])->assertUnprocessable()->assertJsonValidationErrors('campus_role');
     }
 
     public function test_api_registration_creates_all_donor_campus_roles(): void
@@ -260,7 +249,7 @@ class ReliefLinkWorkflowTest extends TestCase
             'campus_id' => 'BEN-STAFF-003',
         ]);
 
-        // 4. Other Beneficiary (Campus Cleaner / Community)
+        // 4. Beneficiary with Other campus_role is rejected
         $this->postJson('/api/register', [
             'name' => 'Cleaner Beneficiary',
             'email' => 'cleaner-ben@example.test',
@@ -271,39 +260,7 @@ class ReliefLinkWorkflowTest extends TestCase
             'contact_number' => '+639171234574',
             'password' => $password,
             'password_confirmation' => $password,
-        ])->assertCreated();
-
-        $this->assertDatabaseHas('users', [
-            'email' => 'cleaner-ben@example.test',
-            'role' => 'beneficiary',
-            'campus_role' => 'other',
-            'other_role_specify' => 'Campus Cleaner',
-            'campus_id' => 'CLEAN-ID-101',
-        ]);
-
-        // 5. International Beneficiary
-        $this->postJson('/api/register', [
-            'name' => 'International Beneficiary User',
-            'email' => 'intl-ben@example.test',
-            'role' => 'beneficiary',
-            'campus_role' => 'other',
-            'other_role_specify' => 'International Beneficiary',
-            'country' => 'Japan',
-            'campus_id' => 'JP-RES-7788',
-            'contact_number' => '+819012345678',
-            'password' => $password,
-            'password_confirmation' => $password,
-        ])->assertCreated();
-
-        $this->assertDatabaseHas('users', [
-            'email' => 'intl-ben@example.test',
-            'role' => 'beneficiary',
-            'campus_role' => 'other',
-            'other_role_specify' => 'International Beneficiary',
-            'country' => 'Japan',
-            'campus_id' => 'JP-RES-7788',
-            'contact_number' => '+819012345678',
-        ]);
+        ])->assertUnprocessable()->assertJsonValidationErrors('campus_role');
     }
 
     public function test_core_relief_workflow_updates_all_connected_records(): void
@@ -765,6 +722,29 @@ class ReliefLinkWorkflowTest extends TestCase
             'password' => 'PlainPassword123',
             'password_confirmation' => 'PlainPassword123',
         ])->assertUnprocessable()->assertJsonValidationErrors('password');
+
+        // 7. Incomplete / Invalid Contact Numbers
+        $this->postJson('/api/register', [
+            'name' => 'Short Phone User',
+            'email' => 'shortphone@example.test',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'campus_id' => 'STU-127',
+            'contact_number' => '+63917',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('contact_number');
+
+        $this->postJson('/api/register', [
+            'name' => 'Invalid Phone User',
+            'email' => 'invalidphone@example.test',
+            'role' => 'donor',
+            'campus_role' => 'student',
+            'campus_id' => 'STU-128',
+            'contact_number' => '12345',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('contact_number');
     }
 
     public function test_end_to_end_registration_to_profile_to_admin_user_management_flow(): void
@@ -862,6 +842,73 @@ class ReliefLinkWorkflowTest extends TestCase
             ->assertJsonPath('data.name', 'John A. Doe Jr.')
             ->assertJsonPath('data.contact_number', '+639112223344')
             ->assertJsonPath('data.campus_id', '2024-019852-C');
+    }
+
+    public function test_international_phone_number_registration_and_validation(): void
+    {
+        $password = 'Secure!PassWord2026';
+
+        // 1. Valid International Registration: United Kingdom
+        $ukRes = $this->postJson('/api/register', [
+            'name' => 'UK Donor',
+            'email' => 'uk.donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Partner',
+            'country' => 'United Kingdom',
+            'campus_id' => 'INT-UK-001',
+            'contact_number' => '+447911123456',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ]);
+        $ukRes->assertCreated()
+            ->assertJsonPath('user.contact_number', '+447911123456');
+
+        // 2. Valid International Registration: Singapore
+        $sgRes = $this->postJson('/api/register', [
+            'name' => 'SG Donor',
+            'email' => 'sg.donor@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Donor',
+            'country' => 'Singapore',
+            'campus_id' => 'INT-SG-001',
+            'contact_number' => '+6581234567',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ]);
+        $sgRes->assertCreated()
+            ->assertJsonPath('user.contact_number', '+6581234567');
+
+        // 3. National number with leading zero auto-normalized to E.164
+        $phRes = $this->postJson('/api/register', [
+            'name' => 'PH Student',
+            'email' => 'ph.student@example.test',
+            'role' => 'beneficiary',
+            'campus_role' => 'student',
+            'campus_id' => '2024-998877',
+            'contact_number' => '09171234567',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ]);
+        $phRes->assertCreated()
+            ->assertJsonPath('user.contact_number', '+639171234567');
+
+        // 4. Incomplete Singapore number (only 4 digits) -> rejected
+        $this->postJson('/api/register', [
+            'name' => 'Incomplete SG',
+            'email' => 'incompletesg@example.test',
+            'role' => 'donor',
+            'campus_role' => 'other',
+            'other_role_specify' => 'International Donor',
+            'country' => 'Singapore',
+            'campus_id' => 'INT-SG-002',
+            'contact_number' => '+658123',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('contact_number')
+            ->assertJsonFragment(['contact_number' => ['Please enter a valid mobile number for the selected country.']]);
     }
 }
 
