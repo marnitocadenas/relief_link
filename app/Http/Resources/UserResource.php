@@ -19,6 +19,7 @@ class UserResource extends JsonResource
             'organization_name' => $this->organization_name,
             'other_role_specify' => $this->other_role_specify,
             'country' => $this->country,
+            'country_code' => $this->country_code,
             'profile_photo_path' => $this->profile_photo_path,
             'profile_photo_url' => $this->profile_photo_path ? url('storage/' . $this->profile_photo_path) : null,
             'email_verified_at' => $this->email_verified_at,
@@ -27,4 +28,3 @@ class UserResource extends JsonResource
         ];
     }
 }
-

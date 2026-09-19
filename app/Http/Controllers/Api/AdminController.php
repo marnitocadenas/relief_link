@@ -86,6 +86,7 @@ class AdminController extends Controller
             'organization_name' => 'nullable|string|max:255',
             'other_role_specify' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
+            'country_code' => 'nullable|string|size:2',
         ]);
         $d['password'] = Hash::make($d['password']);
         $u = User::create($d);
@@ -106,6 +107,7 @@ class AdminController extends Controller
             'organization_name' => 'nullable|string|max:255',
             'other_role_specify' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
+            'country_code' => 'nullable|string|size:2',
         ]);
         if (!empty($d['password'])) {
             $d['password'] = Hash::make($d['password']);

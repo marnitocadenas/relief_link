@@ -17,6 +17,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use App\Services\SystemSettings;
+use libphonenumber\PhoneNumberUtil;
+use libphonenumber\NumberParseException;
 
 class AuthController extends Controller
 {
@@ -261,18 +263,44 @@ class AuthController extends Controller
     public function updateProfile(Request $r)
     {
         $u = $r->user();
+        $country = trim((string) $r->input('country', ''));
+        $normalized = [
+            'name' => RegisterRequest::normalizeName((string) $r->input('name', '')),
+            'email' => RegisterRequest::normalizeEmail((string) $r->input('email', '')),
+            'contact_number' => RegisterRequest::normalizeContactNumber((string) $r->input('contact_number', ''), $country),
+            'campus_id' => RegisterRequest::normalizeId((string) $r->input('campus_id', '')),
+            'country' => $country,
+        ];
+        if ($r->has('country_code')) {
+            $normalized['country_code'] = strtoupper(trim((string) $r->input('country_code')));
+        }
+        $r->merge($normalized);
         $data = $r->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $u->id,
             'password' => 'nullable|min:8|confirmed',
             'profile_photo' => 'nullable|image|max:2048',
             'remove_photo' => 'nullable|boolean',
-            'contact_number' => 'nullable|string|max:30',
+            'contact_number' => [
+                'nullable', 'string', 'max:30', 'unique:users,contact_number,' . $u->id,
+                function ($attribute, $value, $fail) use ($country) {
+                    if ($value === null || $value === '') return;
+                    try {
+                        $phone = PhoneNumberUtil::getInstance()->parse($value, $country ?: 'PH');
+                        if (!PhoneNumberUtil::getInstance()->isValidNumber($phone)) {
+                            $fail('Please enter a valid mobile number for the selected country.');
+                        }
+                    } catch (NumberParseException) {
+                        $fail('Please enter a valid mobile number for the selected country.');
+                    }
+                },
+            ],
             'campus_role' => 'nullable|string|max:50',
-            'campus_id' => 'nullable|string|max:50',
+            'campus_id' => ['nullable', 'string', 'max:50', 'unique:users,campus_id,' . $u->id],
             'organization_name' => 'nullable|string|max:255',
             'other_role_specify' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
+            'country_code' => 'nullable|string|size:2',
         ]);
 
         if ($r->hasFile('profile_photo')) {

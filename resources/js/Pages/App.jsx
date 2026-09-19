@@ -583,6 +583,82 @@ const getIdPlaceholder = (campusRole, role) => {
     return 'Enter your valid ID number';
 };
 
+function CountrySelect({ id, value, onChange, disabled = false }) {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState('');
+    const containerRef = useRef(null);
+    const selected = COUNTRY_LIST.find((country) => country.name === value);
+    const options = COUNTRY_LIST.filter((country) =>
+        country.name.toLowerCase().includes(query.toLowerCase()) || country.code.toLowerCase().includes(query.toLowerCase())
+    );
+
+    useEffect(() => {
+        const close = (event) => {
+            if (containerRef.current && !containerRef.current.contains(event.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', close);
+        return () => document.removeEventListener('mousedown', close);
+    }, []);
+
+    const choose = (country) => {
+        onChange(country.name);
+        setQuery('');
+        setOpen(false);
+    };
+
+    return (
+        <div ref={containerRef} className="relative mt-1">
+            <button
+                id={id}
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={open}
+                disabled={disabled}
+                onClick={() => setOpen((current) => !current)}
+                className="field flex w-full items-center justify-between text-left text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5"
+            >
+                <span className={selected ? 'text-[#2563EB]' : 'text-[#2563EB]/70'}>
+                    {selected ? `${selected.flag} ${selected.name}` : 'Select your country'}
+                </span>
+                <svg className={`h-3.5 w-3.5 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+                </svg>
+            </button>
+            {open && (
+                <div role="listbox" aria-label="Select your country" className="absolute left-0 top-[calc(100%+4px)] z-50 w-full overflow-hidden rounded-xl border border-[#2563EB]/20 bg-white shadow-xl">
+                    <div className="border-b border-[#2563EB]/15 p-2">
+                        <input
+                            autoFocus
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Search country"
+                            className="field w-full py-1.5 text-xs font-semibold"
+                        />
+                    </div>
+                    <div className="max-h-56 overflow-y-auto py-1">
+                        {options.map((country) => (
+                            <button
+                                key={country.code}
+                                type="button"
+                                role="option"
+                                aria-selected={country.name === value}
+                                onClick={() => choose(country)}
+                                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs font-semibold transition ${
+                                    country.name === value ? 'bg-[#22C55E] text-white' : 'text-[#2563EB] hover:bg-[#2563EB]/10'
+                                }`}
+                            >
+                                <span>{country.flag} {country.name}</span>
+                                <span className="text-[10px] font-bold opacity-75">{country.dialCode}</span>
+                            </button>
+                        ))}
+                        {options.length === 0 && <p className="px-3 py-2 text-xs font-semibold text-[#2563EB]/70">No countries found.</p>}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 function Auth({ register = false }) {
     const { login, user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
@@ -599,6 +675,7 @@ function Auth({ register = false }) {
         campus_role: '',
         other_role_specify: '',
         country: '',
+        country_code: '',
         campus_id: '',
         contact_number: '',
         organization_name: '',
@@ -818,6 +895,7 @@ function Auth({ register = false }) {
         setF((prev) => ({
             ...prev,
             country: val,
+            country_code: COUNTRY_LIST.find((country) => country.name === val)?.code || prev.country_code,
         }));
     };
 
@@ -828,10 +906,14 @@ function Auth({ register = false }) {
         }));
     };
 
-    const handleRegistrationPhoneChange = (e164Value, valid) => {
+    const handleRegistrationPhoneChange = (e164Value, valid, phoneMeta = {}) => {
         setF((prev) => ({
             ...prev,
             contact_number: e164Value,
+            country: phoneMeta.country
+                ? (COUNTRY_LIST.find((country) => country.code === phoneMeta.country)?.name || prev.country)
+                : prev.country,
+            country_code: phoneMeta.country || prev.country_code,
         }));
         setIsPhoneValid(valid);
     };
@@ -959,7 +1041,8 @@ function Auth({ register = false }) {
             role: f.role,
             campus_role: f.campus_role,
             other_role_specify: isOther ? f.other_role_specify.trim() : null,
-            country: (isOther && isInternational) ? f.country.trim() : null,
+            country: f.country.trim() || null,
+            country_code: f.country_code?.trim() || null,
             campus_id: f.campus_id.trim(),
             contact_number: f.contact_number.trim(),
         } : f;
@@ -1446,21 +1529,12 @@ function Auth({ register = false }) {
                                         <label htmlFor="reg_country" className="block text-xs font-bold text-[#2563EB]">
                                             Country <span className="text-[#22C55E]">*</span>
                                         </label>
-                                        <select
+                                        <CountrySelect
                                             id="reg_country"
-                                            className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseCountry ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
                                             value={f.country}
-                                            onChange={(e) => handleRegistrationCountryChange(e.target.value)}
+                                            onChange={handleRegistrationCountryChange}
                                             disabled={!regCanUseCountry}
-                                            required
-                                        >
-                                            <option value="">Select your country</option>
-                                            {COUNTRY_LIST.map((c) => (
-                                                <option key={c.code} value={c.name}>
-                                                    {c.flag} {c.name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        />
                                     </div>
                                 )}
 
@@ -1493,6 +1567,7 @@ function Auth({ register = false }) {
                                         value={f.contact_number}
                                         onChange={handleRegistrationPhoneChange}
                                         disabled={!regCanUseContact}
+                                        defaultCountry={COUNTRY_LIST.find((country) => country.name === f.country)?.code || 'PH'}
                                         placeholder="Enter contact number"
                                     />
                                     {renderDuplicateStatus('contact_number')}
@@ -3399,6 +3474,7 @@ function EditModal({item, kind, admin, close, done}){
         campus_id: item.campus_id || '',
         other_role_specify: item.other_role_specify || '',
         country: item.country || '',
+        country_code: item.country_code || '',
         organization_name: item.organization_name || '',
         password: '',
     });
@@ -3542,6 +3618,19 @@ function EditModal({item, kind, admin, close, done}){
                                     onChange={e => setF({...f, country: e.target.value})}
                                 />
                             </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                    Country Code
+                                </label>
+                                <input
+                                    type="text"
+                                    maxLength={2}
+                                    className="field w-full text-xs font-semibold uppercase"
+                                    placeholder="e.g. PH"
+                                    value={f.country_code || ''}
+                                    onChange={e => setF({...f, country_code: e.target.value.toUpperCase()})}
+                                />
+                            </div>
                         </div>
 
                         {f.campus_role === 'other' && (
@@ -3654,7 +3743,8 @@ function PeopleManager(){
             (u.campus_role && u.campus_role.toLowerCase().includes(q)) ||
             (u.other_role_specify && u.other_role_specify.toLowerCase().includes(q)) ||
             (u.organization_name && u.organization_name.toLowerCase().includes(q)) ||
-            (u.country && u.country.toLowerCase().includes(q));
+            (u.country && u.country.toLowerCase().includes(q)) ||
+            (u.country_code && u.country_code.toLowerCase().includes(q));
         return matchesRole && matchesSearch;
     });
 
@@ -3892,8 +3982,8 @@ function PeopleManager(){
                                             <td>
                                                 <div className="flex flex-wrap gap-1.5">
                                                     <Button title="View Details" variant="secondary" onClick={() => setViewingUser(userItem)}>
-                                                        <Icon name="profile"/>
-                                                        <span className="ml-1 text-xs">Inspect</span>
+                                                        <Icon name="eye"/>
+                                                        <span className="ml-1 text-xs">View</span>
                                                     </Button>
                                                     <Button title="Edit Member" variant="secondary" onClick={() => setEditing(userItem)}>
                                                         <Icon name="edit"/>
@@ -3957,8 +4047,8 @@ function PeopleManager(){
                                     </div>
                                     <div className="flex flex-wrap gap-2 pt-1 border-t border-[#2563EB]/15">
                                         <Button title="View Details" variant="secondary" onClick={() => setViewingUser(userItem)}>
-                                            <Icon name="profile"/>
-                                            <span className="ml-1 text-xs">Inspect</span>
+                                            <Icon name="eye"/>
+                                            <span className="ml-1 text-xs">View</span>
                                         </Button>
                                         <Button title="Edit Member" variant="secondary" onClick={() => setEditing(userItem)}>
                                             <Icon name="edit"/>
@@ -4049,6 +4139,10 @@ function PeopleManager(){
                             <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                 <span className="font-bold text-[#2563EB]/70">Contact Number:</span>
                                 <span className="font-semibold text-[#2563EB]">{viewingUser.contact_number || 'Not provided'}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">Country / Code:</span>
+                                <span className="font-semibold text-[#2563EB]">{viewingUser.country || 'Not provided'}{viewingUser.country_code ? ` (${viewingUser.country_code})` : ''}</span>
                             </div>
                             <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                 <span className="font-bold text-[#2563EB]/70">Campus Role:</span>
@@ -4362,9 +4456,9 @@ function DonationManager(){
                                         <td><Badge status={item.status}/></td>
                                         <td>
                                             <div className="flex flex-wrap gap-2">
-                                                <Button title="Inspect Donation" variant="secondary" onClick={() => setViewingDonation(item)}>
-                                                    <Icon name="profile"/>
-                                                    <span className="ml-1 text-xs">Inspect</span>
+                                                <Button title="View Donation" variant="secondary" onClick={() => setViewingDonation(item)}>
+                                                    <Icon name="eye"/>
+                                                    <span className="ml-1 text-xs">View</span>
                                                 </Button>
                                                 {((user.role === 'donor' && item.status?.startsWith('pending')) || user.role === 'admin') && (
                                                     <Button title="Edit Donation" variant="secondary" onClick={() => setEditing(item)}>
@@ -4401,9 +4495,9 @@ function DonationManager(){
                                     <span>Listed: {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2 pt-1">
-                                    <Button title="Inspect Donation" variant="secondary" onClick={() => setViewingDonation(item)}>
-                                        <Icon name="profile"/>
-                                        <span className="ml-1 text-xs">Inspect</span>
+                                    <Button title="View Donation" variant="secondary" onClick={() => setViewingDonation(item)}>
+                                        <Icon name="eye"/>
+                                        <span className="ml-1 text-xs">View</span>
                                     </Button>
                                     {((user.role === 'donor' && item.status?.startsWith('pending')) || user.role === 'admin') && (
                                         <Button title="Edit Donation" variant="secondary" onClick={() => setEditing(item)}>
@@ -4801,9 +4895,9 @@ function RequestManager(){
                                         <td><Badge status={item.status}/></td>
                                         <td>
                                             <div className="flex flex-wrap gap-2">
-                                                <Button title="Inspect Request" variant="secondary" onClick={() => setViewingRequest(item)}>
-                                                    <Icon name="profile"/>
-                                                    <span className="ml-1 text-xs">Inspect</span>
+                                                <Button title="View Request" variant="secondary" onClick={() => setViewingRequest(item)}>
+                                                    <Icon name="eye"/>
+                                                    <span className="ml-1 text-xs">View</span>
                                                 </Button>
                                                 {user.role === 'admin' && item.status === 'pending_review' && (
                                                     <>
@@ -4857,9 +4951,9 @@ function RequestManager(){
                                     <span>Submitted: {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2 pt-1">
-                                    <Button title="Inspect Request" variant="secondary" onClick={() => setViewingRequest(item)}>
-                                        <Icon name="profile"/>
-                                        <span className="ml-1 text-xs">Inspect</span>
+                                    <Button title="View Request" variant="secondary" onClick={() => setViewingRequest(item)}>
+                                        <Icon name="eye"/>
+                                        <span className="ml-1 text-xs">View</span>
                                     </Button>
                                     {user.role === 'admin' && item.status === 'pending_review' && (
                                         <>
@@ -5378,8 +5472,8 @@ function Matches(){
 
                             <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#2563EB]/15">
                                 <Button variant="secondary" onClick={() => setViewingMatch(x)}>
-                                    <Icon name="profile"/>
-                                    <span className="ml-1 text-xs">Inspect Details</span>
+                                    <Icon name="eye"/>
+                                    <span className="ml-1 text-xs">View Details</span>
                                 </Button>
 
                                 <div className="flex flex-wrap items-center gap-2">
@@ -6678,7 +6772,7 @@ function StaffVerificationDesk() {
                                                     </span>
                                                 ) : (
                                                     <Button size="sm" onClick={() => openModal(req)}>
-                                                        Inspect & Verify
+                                                        <Icon name="eye" size={14}/><span className="ml-1">View & Verify</span>
                                                     </Button>
                                                 )}
                                             </td>
@@ -11205,9 +11299,9 @@ function AdminCategories(){
                                             </td>
                                             <td>
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <Button title="Inspect Associated Listings" variant="secondary" onClick={() => setInspectingCategory(cat)}>
-                                                        <Icon name="profile"/>
-                                                        <span className="ml-1 text-xs">Inspect ({count})</span>
+                                                    <Button title="View Associated Listings" variant="secondary" onClick={() => setInspectingCategory(cat)}>
+                                                        <Icon name="eye"/>
+                                                        <span className="ml-1 text-xs">View ({count})</span>
                                                     </Button>
                                                     <Button title="Edit Category" variant="secondary" onClick={() => { setFormError(''); setEditingCategory(cat); }}>
                                                         <Icon name="edit"/>
@@ -11249,9 +11343,9 @@ function AdminCategories(){
                                         Active Listings: <strong>{count} items</strong>
                                     </p>
                                     <div className="flex flex-wrap gap-2 pt-1">
-                                        <Button title="Inspect Associated Listings" variant="secondary" onClick={() => setInspectingCategory(cat)}>
-                                            <Icon name="profile"/>
-                                            <span className="ml-1 text-xs">Inspect ({count})</span>
+                                        <Button title="View Associated Listings" variant="secondary" onClick={() => setInspectingCategory(cat)}>
+                                            <Icon name="eye"/>
+                                            <span className="ml-1 text-xs">View ({count})</span>
                                         </Button>
                                         <Button title="Edit Category" variant="secondary" onClick={() => { setFormError(''); setEditingCategory(cat); }}>
                                             <Icon name="edit"/>
@@ -11709,8 +11803,8 @@ function AdminApprovals(){
 
                                 <div className="flex flex-wrap items-center gap-2">
                                     <Button variant="secondary" onClick={() => setInspectingRequest(req)}>
-                                        <Icon name="profile"/>
-                                        <span className="ml-1 text-xs">Inspect Details</span>
+                                        <Icon name="eye"/>
+                                        <span className="ml-1 text-xs">View Details</span>
                                     </Button>
 
                                     {req.status === 'pending_review' && (
@@ -12913,6 +13007,7 @@ function Profile(){
         organization_name:user?.organization_name||'',
         other_role_specify:user?.other_role_specify||'',
         country:user?.country||'',
+        country_code:user?.country_code||'',
         password:'',
         password_confirmation:''
     });
@@ -12939,6 +13034,7 @@ function Profile(){
                 organization_name:user.organization_name||'',
                 other_role_specify:user.other_role_specify||'',
                 country:user.country||'',
+                country_code:user.country_code||'',
                 password:'',
                 password_confirmation:''
             });
@@ -13028,6 +13124,7 @@ function Profile(){
         if(f.campus_id) data.append('campus_id',f.campus_id.trim());
         if(f.other_role_specify) data.append('other_role_specify',f.other_role_specify.trim());
         if(f.country) data.append('country',f.country.trim());
+        if(f.country_code) data.append('country_code',f.country_code.trim());
         if(f.organization_name) data.append('organization_name',f.organization_name.trim());
         if(f.password){
             data.append('password',f.password);
@@ -13209,7 +13306,13 @@ function Profile(){
                                     <InternationalPhoneInput
                                         id="profile_contact_number"
                                         value={f.contact_number}
-                                        onChange={val=>setF({...f,contact_number:val})}
+                                        defaultCountry={f.country_code || 'PH'}
+                                        onChange={(val, valid, meta={})=>setF(prev=>({
+                                            ...prev,
+                                            contact_number:val,
+                                            country:meta.country ? (COUNTRY_LIST.find(country=>country.code===meta.country)?.name || prev.country) : prev.country,
+                                            country_code:meta.country || prev.country_code,
+                                        }))}
                                         placeholder="Enter contact number"
                                     />
                                 </div>
@@ -13469,6 +13572,7 @@ function Profile(){
                                     {label:idLabel,value:user.campus_id||'N/A',isMono:true},
                                     {label:'Role Specification',value:user.other_role_specify||user.organization_name||'Standard Registration'},
                                     {label:'Country / Region',value:user.country||'Campus Resident'},
+                                    {label:'Country Code',value:user.country_code||'Not provided'},
                                     {label:'Member Since',value:memberSince},
                                     {label:'Account Status',value:'Active',accent:true}
                                 ].map((item,i)=>(
@@ -14106,8 +14210,8 @@ function Activities(){
 
                             <div className="flex items-center gap-2">
                                 <Button variant="secondary" onClick={() => setViewingLog(x)}>
-                                    <Icon name="profile"/>
-                                    <span className="ml-1 text-xs">Inspect Details</span>
+                                    <Icon name="eye"/>
+                                    <span className="ml-1 text-xs">View Details</span>
                                 </Button>
                             </div>
                         </article>

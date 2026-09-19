@@ -82,7 +82,7 @@ class RegisterRequest extends FormRequest
         $countryInput = trim((string) $this->input('country', ''));
         $contactRaw = self::normalizeContactNumber((string) $this->input('contact_number', ''), $countryInput);
 
-        $this->merge([
+        $normalized = [
             'name' => self::normalizeName((string) $this->input('name', '')),
             // Store one canonical form so an address cannot be registered again
             // merely by changing its letter case.
@@ -94,7 +94,11 @@ class RegisterRequest extends FormRequest
             'organization_name' => trim((string) $this->input('organization_name', '')),
             'other_role_specify' => trim((string) $this->input('other_role_specify', '')),
             'country' => $countryInput,
-        ]);
+        ];
+        if ($this->has('country_code')) {
+            $normalized['country_code'] = strtoupper(trim((string) $this->input('country_code')));
+        }
+        $this->merge($normalized);
     }
 
     public static function normalizeName(string $value): string
@@ -187,6 +191,7 @@ class RegisterRequest extends FormRequest
                 'string',
                 'max:100',
             ],
+            'country_code' => ['nullable', 'string', 'size:2'],
             'organization_name' => [
                 'required_if:campus_role,campus_organization',
                 'nullable',

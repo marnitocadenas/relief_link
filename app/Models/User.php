@@ -30,6 +30,7 @@ class User extends Authenticatable
         'organization_name',
         'other_role_specify',
         'country',
+        'country_code',
         'profile_photo_path',
         'email_verified_at',
         'remember_token',

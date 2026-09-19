@@ -45,13 +45,22 @@ export default function InternationalPhoneInput({
     const [selectedCountry, setSelectedCountry] = useState(defaultCountry);
     const [localNumber, setLocalNumber] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [countrySearch, setCountrySearch] = useState('');
     const [touched, setTouched] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const containerRef = useRef(null);
     const selectedItemRef = useRef(null);
     const inputRef = useRef(null);
+    const countrySearchRef = useRef(null);
 
     const activeCountryObj = COUNTRY_LIST.find((c) => c.code === selectedCountry) || COUNTRY_LIST[0];
+    const filteredCountries = COUNTRY_LIST.filter((country) => {
+        const search = countrySearch.trim().toLowerCase();
+        return !search
+            || country.name.toLowerCase().includes(search)
+            || country.code.toLowerCase().includes(search)
+            || country.dialCode.includes(search);
+    });
 
     // Close dropdown on outside click or Escape
     useEffect(() => {
@@ -76,10 +85,15 @@ export default function InternationalPhoneInput({
         };
     }, [isOpen]);
 
-    // Scroll active item into view when dropdown opens
+    // Start each country search fresh and place the cursor directly in the
+    // search field when the calling-code list opens.
     useEffect(() => {
-        if (isOpen && selectedItemRef.current) {
-            selectedItemRef.current.scrollIntoView({ block: 'nearest' });
+        if (isOpen) {
+            setCountrySearch('');
+            requestAnimationFrame(() => {
+                countrySearchRef.current?.focus();
+                selectedItemRef.current?.scrollIntoView({ block: 'nearest' });
+            });
         }
     }, [isOpen]);
 
@@ -145,6 +159,30 @@ export default function InternationalPhoneInput({
         };
     };
 
+    // The registration form may already know the user's country (for example,
+    // an international donor selecting "United States"). Keep its dial code
+    // and phone validation in sync instead of leaving the control on PH +63.
+    useEffect(() => {
+        const countryObj = COUNTRY_LIST.find((country) => country.code === defaultCountry) || COUNTRY_LIST[0];
+        if (countryObj.code === selectedCountry) return;
+
+        setSelectedCountry(countryObj.code);
+        const digits = localNumber.replace(/\D/g, '');
+        const result = computeValidation(digits, countryObj, touched);
+        setLocalNumber(result.formatted);
+        setErrorMsg(digits ? result.error : '');
+
+        if (digits) {
+            onChange?.(result.e164, result.isValid, {
+                localNumber: result.formatted,
+                isValid: result.isValid,
+                errorMessage: result.error,
+                country: countryObj.code,
+                dialCode: countryObj.dialCode,
+            });
+        }
+    }, [defaultCountry]);
+
     // Initialize or parse external value
     useEffect(() => {
         if (!value) {
@@ -186,6 +224,7 @@ export default function InternationalPhoneInput({
     const handleCountrySelect = (newCode) => {
         setSelectedCountry(newCode);
         setIsOpen(false);
+        setCountrySearch('');
         const countryObj = COUNTRY_LIST.find((c) => c.code === newCode) || COUNTRY_LIST[0];
 
         // Re-validate and re-format existing digits for the newly selected country
@@ -272,44 +311,64 @@ export default function InternationalPhoneInput({
                     </svg>
                 </button>
 
-                {/* Downward-Only Country Dropdown Menu */}
+                {/* Searchable, scrollable country-code list shared by registration forms. */}
                 {isOpen && (
                     <div
                         role="listbox"
                         tabIndex={-1}
                         aria-label="Select Country"
-                        className="absolute top-[calc(100%+4px)] left-0 z-50 w-72 max-w-[calc(100vw-2.5rem)] sm:w-80 max-h-60 overflow-y-auto bg-white rounded-xl shadow-2xl border border-[#2563EB]/20 py-1.5 focus:outline-none overscroll-contain"
+                        className="absolute top-[calc(100%+4px)] left-0 z-50 w-72 max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-xl border border-[#2563EB]/20 bg-white shadow-2xl focus:outline-none"
                     >
-                        {COUNTRY_LIST.map((c) => {
-                            const isSelected = c.code === selectedCountry;
-                            return (
-                                <button
-                                    key={c.code}
-                                    ref={isSelected ? selectedItemRef : null}
-                                    type="button"
-                                    role="option"
-                                    aria-selected={isSelected}
-                                    onClick={() => handleCountrySelect(c.code)}
-                                    className={`w-full flex items-center justify-between gap-3 px-3.5 py-2 text-left text-xs transition select-none ${
-                                        isSelected
-                                            ? 'bg-[#22C55E] text-white font-bold'
-                                            : 'text-[#2563EB] hover:bg-[#2563EB]/10 font-semibold'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                        <span className="text-base leading-none shrink-0">{c.flag}</span>
-                                        <span className="truncate">{c.name}</span>
-                                    </div>
-                                    <span
-                                        className={`shrink-0 font-bold text-xs ${
-                                            isSelected ? 'text-white' : 'text-[#2563EB]/70'
+                        <div className="border-b border-[#2563EB]/15 bg-white p-2">
+                            <label className="sr-only" htmlFor={`${id}_country_search`}>Search country</label>
+                            <div className="flex items-center gap-2 rounded-lg border border-[#2563EB]/25 px-2.5 py-1.5 focus-within:border-[#22C55E] focus-within:ring-1 focus-within:ring-[#22C55E]">
+                                <svg className="h-3.5 w-3.5 shrink-0 text-[#2563EB]/70" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true">
+                                    <circle cx="8.5" cy="8.5" r="5" strokeWidth="1.8" />
+                                    <path d="m12.2 12.2 4 4" strokeWidth="1.8" strokeLinecap="round" />
+                                </svg>
+                                <input
+                                    ref={countrySearchRef}
+                                    id={`${id}_country_search`}
+                                    type="search"
+                                    value={countrySearch}
+                                    onChange={(event) => setCountrySearch(event.target.value)}
+                                    placeholder="Search country..."
+                                    className="min-w-0 flex-1 border-0 bg-transparent p-0 text-xs font-semibold text-[#2563EB] outline-none placeholder:text-[#2563EB]/60"
+                                />
+                            </div>
+                        </div>
+                        <div className="max-h-52 overflow-y-auto py-1 overscroll-contain">
+                            {filteredCountries.map((c) => {
+                                const isSelected = c.code === selectedCountry;
+                                return (
+                                    <button
+                                        key={c.code}
+                                        ref={isSelected ? selectedItemRef : null}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={isSelected}
+                                        onClick={() => handleCountrySelect(c.code)}
+                                        className={`w-full flex items-center justify-between gap-3 px-3.5 py-2 text-left text-xs transition select-none ${
+                                            isSelected
+                                                ? 'bg-[#22C55E] text-white font-bold'
+                                                : 'text-[#2563EB] hover:bg-[#2563EB]/10 font-semibold'
                                         }`}
                                     >
-                                        {c.dialCode}
-                                    </span>
-                                </button>
-                            );
-                        })}
+                                        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                                            <span className="text-base leading-none shrink-0">{c.flag}</span>
+                                            <span className="shrink-0 text-[10px] font-extrabold">{c.code}</span>
+                                            <span className="truncate">{c.name}</span>
+                                        </div>
+                                        <span className={`shrink-0 font-bold text-xs ${isSelected ? 'text-white' : 'text-[#2563EB]/70'}`}>
+                                            {c.dialCode}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                            {filteredCountries.length === 0 && (
+                                <p className="px-3.5 py-3 text-xs font-semibold text-[#2563EB]/70">No countries found.</p>
+                            )}
+                        </div>
                     </div>
                 )}
 
