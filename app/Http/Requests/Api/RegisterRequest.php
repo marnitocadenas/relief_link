@@ -88,11 +88,14 @@ class RegisterRequest extends FormRequest
             // merely by changing its letter case.
             'email' => self::normalizeEmail((string) $this->input('email', '')),
             'role' => trim((string) $this->input('role', '')),
-            'campus_role' => trim((string) $this->input('campus_role', '')),
             'contact_number' => $contactRaw,
             'campus_id' => self::normalizeId((string) $this->input('campus_id', '')),
-            'organization_name' => trim((string) $this->input('organization_name', '')),
-            'other_role_specify' => trim((string) $this->input('other_role_specify', '')),
+            'student_id_number' => self::normalizeId((string) $this->input('student_id_number', '')),
+            'school_email' => self::normalizeEmail((string) $this->input('school_email', '')),
+            'address' => trim((string) $this->input('address', '')),
+            'department' => trim((string) $this->input('department', '')),
+            'course' => trim((string) $this->input('course', '')),
+            'year_level' => trim((string) $this->input('year_level', '')),
             'country' => $countryInput,
         ];
         if ($this->has('country_code')) {
@@ -139,10 +142,6 @@ class RegisterRequest extends FormRequest
 
     public function rules(): array
     {
-        $isInternational = $this->campus_role === 'other' && (
-            stripos((string) $this->other_role_specify, 'international') !== false
-        );
-
         return [
             'name' => [
                 'required', 'string', 'max:255',
@@ -154,50 +153,30 @@ class RegisterRequest extends FormRequest
             ],
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/'],
             'role' => ['required', Rule::in(['donor', 'beneficiary', 'staff'])],
-            'campus_role' => [
-                'required',
-                'string',
-                'max:50',
-                function ($attribute, $value, $fail) {
-                    $normalized = strtolower($value);
-                    if ($this->role === 'donor') {
-                        $allowed = ['student', 'faculty', 'staff', 'other', 'alumni', 'campus_organization'];
-                        if (!in_array($normalized, $allowed, true)) {
-                            $fail('Invalid donor type selected.');
-                        }
-                    } elseif ($this->role === 'beneficiary') {
-                        $allowed = ['student', 'faculty', 'staff'];
-                        if (!in_array($normalized, $allowed, true)) {
-                            $fail('Invalid beneficiary type selected.');
-                        }
-                    }
-                },
-            ],
             'campus_id' => [
-                Rule::requiredIf(fn () => in_array($this->role, ['donor', 'beneficiary'], true)),
+                'exclude_unless:role,donor',
+                Rule::requiredIf(fn () => $this->role === 'donor'),
                 'string',
                 'max:50',
                 'unique:users,campus_id',
             ],
-            'other_role_specify' => [
-                'required_if:campus_role,other',
-                'nullable',
-                'string',
-                'max:100',
-            ],
+            'address' => ['exclude_unless:role,donor', 'required', 'string', 'max:255'],
+            'student_id_number' => ['exclude_unless:role,beneficiary', 'required', 'string', 'max:50', 'unique:users,student_id_number'],
+            'school_email' => ['exclude_unless:role,beneficiary', 'required', 'email', 'max:255'],
+            'department' => ['exclude_unless:role,beneficiary', 'required', 'string', 'max:255'],
+            'course' => ['exclude_unless:role,beneficiary', 'required', 'string', 'max:255'],
+            'year_level' => ['exclude_unless:role,beneficiary', 'required', 'string', 'max:50'],
             'country' => [
-                Rule::requiredIf($isInternational),
-                'nullable',
+                'required',
                 'string',
                 'max:100',
+                function ($attribute, $value, $fail) {
+                    if (trim(strtolower($value)) === 'select your country' || trim($value) === '') {
+                        $fail('Please select a valid country.');
+                    }
+                },
             ],
             'country_code' => ['nullable', 'string', 'size:2'],
-            'organization_name' => [
-                'required_if:campus_role,campus_organization',
-                'nullable',
-                'string',
-                'max:255',
-            ],
             'contact_number' => [
                 'required',
                 'string',
@@ -267,30 +246,22 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         $idLabel = 'Valid ID Number';
-        if ($this->campus_role === 'student') {
-            $idLabel = 'Student ID Number';
-        } elseif ($this->campus_role === 'faculty') {
-            $idLabel = 'Faculty/Employee ID Number';
-        } elseif ($this->campus_role === 'staff') {
-            $idLabel = 'Staff/Employee ID Number';
-        } else {
-            $idLabel = 'Valid ID Number';
-        }
 
         return [
             'name.unique' => 'This name is already taken.',
             'email.unique' => 'This email address is already taken.',
             'contact_number.unique' => 'This contact number is already taken.',
             'campus_id.unique' => 'This ID number is already taken.',
-            'campus_role.required' => 'Campus role is required.',
+            'student_id_number.unique' => 'This student ID number is already taken.',
             'campus_id.required' => "{$idLabel} is required.",
             'campus_id.required_if' => "{$idLabel} is required.",
-            'other_role_specify.required_if' => $this->role === 'donor'
-                ? 'Please specify your donor type.'
-                : 'Please specify your beneficiary type.',
-            'country.required' => 'Country is required for international registration.',
-            'country.required_if' => 'Country is required for international registration.',
-            'organization_name.required_if' => 'Organization name is required for campus organizations.',
+            'student_id_number.required' => 'Student ID Number is required.',
+            'school_email.required' => 'School Email Address is required.',
+            'department.required' => 'Department is required.',
+            'course.required' => 'Course is required.',
+            'year_level.required' => 'Year Level is required.',
+            'address.required' => 'Address is required.',
+            'country.required' => 'Please select your country.',
             'contact_number.required' => 'Contact number is required.',
             'email.regex' => 'Please enter a valid email address.',
             'password' => 'The password must contain an allowed special character.',

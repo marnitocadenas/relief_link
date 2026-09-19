@@ -66,6 +66,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('users', [AdminController::class, 'storeUser']);
             Route::patch('users/{user}', [AdminController::class, 'updateUser']);
             Route::delete('users/{user}', [AdminController::class, 'destroyUser']);
+            Route::delete('donations/{donation}', [AdminController::class, 'destroyDonation']);
+            Route::delete('requests/{aidRequest}', [AdminController::class, 'destroyRequest']);
         });
     });
 });

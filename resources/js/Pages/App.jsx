@@ -549,40 +549,6 @@ function Home() {
     );
 }
 
-const DONOR_OTHER_PRESETS = [
-    'Alumni',
-    'Parent/Guardian',
-    'Community Donor',
-    'External Donor',
-    'International Donor',
-    'Campus Organization',
-    'Other Approved Donor',
-];
-
-const BENEFICIARY_OTHER_PRESETS = [
-    'Campus Cleaner',
-    'Gardener',
-    'Maintenance Worker',
-    'Security Personnel',
-    'Community Beneficiary',
-    'International Beneficiary',
-    'Other Approved Beneficiary',
-];
-
-const getIdLabel = (campusRole, role) => {
-    if (campusRole === 'student') return 'Student ID Number';
-    if (campusRole === 'faculty') return 'Faculty/Employee ID Number';
-    if (campusRole === 'staff') return 'Staff/Employee ID Number';
-    return 'Valid ID Number';
-};
-
-const getIdPlaceholder = (campusRole, role) => {
-    if (campusRole === 'student') return 'Enter your Student ID Number (e.g., 2026-12345)';
-    if (campusRole === 'faculty') return 'Enter your faculty/employee ID number';
-    if (campusRole === 'staff') return 'Enter your staff/employee ID number';
-    return 'Enter your valid ID number';
-};
-
 function CountrySelect({ id, value, onChange, disabled = false }) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
@@ -591,6 +557,10 @@ function CountrySelect({ id, value, onChange, disabled = false }) {
     const options = COUNTRY_LIST.filter((country) =>
         country.name.toLowerCase().includes(query.toLowerCase()) || country.code.toLowerCase().includes(query.toLowerCase())
     );
+
+    useEffect(() => {
+        if (disabled) setOpen(false);
+    }, [disabled]);
 
     useEffect(() => {
         const close = (event) => {
@@ -614,7 +584,9 @@ function CountrySelect({ id, value, onChange, disabled = false }) {
                 aria-haspopup="listbox"
                 aria-expanded={open}
                 disabled={disabled}
-                onClick={() => setOpen((current) => !current)}
+                onClick={() => {
+                    if (!disabled) setOpen((current) => !current);
+                }}
                 className="field flex w-full items-center justify-between text-left text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5"
             >
                 <span className={selected ? 'text-[#2563EB]' : 'text-[#2563EB]/70'}>
@@ -624,7 +596,7 @@ function CountrySelect({ id, value, onChange, disabled = false }) {
                     <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
                 </svg>
             </button>
-            {open && (
+            {open && !disabled && (
                 <div role="listbox" aria-label="Select your country" className="absolute left-0 top-[calc(100%+4px)] z-50 w-full overflow-hidden rounded-xl border border-[#2563EB]/20 bg-white shadow-xl">
                     <div className="border-b border-[#2563EB]/15 p-2">
                         <input
@@ -672,19 +644,23 @@ function Auth({ register = false }) {
         password: '',
         password_confirmation: '',
         role: '',
-        campus_role: '',
-        other_role_specify: '',
         country: '',
         country_code: '',
         campus_id: '',
+        address: '',
+        student_id_number: '',
+        school_email: '',
+        department: '',
+        course: '',
+        year_level: '',
         contact_number: '',
-        organization_name: '',
     });
     const [isPhoneValid, setIsPhoneValid] = useState(false);
     // Each state is sourced from Laravel, never from a local list of accounts.
     const [uniqueness, setUniqueness] = useState({
         name: { status: 'idle', message: '' },
         campus_id: { status: 'idle', message: '' },
+        student_id_number: { status: 'idle', message: '' },
         contact_number: { status: 'idle', message: '' },
         email: { status: 'idle', message: '' },
     });
@@ -740,57 +716,83 @@ function Auth({ register = false }) {
     const regIsPasswordValid = regHasLength && regHasUpper && regHasLower && regHasNumber && regHasSpecial && regNoSpaces && regNotWeak && regNoPersonal;
 
     const nameTrimmed = regNameStr.trim();
-    const nameWords = nameTrimmed.split(/\s+/).filter((w) => w.length >= 1);
+    const nameWords = nameTrimmed.split(/[\s,]+/).filter((w) => w.length >= 1);
     const regNameValid = nameWords.length >= 2
-        && /^[A-Za-zÀ-ÿ\s'\-\.]+$/.test(nameTrimmed)
+        && /^[A-Za-zÀ-ÿ\s,'\-\.]+$/.test(nameTrimmed)
         && nameTrimmed.length >= 3
         && nameTrimmed.length <= 255;
     const regRoleValid = ['donor', 'beneficiary'].includes(f.role);
-    const regCampusRoleValid = f.role === 'beneficiary'
-        ? ['student', 'faculty', 'staff'].includes(f.campus_role)
-        : ['student', 'faculty', 'staff', 'other'].includes(f.campus_role);
+    const regCountryValid = (f.country || '').trim().length > 0
+        && (f.country || '').trim().toLowerCase() !== 'select your country'
+        && (f.country || '').trim().length <= 100;
 
-    const isOther = f.campus_role === 'other';
-    const regOtherSpecifyValid = !isOther || ((f.other_role_specify || '').trim() !== '' && (f.other_role_specify || '').trim().length <= 100);
+    // Beneficiary fields validation
+    const regStudentIdTrimmed = (f.student_id_number || '').trim();
+    const regStudentIdValid = regStudentIdTrimmed.length >= 3 && regStudentIdTrimmed.length <= 50;
+    const regSchoolEmailTrimmed = (f.school_email || '').trim();
+    const regSchoolEmailValid = regSchoolEmailTrimmed.length > 0
+        && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regSchoolEmailTrimmed);
+    const regDepartmentValid = (f.department || '').trim().length > 0;
+    const regCourseValid = (f.course || '').trim().length > 0;
+    const regYearLevelValid = (f.year_level || '').trim().length > 0;
 
-    const isInternational = isOther && (f.other_role_specify || '').toLowerCase().includes('international');
-    const regCountryValid = !isInternational || ((f.country || '').trim() !== '' && (f.country || '').trim().length <= 100);
-
-    const regConditionalValid = (!isOther || regOtherSpecifyValid) && (!isInternational || regCountryValid);
-
+    // Donor fields validation
+    const regAddressValid = (f.address || '').trim().length > 0;
     const regIdTrimmed = (f.campus_id || '').trim();
     const regIdValid = regIdTrimmed.length >= 3 && regIdTrimmed.length <= 50;
 
+    // Contact number validation
     const regContactNumber = f.contact_number || '';
     const regContactValid = isPhoneValid === true && regContactNumber.trim().length >= 7;
 
+    // Email validation
     const regEmailValid = regEmailStr.trim() !== ''
         && regEmailStr.trim().length <= 255
         && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regEmailStr.trim());
 
-    const duplicateCandidates = {
-        name: regNameValid ? nameTrimmed : '',
-        campus_id: (regCampusRoleValid && regConditionalValid && regIdValid) ? regIdTrimmed : '',
-        contact_number: regContactValid ? regContactNumber.trim() : '',
-        email: regEmailValid ? regEmailStr.trim() : '',
-    };
-    const duplicateCandidateKey = JSON.stringify(duplicateCandidates);
+    // Uniqueness states from server
     const regNameAvailable = uniqueness.name.status === 'available';
     const regIdAvailable = uniqueness.campus_id.status === 'available';
+    const regStudentIdAvailable = uniqueness.student_id_number?.status === 'available';
     const regContactAvailable = uniqueness.contact_number.status === 'available';
     const regEmailAvailable = uniqueness.email.status === 'available';
 
     // Strict Sequential Field Progression Gates
-    const regCanUseRole = regNameValid && regNameAvailable;
-    const regCanUseCampusRole = regCanUseRole && regRoleValid;
-    const regCanUseOtherSpecify = regCanUseCampusRole && isOther;
-    const regCanUseCountry = regCanUseOtherSpecify && isInternational && regOtherSpecifyValid;
-    const regCanUseId = regCanUseCampusRole && regCampusRoleValid && regConditionalValid;
-    const regCanUseContact = regCanUseId && regIdValid && regIdAvailable;
+    // 1. Account Type is enabled on form load. Country requires Account Type selected.
+    const regCanUseCountry = regRoleValid;
+
+    // 2. Beneficiary sequence: Country -> Student ID -> School Email -> Department -> Course -> Year Level -> Contact
+    const regCanUseStudentId = f.role === 'beneficiary' && regCanUseCountry && regCountryValid;
+    const regCanUseSchoolEmail = regCanUseStudentId && regStudentIdValid && regStudentIdAvailable;
+    const regCanUseDepartment = regCanUseSchoolEmail && regSchoolEmailValid;
+    const regCanUseCourse = regCanUseDepartment && regDepartmentValid;
+    const regCanUseYearLevel = regCanUseCourse && regCourseValid;
+
+    // 3. Donor sequence: Country -> Address -> Valid ID -> Contact
+    const regCanUseAddress = f.role === 'donor' && regCanUseCountry && regCountryValid;
+    const regCanUseValidId = regCanUseAddress && regAddressValid;
+
+    // 4. Contact Number Gate
+    const regCanUseContact = f.role === 'beneficiary'
+        ? (regCanUseYearLevel && regYearLevelValid)
+        : f.role === 'donor'
+            ? (regCanUseValidId && regIdValid && regIdAvailable)
+            : false;
+
+    // 5. Downstream Common Gates
     const regCanUseEmail = regCanUseContact && regContactValid && regContactAvailable;
     const regCanUsePassword = regCanUseEmail && regEmailValid && regEmailAvailable;
     const regCanUseConfirm = regCanUsePassword && regIsPasswordValid;
-    const regIsFormValid = regCanUseConfirm && regMatchesConfirm;
+    const regIsFormValid = regNameValid && regNameAvailable && regCanUseConfirm && regMatchesConfirm;
+
+    const duplicateCandidates = {
+        name: regNameValid ? nameTrimmed : '',
+        campus_id: (f.role === 'donor' && regCanUseValidId && regIdValid) ? regIdTrimmed : '',
+        student_id_number: (f.role === 'beneficiary' && regCanUseStudentId && regStudentIdValid) ? regStudentIdTrimmed : '',
+        contact_number: (regCanUseContact && regContactValid) ? regContactNumber.trim() : '',
+        email: (regCanUseEmail && regEmailValid) ? regEmailStr.trim() : '',
+    };
+    const duplicateCandidateKey = JSON.stringify(duplicateCandidates);
 
     const handleRegistrationNameChange = (e) => {
         setF((prev) => ({
@@ -858,36 +860,31 @@ function Auth({ register = false }) {
     };
 
     const handleRegistrationRoleChange = (e) => {
+        const newRole = e.target.value;
         setF((prev) => ({
             ...prev,
-            role: e.target.value,
-            campus_role: '',
-            other_role_specify: '',
+            role: newRole,
             country: '',
+            country_code: '',
             campus_id: '',
-            organization_name: '',
+            address: '',
+            student_id_number: '',
+            school_email: '',
+            department: '',
+            course: '',
+            year_level: '',
+            contact_number: '',
+            email: '',
+            password: '',
+            password_confirmation: '',
         }));
-        setUniqueness((previous) => ({ ...previous, campus_id: { status: 'idle', message: '' }, contact_number: { status: 'idle', message: '' }, email: { status: 'idle', message: '' } }));
-    };
-
-    const handleRegistrationCampusRoleChange = (e) => {
-        setF((prev) => ({
-            ...prev,
-            campus_role: e.target.value,
-            other_role_specify: '',
-            country: '',
-            campus_id: '',
-            organization_name: '',
-        }));
-        setUniqueness((previous) => ({ ...previous, campus_id: { status: 'idle', message: '' }, contact_number: { status: 'idle', message: '' }, email: { status: 'idle', message: '' } }));
-    };
-
-    const handleRegistrationOtherSpecifyChange = (val) => {
-        const isIntl = val.toLowerCase().includes('international');
-        setF((prev) => ({
-            ...prev,
-            other_role_specify: val,
-            country: isIntl ? prev.country : '',
+        setIsPhoneValid(false);
+        setUniqueness((previous) => ({
+            ...previous,
+            campus_id: { status: 'idle', message: '' },
+            student_id_number: { status: 'idle', message: '' },
+            contact_number: { status: 'idle', message: '' },
+            email: { status: 'idle', message: '' },
         }));
     };
 
@@ -906,14 +903,14 @@ function Auth({ register = false }) {
         }));
     };
 
-    const handleRegistrationPhoneChange = (e164Value, valid, phoneMeta = {}) => {
+    const handleRegistrationFieldChange = (field, value) => {
+        setF((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleRegistrationPhoneChange = (e164Value, valid) => {
         setF((prev) => ({
             ...prev,
             contact_number: e164Value,
-            country: phoneMeta.country
-                ? (COUNTRY_LIST.find((country) => country.code === phoneMeta.country)?.name || prev.country)
-                : prev.country,
-            country_code: phoneMeta.country || prev.country_code,
         }));
         setIsPhoneValid(valid);
     };
@@ -966,12 +963,15 @@ function Auth({ register = false }) {
                 password: '',
                 password_confirmation: '',
                 role: '',
-                campus_role: '',
-                other_role_specify: '',
                 country: '',
                 campus_id: '',
+                address: '',
+                student_id_number: '',
+                school_email: '',
+                department: '',
+                course: '',
+                year_level: '',
                 contact_number: '',
-                organization_name: '',
             });
         } else {
             setRemember(false);
@@ -981,12 +981,15 @@ function Auth({ register = false }) {
                 password: '',
                 password_confirmation: '',
                 role: '',
-                campus_role: '',
-                other_role_specify: '',
                 country: '',
                 campus_id: '',
+                address: '',
+                student_id_number: '',
+                school_email: '',
+                department: '',
+                course: '',
+                year_level: '',
                 contact_number: '',
-                organization_name: '',
             });
         }
     }, [register]);
@@ -1039,11 +1042,18 @@ function Auth({ register = false }) {
             password: f.password,
             password_confirmation: f.password_confirmation,
             role: f.role,
-            campus_role: f.campus_role,
-            other_role_specify: isOther ? f.other_role_specify.trim() : null,
             country: f.country.trim() || null,
             country_code: f.country_code?.trim() || null,
-            campus_id: f.campus_id.trim(),
+            ...(f.role === 'donor' ? {
+                address: f.address.trim(),
+                campus_id: f.campus_id.trim(),
+            } : {
+                student_id_number: f.student_id_number.trim(),
+                school_email: f.school_email.trim(),
+                department: f.department.trim(),
+                course: f.course.trim(),
+                year_level: f.year_level.trim(),
+            }),
             contact_number: f.contact_number.trim(),
         } : f;
 
@@ -1388,12 +1398,15 @@ function Auth({ register = false }) {
                                             password: '',
                                             password_confirmation: '',
                                             role: '',
-                                            campus_role: '',
-                                            other_role_specify: '',
                                             country: '',
                                             campus_id: '',
+                                            address: '',
+                                            student_id_number: '',
+                                            school_email: '',
+                                            department: '',
+                                            course: '',
+                                            year_level: '',
                                             contact_number: '',
-                                            organization_name: '',
                                         });
                                     }}
                                 >
@@ -1445,10 +1458,9 @@ function Auth({ register = false }) {
                                     </label>
                                     <select
                                         id="reg_role"
-                                        className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
+                                        className="field mt-1 text-xs py-2 font-semibold"
                                         value={f.role}
                                         onChange={handleRegistrationRoleChange}
-                                        disabled={!regCanUseRole}
                                         required
                                     >
                                         <option value="" disabled hidden>Select account type</option>
@@ -1458,104 +1470,55 @@ function Auth({ register = false }) {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="reg_campus_role" className="block text-xs font-bold text-[#2563EB]">
-                                        {f.role === 'donor'
-                                            ? 'Donor Type / Campus Role'
-                                            : f.role === 'beneficiary'
-                                                ? 'Beneficiary Type / Campus Role'
-                                                : 'Campus Role'}{' '}
-                                        <span className="text-[#22C55E]">*</span>
+                                    <label htmlFor="reg_country" className="block text-xs font-bold text-[#2563EB]">
+                                        Country <span className="text-[#22C55E]">*</span>
                                     </label>
-                                    <select
-                                        id="reg_campus_role"
-                                        className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseCampusRole ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                        value={f.campus_role}
-                                        onChange={handleRegistrationCampusRoleChange}
-                                        disabled={!regCanUseCampusRole}
-                                        required
-                                    >
-                                        <option value="" disabled hidden>Select your campus role</option>
-                                        <option value="student">Student</option>
-                                        <option value="faculty">Faculty</option>
-                                        <option value="staff">Staff</option>
-                                        {f.role !== 'beneficiary' && <option value="other">Other</option>}
-                                    </select>
+                                    <CountrySelect
+                                        id="reg_country"
+                                        value={f.country}
+                                        onChange={handleRegistrationCountryChange}
+                                        disabled={!regCanUseCountry}
+                                    />
                                 </div>
 
-                                {f.campus_role === 'other' && (
-                                    <div>
-                                        <label htmlFor="reg_other_role" className="block text-xs font-bold text-[#2563EB]">
-                                            {f.role === 'donor' ? 'Specify Donor Type' : 'Specify Beneficiary Type'} <span className="text-[#22C55E]">*</span>
-                                        </label>
-                                        <input
-                                            id="reg_other_role"
-                                            list={f.role === 'donor' ? 'donor_other_presets' : 'beneficiary_other_presets'}
-                                            type="text"
-                                            placeholder={f.role === 'donor' ? 'e.g., Alumni, International Donor, Community Donor' : 'e.g., Campus Cleaner, Maintenance Worker, International Beneficiary'}
-                                            className={`field mt-1 text-xs py-2 font-semibold ${!regCanUseOtherSpecify ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                            value={f.other_role_specify}
-                                            onChange={(e) => handleRegistrationOtherSpecifyChange(e.target.value)}
-                                            disabled={!regCanUseOtherSpecify}
-                                            maxLength={100}
-                                            required
-                                        />
-                                        <datalist id={f.role === 'donor' ? 'donor_other_presets' : 'beneficiary_other_presets'}>
-                                            {(f.role === 'donor' ? DONOR_OTHER_PRESETS : BENEFICIARY_OTHER_PRESETS).map((p) => (
-                                                <option key={p} value={p} />
-                                            ))}
-                                        </datalist>
-                                        <div className="mt-1.5 flex flex-wrap gap-1">
-                                            {(f.role === 'donor' ? DONOR_OTHER_PRESETS : BENEFICIARY_OTHER_PRESETS).map((preset) => (
-                                                <button
-                                                    key={preset}
-                                                    type="button"
-                                                    onClick={() => handleRegistrationOtherSpecifyChange(preset)}
-                                                    disabled={!regCanUseOtherSpecify}
-                                                    className={`rounded-lg border px-2 py-0.5 text-[10px] font-bold transition ${
-                                                        f.other_role_specify === preset
-                                                            ? 'border-[#22C55E] bg-[#22C55E] text-white'
-                                                            : 'border-[#2563EB]/30 bg-white text-[#2563EB] hover:bg-[#2563EB]/10'
-                                                    }`}
-                                                >
-                                                    {preset}
-                                                </button>
-                                            ))}
+                                {f.role === 'donor' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="reg_address" className="block text-xs font-bold text-[#2563EB]">Address <span className="text-[#22C55E]">*</span></label>
+                                            <input id="reg_address" type="text" placeholder="Enter your address" className={`field mt-1 text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5`} value={f.address} onChange={(e) => handleRegistrationFieldChange('address', e.target.value)} disabled={!regCanUseAddress} maxLength={255} required />
                                         </div>
-                                    </div>
+                                        <div>
+                                            <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">Valid ID Number <span className="text-[#22C55E]">*</span></label>
+                                            <input id="reg_campus_id" type="text" placeholder="Enter your valid ID number" className={`field mt-1 text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5 ${uniqueness.campus_id.status === 'taken' || uniqueness.campus_id.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''}`} value={f.campus_id} onChange={handleRegistrationIdChange} disabled={!regCanUseValidId} maxLength={50} required />
+                                            {renderDuplicateStatus('campus_id')}
+                                        </div>
+                                    </>
                                 )}
 
-                                {isInternational && (
-                                    <div>
-                                        <label htmlFor="reg_country" className="block text-xs font-bold text-[#2563EB]">
-                                            Country <span className="text-[#22C55E]">*</span>
-                                        </label>
-                                        <CountrySelect
-                                            id="reg_country"
-                                            value={f.country}
-                                            onChange={handleRegistrationCountryChange}
-                                            disabled={!regCanUseCountry}
-                                        />
-                                    </div>
-                                )}
-
-                                {Boolean(f.campus_role) && (
-                                    <div>
-                                        <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">
-                                            {getIdLabel(f.campus_role, f.role)} <span className="text-[#22C55E]">*</span>
-                                        </label>
-                                        <input
-                                            id="reg_campus_id"
-                                            type="text"
-                                            placeholder={getIdPlaceholder(f.campus_role, f.role)}
-                                            className={`field mt-1 text-xs py-2 font-semibold ${uniqueness.campus_id.status === 'taken' || uniqueness.campus_id.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''} ${!regCanUseId ? 'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5' : ''}`}
-                                            value={f.campus_id}
-                                            onChange={handleRegistrationIdChange}
-                                            disabled={!regCanUseId}
-                                            maxLength={50}
-                                            required
-                                        />
-                                        {renderDuplicateStatus('campus_id')}
-                                    </div>
+                                {f.role === 'beneficiary' && (
+                                    <>
+                                        <div>
+                                            <label htmlFor="reg_student_id" className="block text-xs font-bold text-[#2563EB]">Student ID Number <span className="text-[#22C55E]">*</span></label>
+                                            <input id="reg_student_id" type="text" placeholder="Enter your student ID number" className={`field mt-1 text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5 ${uniqueness.student_id_number?.status === 'taken' || uniqueness.student_id_number?.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''}`} value={f.student_id_number} onChange={(e) => handleRegistrationFieldChange('student_id_number', e.target.value)} disabled={!regCanUseStudentId} maxLength={50} required />
+                                            {renderDuplicateStatus('student_id_number')}
+                                        </div>
+                                        <div>
+                                            <label htmlFor="reg_school_email" className="block text-xs font-bold text-[#2563EB]">School Email Address <span className="text-[#22C55E]">*</span></label>
+                                            <input id="reg_school_email" type="email" placeholder="Enter your school email address" className={`field mt-1 text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5`} value={f.school_email} onChange={(e) => handleRegistrationFieldChange('school_email', e.target.value)} disabled={!regCanUseSchoolEmail} maxLength={255} required />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="reg_department" className="block text-xs font-bold text-[#2563EB]">Department <span className="text-[#22C55E]">*</span></label>
+                                            <input id="reg_department" type="text" placeholder="Enter your department" className={`field mt-1 text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5`} value={f.department} onChange={(e) => handleRegistrationFieldChange('department', e.target.value)} disabled={!regCanUseDepartment} maxLength={255} required />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="reg_course" className="block text-xs font-bold text-[#2563EB]">Course <span className="text-[#22C55E]">*</span></label>
+                                            <input id="reg_course" type="text" placeholder="Enter your course" className={`field mt-1 text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5`} value={f.course} onChange={(e) => handleRegistrationFieldChange('course', e.target.value)} disabled={!regCanUseCourse} maxLength={255} required />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="reg_year_level" className="block text-xs font-bold text-[#2563EB]">Year Level <span className="text-[#22C55E]">*</span></label>
+                                            <input id="reg_year_level" type="text" placeholder="e.g., 1st Year" className={`field mt-1 text-xs py-2 font-semibold disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[#2563EB]/5`} value={f.year_level} onChange={(e) => handleRegistrationFieldChange('year_level', e.target.value)} disabled={!regCanUseYearLevel} maxLength={50} required />
+                                        </div>
+                                    </>
                                 )}
 
                                 <div>
@@ -1748,12 +1711,15 @@ function Auth({ register = false }) {
                                             password: '',
                                             password_confirmation: '',
                                             role: '',
-                                            campus_role: '',
-                                            other_role_specify: '',
                                             country: '',
                                             campus_id: '',
+                                            address: '',
+                                            student_id_number: '',
+                                            school_email: '',
+                                            department: '',
+                                            course: '',
+                                            year_level: '',
                                             contact_number: '',
-                                            organization_name: '',
                                         });
                                     }}
                                 >
@@ -3469,14 +3435,19 @@ function ResourceForm({ donation }) {
 function EditModal({item, kind, admin, close, done}){
     const [f, setF] = useState({
         ...item,
+        name: item.name || '',
+        email: item.email || '',
+        role: item.role || 'donor',
         contact_number: item.contact_number || '',
-        campus_role: item.campus_role || (item.role === 'beneficiary' ? 'student' : item.role === 'donor' ? 'student' : ''),
-        campus_id: item.campus_id || '',
-        other_role_specify: item.other_role_specify || '',
+        address: item.address || '',
+        student_id_number: item.student_id_number || '',
+        school_email: item.school_email || '',
+        department: item.department || '',
+        course: item.course || '',
+        year_level: item.year_level || '',
         country: item.country || '',
-        country_code: item.country_code || '',
-        organization_name: item.organization_name || '',
         password: '',
+        password_confirmation: '',
     });
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
@@ -3485,12 +3456,86 @@ function EditModal({item, kind, admin, close, done}){
 
     const save = async e => {
         e.preventDefault();
-        setSaving(true);
         setError('');
 
+        if (isUserKind) {
+            if (!f.name?.trim()) {
+                setError('Full Name is required.');
+                return;
+            }
+            if (!f.email?.trim()) {
+                setError('Email Address is required.');
+                return;
+            }
+            if (!item.id && !f.password) {
+                setError('Password is required.');
+                return;
+            }
+            if (f.password) {
+                if (f.password.length < 8) {
+                    setError('Password must be at least 8 characters long.');
+                    return;
+                }
+                if (f.password !== f.password_confirmation) {
+                    setError('Password and confirmation do not match.');
+                    return;
+                }
+            }
+            if (f.role === 'beneficiary') {
+                if (!f.student_id_number?.trim()) {
+                    setError('Student ID Number is required for Beneficiary.');
+                    return;
+                }
+                if (!f.school_email?.trim()) {
+                    setError('School Email Address is required for Beneficiary.');
+                    return;
+                }
+                if (!f.department?.trim()) {
+                    setError('Department is required for Beneficiary.');
+                    return;
+                }
+                if (!f.course?.trim()) {
+                    setError('Course / Program is required for Beneficiary.');
+                    return;
+                }
+                if (!f.year_level?.trim()) {
+                    setError('Year Level is required for Beneficiary.');
+                    return;
+                }
+            }
+            if (f.role === 'staff' || f.role === 'admin') {
+                if (!f.campus_id?.trim()) {
+                    setError('Campus ID Number is required for ' + (f.role === 'admin' ? 'Administrator' : 'Staff') + '.');
+                    return;
+                }
+            }
+        }
+
+        setSaving(true);
         const payload = { ...f };
-        if (isUserKind && !payload.password) {
-            delete payload.password;
+        if (isUserKind) {
+            if (payload.role === 'beneficiary') {
+                payload.address = '';
+                payload.campus_id = '';
+            } else if (payload.role === 'donor') {
+                payload.student_id_number = '';
+                payload.school_email = '';
+                payload.department = '';
+                payload.course = '';
+                payload.year_level = '';
+                payload.campus_id = '';
+            } else {
+                payload.address = '';
+                payload.student_id_number = '';
+                payload.school_email = '';
+                payload.department = '';
+                payload.course = '';
+                payload.year_level = '';
+            }
+            if (!payload.password) {
+                delete payload.password;
+                delete payload.password_confirmation;
+            }
         }
 
         try {
@@ -3499,7 +3544,8 @@ function EditModal({item, kind, admin, close, done}){
             await done();
             close();
         } catch (e) {
-            setError(e.response?.data?.message || 'Could not save changes.');
+            const valMsg = e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(' ') : null;
+            setError(valMsg || e.response?.data?.message || 'Could not save changes.');
         } finally {
             setSaving(false);
         }
@@ -3574,108 +3620,192 @@ function EditModal({item, kind, admin, close, done}){
                                     <option value="admin">Administrator</option>
                                 </select>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                    Campus Role / Member Type
-                                </label>
-                                <select
-                                    className="field w-full text-xs font-semibold"
-                                    value={f.campus_role || 'student'}
-                                    onChange={e => setF({...f, campus_role: e.target.value})}
-                                >
-                                    <option value="student">Student</option>
-                                    <option value="faculty">Faculty</option>
-                                    <option value="staff">Staff</option>
-                                    <option value="other">Other</option>
-                                    <option value="alumni">Alumni</option>
-                                    <option value="campus_organization">Campus Organization</option>
-                                </select>
-                            </div>
                         </div>
 
+                        {/* Beneficiary-specific fields */}
+                        {f.role === 'beneficiary' && (
+                            <>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                            Student ID Number <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="field w-full text-xs font-semibold"
+                                            placeholder="Enter student ID number"
+                                            value={f.student_id_number || ''}
+                                            onChange={e => setF({...f, student_id_number: e.target.value})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                            School Email Address <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            type="email"
+                                            required
+                                            className="field w-full text-xs font-semibold"
+                                            placeholder="Enter school email"
+                                            value={f.school_email || ''}
+                                            onChange={e => setF({...f, school_email: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                            Department <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="field w-full text-xs font-semibold"
+                                            placeholder="Enter department"
+                                            value={f.department || ''}
+                                            onChange={e => setF({...f, department: e.target.value})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                            Course / Program <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="field w-full text-xs font-semibold"
+                                            placeholder="Enter course / program"
+                                            value={f.course || ''}
+                                            onChange={e => setF({...f, course: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                            Year Level <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="field w-full text-xs font-semibold"
+                                            placeholder="e.g. 1st Year"
+                                            value={f.year_level || ''}
+                                            onChange={e => setF({...f, year_level: e.target.value})}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                            Country / Region
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="field w-full text-xs font-semibold"
+                                            placeholder="e.g. Philippines"
+                                            value={f.country || ''}
+                                            onChange={e => setF({...f, country: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Donor-specific fields */}
+                        {f.role === 'donor' && (
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                    <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Address</label>
+                                    <input
+                                        type="text"
+                                        className="field w-full text-xs font-semibold"
+                                        placeholder="Enter address"
+                                        value={f.address || ''}
+                                        onChange={e => setF({...f, address: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                        Country / Region
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="field w-full text-xs font-semibold"
+                                        placeholder="e.g. Philippines"
+                                        value={f.country || ''}
+                                        onChange={e => setF({...f, country: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Staff / Admin specific fields */}
+                        {(f.role === 'staff' || f.role === 'admin') && (
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <div>
+                                    <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                        Campus ID Number <span className="text-[#22C55E]">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="field w-full text-xs font-semibold"
+                                        placeholder="e.g. 2024-019852"
+                                        value={f.campus_id || ''}
+                                        onChange={e => setF({...f, campus_id: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                        Country / Region
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="field w-full text-xs font-semibold"
+                                        placeholder="e.g. Philippines"
+                                        value={f.country || ''}
+                                        onChange={e => setF({...f, country: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Password & Confirm Password */}
                         <div className="grid gap-3 sm:grid-cols-2">
                             <div>
                                 <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                    Student / Campus ID Number
+                                    {item.id ? 'New Password' : 'Password'} {!item.id && <span className="text-[#22C55E]">*</span>}
                                 </label>
                                 <input
-                                    type="text"
+                                    required={!item.id}
+                                    type="password"
+                                    minLength={8}
                                     className="field w-full text-xs font-semibold"
-                                    placeholder="e.g. 2024-019852"
-                                    value={f.campus_id || ''}
-                                    onChange={e => setF({...f, campus_id: e.target.value})}
+                                    placeholder={item.id ? 'Leave empty to keep' : 'Min. 8 characters'}
+                                    value={f.password || ''}
+                                    onChange={e => setF({...f, password: e.target.value})}
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                    Country / Region
+                                    {item.id ? 'Confirm New Password' : 'Confirm Password'} {!item.id && <span className="text-[#22C55E]">*</span>}
                                 </label>
                                 <input
-                                    type="text"
+                                    required={!item.id || !!f.password}
+                                    type="password"
+                                    minLength={8}
                                     className="field w-full text-xs font-semibold"
-                                    placeholder="e.g. Philippines"
-                                    value={f.country || ''}
-                                    onChange={e => setF({...f, country: e.target.value})}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                    Country Code
-                                </label>
-                                <input
-                                    type="text"
-                                    maxLength={2}
-                                    className="field w-full text-xs font-semibold uppercase"
-                                    placeholder="e.g. PH"
-                                    value={f.country_code || ''}
-                                    onChange={e => setF({...f, country_code: e.target.value.toUpperCase()})}
+                                    placeholder="Re-enter password"
+                                    value={f.password_confirmation || ''}
+                                    onChange={e => setF({...f, password_confirmation: e.target.value})}
                                 />
                             </div>
                         </div>
-
-                        {f.campus_role === 'other' && (
-                            <div>
-                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                    Specify Other Role
-                                </label>
-                                <input
-                                    type="text"
-                                    className="field w-full text-xs font-semibold"
-                                    placeholder="e.g. Community Donor, Maintenance Worker"
-                                    value={f.other_role_specify || ''}
-                                    onChange={e => setF({...f, other_role_specify: e.target.value})}
-                                />
-                            </div>
+                        {f.password && f.password_confirmation && (
+                            <p className={`text-[11px] font-bold ${f.password === f.password_confirmation ? 'text-[#22C55E]' : 'text-red-500'}`}>
+                                {f.password === f.password_confirmation ? '✓ Passwords match' : '✕ Passwords do not match'}
+                            </p>
                         )}
-
-                        {f.campus_role === 'campus_organization' && (
-                            <div>
-                                <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                    Organization Name
-                                </label>
-                                <input
-                                    type="text"
-                                    className="field w-full text-xs font-semibold"
-                                    placeholder="e.g. Student Council, Red Cross Youth"
-                                    value={f.organization_name || ''}
-                                    onChange={e => setF({...f, organization_name: e.target.value})}
-                                />
-                            </div>
-                        )}
-
-                        <div>
-                            <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                {item.id ? 'New Password (leave empty to keep unchanged)' : 'Account Password *'}
-                            </label>
-                            <input
-                                required={!item.id}
-                                type="password"
-                                className="field w-full text-xs font-semibold"
-                                placeholder={item.id ? 'Enter new password if changing' : 'Enter strong password (min 8 characters)'}
-                                value={f.password || ''}
-                                onChange={e => setF({...f, password: e.target.value})}
-                            />
-                        </div>
                     </div>
                 ) : (
                     Object.entries(f).filter(([k]) => !['id','status','created_at','beneficiary','donor','profile_photo_url','profile_photo_path','email_verified_at','updated_at'].includes(k)).map(([k, v]) => (typeof v === 'string' || typeof v === 'number') && (
@@ -3716,6 +3846,7 @@ function PeopleManager(){
     const [viewingUser, setViewingUser] = useState(null);
     const [deletingUser, setDeletingUser] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
@@ -3740,9 +3871,10 @@ function PeopleManager(){
             (u.email && u.email.toLowerCase().includes(q)) ||
             (u.contact_number && u.contact_number.toLowerCase().includes(q)) ||
             (u.campus_id && u.campus_id.toLowerCase().includes(q)) ||
-            (u.campus_role && u.campus_role.toLowerCase().includes(q)) ||
-            (u.other_role_specify && u.other_role_specify.toLowerCase().includes(q)) ||
-            (u.organization_name && u.organization_name.toLowerCase().includes(q)) ||
+            (u.student_id_number && u.student_id_number.toLowerCase().includes(q)) ||
+            (u.school_email && u.school_email.toLowerCase().includes(q)) ||
+            (u.department && u.department.toLowerCase().includes(q)) ||
+            (u.course && u.course.toLowerCase().includes(q)) ||
             (u.country && u.country.toLowerCase().includes(q)) ||
             (u.country_code && u.country_code.toLowerCase().includes(q));
         return matchesRole && matchesSearch;
@@ -3769,9 +3901,12 @@ function PeopleManager(){
     const confirmDelete = async () => {
         if(!deletingUser) return;
         setDeleting(true);
+        const memberName = deletingUser.name;
         try {
             await api.delete(`/admin/users/${deletingUser.id}`);
             setDeletingUser(null);
+            setSuccessMessage(`Member account "${memberName}" was successfully deleted.`);
+            setTimeout(() => setSuccessMessage(''), 5000);
             load();
         } catch(e) {
             setState(s => ({...s, error: e.response?.data?.message || 'Could not delete user account.'}));
@@ -3790,12 +3925,18 @@ function PeopleManager(){
                         Manage user roles, inspect account profiles, and authorize campus accounts.
                     </p>
                 </div>
-                <Button onClick={() => setEditing({name: '', email: '', role: 'donor', campus_role: 'student', contact_number: '', campus_id: '', password: ''})}>
+                <Button onClick={() => setEditing({name: '', email: '', role: 'donor', contact_number: '', address: '', student_id_number: '', school_email: '', department: '', course: '', year_level: '', country: '', password: '', password_confirmation: ''})}>
                     <Icon name="plus"/><span className="ml-2">Add Member</span>
                 </Button>
             </div>
 
             <Error>{state.error}</Error>
+            {successMessage && (
+                <div className="rounded-xl border border-[#22C55E] bg-white p-4 text-sm font-bold text-[#22C55E] shadow-sm flex items-center justify-between">
+                    <span>{successMessage}</span>
+                    <button onClick={() => setSuccessMessage('')} className="text-[#22C55E] hover:underline font-extrabold text-xs">Dismiss</button>
+                </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <article className="panel p-5 flex items-center justify-between">
@@ -3901,7 +4042,6 @@ function PeopleManager(){
                                     <th>Email Address</th>
                                     <th>Contact Number</th>
                                     <th>Account Type</th>
-                                    <th>Campus Role</th>
                                     <th>ID Number</th>
                                     <th>Status</th>
                                     <th>Joined</th>
@@ -3930,9 +4070,14 @@ function PeopleManager(){
                                                         <strong className="block text-xs font-bold text-[#2563EB] truncate max-w-[150px]" title={userItem.name}>
                                                             {userItem.name}
                                                         </strong>
-                                                        {userItem.campus_id && (
+                                                        {userItem.role === 'donor' && userItem.campus_id && (
                                                             <span className="text-[10px] font-semibold text-[#2563EB]/70 block truncate max-w-[150px]">
                                                                 ID: {userItem.campus_id}
+                                                            </span>
+                                                        )}
+                                                        {userItem.role === 'beneficiary' && userItem.student_id_number && (
+                                                            <span className="text-[10px] font-semibold text-[#2563EB]/70 block truncate max-w-[150px]">
+                                                                SID: {userItem.student_id_number}
                                                             </span>
                                                         )}
                                                     </div>
@@ -3950,23 +4095,12 @@ function PeopleManager(){
                                                 <Badge status={userItem.role}/>
                                             </td>
                                             <td>
-                                                <div className="text-xs font-semibold text-[#2563EB]">
-                                                    {title(userItem.campus_role || 'Standard')}
-                                                    {userItem.other_role_specify && (
-                                                        <span className="block text-[10px] text-[#2563EB]/70 truncate max-w-[120px]">
-                                                            ({userItem.other_role_specify})
-                                                        </span>
-                                                    )}
-                                                    {userItem.organization_name && (
-                                                        <span className="block text-[10px] text-[#2563EB]/70 truncate max-w-[120px]">
-                                                            ({userItem.organization_name})
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td>
                                                 <span className="text-xs font-mono font-bold text-[#2563EB]">
-                                                    {userItem.campus_id || '—'}
+                                                    {userItem.role === 'donor'
+                                                        ? (userItem.campus_id || '—')
+                                                        : userItem.role === 'beneficiary'
+                                                            ? (userItem.student_id_number || '—')
+                                                            : '—'}
                                                 </span>
                                             </td>
                                             <td>
@@ -4033,12 +4167,14 @@ function PeopleManager(){
                                             <span>{userItem.contact_number || '—'}</span>
                                         </div>
                                         <div>
-                                            <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">Campus Role</span>
-                                            <span>{title(userItem.campus_role || 'Standard')}</span>
-                                        </div>
-                                        <div>
                                             <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">ID Number</span>
-                                            <span className="font-mono">{userItem.campus_id || '—'}</span>
+                                            <span className="font-mono">
+                                                {userItem.role === 'donor'
+                                                    ? (userItem.campus_id || '—')
+                                                    : userItem.role === 'beneficiary'
+                                                        ? (userItem.student_id_number || '—')
+                                                        : '—'}
+                                            </span>
                                         </div>
                                         <div>
                                             <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">Joined</span>
@@ -4144,30 +4280,42 @@ function PeopleManager(){
                                 <span className="font-bold text-[#2563EB]/70">Country / Code:</span>
                                 <span className="font-semibold text-[#2563EB]">{viewingUser.country || 'Not provided'}{viewingUser.country_code ? ` (${viewingUser.country_code})` : ''}</span>
                             </div>
-                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
-                                <span className="font-bold text-[#2563EB]/70">Campus Role:</span>
-                                <span className="font-semibold text-[#2563EB]">{title(viewingUser.campus_role || 'Standard')}</span>
-                            </div>
-                            {viewingUser.other_role_specify && (
+                            {viewingUser.role === 'donor' && (<>
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
-                                    <span className="font-bold text-[#2563EB]/70">Specified Role:</span>
-                                    <span className="font-semibold text-[#2563EB]">{viewingUser.other_role_specify}</span>
+                                    <span className="font-bold text-[#2563EB]/70">Address:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.address || 'Not provided'}</span>
                                 </div>
-                            )}
-                            {viewingUser.organization_name && (
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
-                                    <span className="font-bold text-[#2563EB]/70">Organization:</span>
-                                    <span className="font-semibold text-[#2563EB]">{viewingUser.organization_name}</span>
+                                    <span className="font-bold text-[#2563EB]/70">Valid ID Number:</span>
+                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.campus_id || 'N/A'}</span>
                                 </div>
-                            )}
-                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
-                                <span className="font-bold text-[#2563EB]/70">Student / Campus ID:</span>
-                                <span className="font-mono font-bold text-[#2563EB]">{viewingUser.campus_id || 'N/A'}</span>
-                            </div>
-                            {viewingUser.country && (
+                            </>)}
+                            {viewingUser.role === 'beneficiary' && (<>
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
-                                    <span className="font-bold text-[#2563EB]/70">Country:</span>
-                                    <span className="font-semibold text-[#2563EB]">{viewingUser.country}</span>
+                                    <span className="font-bold text-[#2563EB]/70">Student ID Number:</span>
+                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.student_id_number || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">School Email:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.school_email || 'Not provided'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Department:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.department || 'Not provided'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Course:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.course || 'Not provided'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Year Level:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.year_level || 'Not provided'}</span>
+                                </div>
+                            </>)}
+                            {(viewingUser.role === 'admin' || viewingUser.role === 'staff') && (
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Campus ID Number:</span>
+                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.campus_id || 'N/A'}</span>
                                 </div>
                             )}
                             <div className="flex justify-between py-1">
@@ -4234,6 +4382,7 @@ function DonationManager(){
     const [viewingDonation, setViewingDonation] = useState(null);
     const [deletingDonation, setDeletingDonation] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
@@ -4285,9 +4434,12 @@ function DonationManager(){
     const confirmDelete = async () => {
         if(!deletingDonation) return;
         setDeleting(true);
+        const itemName = deletingDonation.item_name || title(deletingDonation.category);
         try {
             await api.delete(user.role === 'admin' ? `/admin/donations/${deletingDonation.id}` : `/donations/${deletingDonation.id}`);
             setDeletingDonation(null);
+            setSuccessMessage(`Donation item "${itemName}" was successfully deleted.`);
+            setTimeout(() => setSuccessMessage(''), 5000);
             load();
         } catch(e) {
             setState(s => ({...s, error: e.response?.data?.message || 'Could not delete donation record.'}));
@@ -4315,6 +4467,12 @@ function DonationManager(){
             </div>
 
             <Error>{state.error}</Error>
+            {successMessage && (
+                <div className="rounded-xl border border-[#22C55E] bg-white p-4 text-sm font-bold text-[#22C55E] shadow-sm flex items-center justify-between">
+                    <span>{successMessage}</span>
+                    <button onClick={() => setSuccessMessage('')} className="text-[#22C55E] hover:underline font-extrabold text-xs">Dismiss</button>
+                </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <article className="panel p-5 flex items-center justify-between">
@@ -4659,6 +4817,7 @@ function RequestManager(){
     const [deletingRequest, setDeletingRequest] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
@@ -4725,9 +4884,12 @@ function RequestManager(){
     const confirmDelete = async () => {
         if(!deletingRequest) return;
         setDeleting(true);
+        const reqName = title(deletingRequest.category);
         try {
             await api.delete(user.role === 'admin' ? `/admin/requests/${deletingRequest.id}` : `/requests/${deletingRequest.id}`);
             setDeletingRequest(null);
+            setSuccessMessage(`Support request for "${reqName}" was successfully deleted.`);
+            setTimeout(() => setSuccessMessage(''), 5000);
             load();
         } catch(e) {
             setState(s => ({...s, error: e.response?.data?.message || 'Could not delete request.'}));
@@ -4755,6 +4917,12 @@ function RequestManager(){
             </div>
 
             <Error>{state.error}</Error>
+            {successMessage && (
+                <div className="rounded-xl border border-[#22C55E] bg-white p-4 text-sm font-bold text-[#22C55E] shadow-sm flex items-center justify-between">
+                    <span>{successMessage}</span>
+                    <button onClick={() => setSuccessMessage('')} className="text-[#22C55E] hover:underline font-extrabold text-xs">Dismiss</button>
+                </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <article className="panel p-5 flex items-center justify-between">
@@ -11061,6 +11229,7 @@ function AdminCategories(){
     const [inspectingCategory, setInspectingCategory] = useState(null);
     const [deletingCategory, setDeletingCategory] = useState(null);
     const [formError, setFormError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
@@ -11125,6 +11294,8 @@ function AdminCategories(){
         const newCat = { id: Date.now(), name, slug, status: 'active' };
         setCategories([...categories, newCat]);
         setAddingCategory(false);
+        setSuccessMessage(`Category "${name}" was created successfully.`);
+        setTimeout(() => setSuccessMessage(''), 5000);
     };
 
     const handleUpdateCategory = e => {
@@ -11139,6 +11310,8 @@ function AdminCategories(){
 
         setCategories(categories.map(c => c.id === editingCategory.id ? { ...c, name, slug } : c));
         setEditingCategory(null);
+        setSuccessMessage(`Category "${name}" was updated successfully.`);
+        setTimeout(() => setSuccessMessage(''), 5000);
     };
 
     const toggleStatus = id => {
@@ -11154,8 +11327,11 @@ function AdminCategories(){
             return;
         }
 
+        const catName = deletingCategory.name;
         setCategories(categories.filter(c => c.id !== deletingCategory.id));
         setDeletingCategory(null);
+        setSuccessMessage(`Category "${catName}" was successfully deleted.`);
+        setTimeout(() => setSuccessMessage(''), 5000);
     };
 
     return (
@@ -11179,6 +11355,13 @@ function AdminCategories(){
                     </Button>
                 </div>
             </div>
+
+            {successMessage && (
+                <div className="rounded-xl border border-[#22C55E] bg-white p-4 text-sm font-bold text-[#22C55E] shadow-sm flex items-center justify-between">
+                    <span>{successMessage}</span>
+                    <button onClick={() => setSuccessMessage('')} className="text-[#22C55E] hover:underline font-extrabold text-xs">Dismiss</button>
+                </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <article className="panel p-5 flex items-center justify-between">
@@ -13002,10 +13185,13 @@ function Profile(){
         name:user?.name||'',
         email:user?.email||'',
         contact_number:user?.contact_number||'',
-        campus_role:user?.campus_role||'',
         campus_id:user?.campus_id||'',
-        organization_name:user?.organization_name||'',
-        other_role_specify:user?.other_role_specify||'',
+        address:user?.address||'',
+        student_id_number:user?.student_id_number||'',
+        school_email:user?.school_email||'',
+        department:user?.department||'',
+        course:user?.course||'',
+        year_level:user?.year_level||'',
         country:user?.country||'',
         country_code:user?.country_code||'',
         password:'',
@@ -13029,10 +13215,13 @@ function Profile(){
                 name:user.name||'',
                 email:user.email||'',
                 contact_number:user.contact_number||'',
-                campus_role:user.campus_role||'',
                 campus_id:user.campus_id||'',
-                organization_name:user.organization_name||'',
-                other_role_specify:user.other_role_specify||'',
+                address:user.address||'',
+                student_id_number:user.student_id_number||'',
+                school_email:user.school_email||'',
+                department:user.department||'',
+                course:user.course||'',
+                year_level:user.year_level||'',
                 country:user.country||'',
                 country_code:user.country_code||'',
                 password:'',
@@ -13120,12 +13309,15 @@ function Profile(){
         data.append('name',f.name.trim());
         data.append('email',f.email.trim());
         if(f.contact_number) data.append('contact_number',f.contact_number.trim());
-        if(f.campus_role) data.append('campus_role',f.campus_role);
         if(f.campus_id) data.append('campus_id',f.campus_id.trim());
-        if(f.other_role_specify) data.append('other_role_specify',f.other_role_specify.trim());
+        if(f.address) data.append('address',f.address.trim());
+        if(f.student_id_number) data.append('student_id_number',f.student_id_number.trim());
+        if(f.school_email) data.append('school_email',f.school_email.trim());
+        if(f.department) data.append('department',f.department.trim());
+        if(f.course) data.append('course',f.course.trim());
+        if(f.year_level) data.append('year_level',f.year_level.trim());
         if(f.country) data.append('country',f.country.trim());
         if(f.country_code) data.append('country_code',f.country_code.trim());
-        if(f.organization_name) data.append('organization_name',f.organization_name.trim());
         if(f.password){
             data.append('password',f.password);
             data.append('password_confirmation',f.password_confirmation);
@@ -13154,15 +13346,7 @@ function Profile(){
     const initials=(user.name||'U').split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const memberSince=user.created_at?new Date(user.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}):'N/A';
     const roleBadgeLabel=user.role==='beneficiary'?'BENEFICIARY':user.role==='donor'?'DONOR':(user.role||'user').toUpperCase();
-    const campusRoleLabel=user.campus_role?title(user.campus_role):null;
-
-    const idLabel = f.campus_role === 'student'
-        ? 'Student ID Number'
-        : f.campus_role === 'faculty'
-            ? 'Faculty/Employee ID Number'
-            : f.campus_role === 'staff'
-                ? 'Staff/Employee ID Number'
-                : 'Valid ID Number';
+    const idLabel = 'Valid ID Number';
 
     const sections=[
         {key:'personal',label:'Personal Info',icon:'person'},
@@ -13236,11 +13420,6 @@ function Profile(){
                         <span className="inline-block rounded-lg bg-[#2563EB] text-white px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider">
                             {roleBadgeLabel}
                         </span>
-                        {campusRoleLabel&&(
-                            <span className="inline-block rounded-lg bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider">
-                                {campusRoleLabel}
-                            </span>
-                        )}
                         <span className="text-[11px] font-semibold text-[#2563EB]/60">
                             Member since {memberSince}
                         </span>
@@ -13316,42 +13495,31 @@ function Profile(){
                                         placeholder="Enter contact number"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">
-                                        {user.role==='donor'?'Donor Type / Campus Role':'Beneficiary Type / Campus Role'}
-                                    </label>
-                                    <select
-                                        className="field w-full"
-                                        value={f.campus_role}
-                                        onChange={e=>setF({...f,campus_role:e.target.value})}
-                                    >
-                                        <option value="">Select campus role</option>
-                                        <option value="student">Student</option>
-                                        <option value="faculty">Faculty</option>
-                                        <option value="staff">Staff</option>
-                                        <option value="other">Other</option>
-                                        {user.role==='donor'&&(
-                                            <>
-                                                <option value="alumni">Alumni</option>
-                                                <option value="campus_organization">Campus Organization</option>
-                                            </>
-                                        )}
-                                    </select>
-                                </div>
                             </div>
 
                             <div className="grid gap-5 sm:grid-cols-2">
+                                {user.role==='donor'&&<>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">
-                                        {idLabel}
-                                    </label>
-                                    <input
-                                        className="field w-full"
-                                        placeholder="Enter your ID number (e.g. 2024-019852)"
-                                        value={f.campus_id}
-                                        onChange={e=>setF({...f,campus_id:e.target.value})}
-                                    />
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Address</label>
+                                    <input className="field w-full" placeholder="Enter your address" value={f.address} onChange={e=>setF({...f,address:e.target.value})}/>
                                 </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">{idLabel}</label>
+                                    <input className="field w-full" placeholder="Enter your valid ID number" value={f.campus_id} onChange={e=>setF({...f,campus_id:e.target.value})}/>
+                                </div>
+                                </>}
+                                {user.role==='beneficiary'&&<>
+                                {[
+                                    ['Student ID Number','student_id_number','Enter your student ID number'],
+                                    ['School Email Address','school_email','Enter your school email address'],
+                                    ['Department','department','Enter your department'],
+                                    ['Course','course','Enter your course'],
+                                    ['Year Level','year_level','e.g. 1st Year'],
+                                ].map(([label,key,placeholder])=><div key={key}>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">{label}</label>
+                                    <input className="field w-full" type={key==='school_email'?'email':'text'} placeholder={placeholder} value={f[key]} onChange={e=>setF({...f,[key]:e.target.value})}/>
+                                </div>)}
+                                </>}
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region</label>
                                     <input
@@ -13363,31 +13531,6 @@ function Profile(){
                                 </div>
                             </div>
 
-                            {f.campus_role==='other'&&(
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">
-                                        {user.role==='donor'?'Specify Donor Type':'Specify Beneficiary Type'}
-                                    </label>
-                                    <input
-                                        className="field w-full"
-                                        placeholder="e.g. Community Donor, Maintenance Staff"
-                                        value={f.other_role_specify}
-                                        onChange={e=>setF({...f,other_role_specify:e.target.value})}
-                                    />
-                                </div>
-                            )}
-
-                            {f.campus_role==='campus_organization'&&(
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Organization Name</label>
-                                    <input
-                                        className="field w-full"
-                                        placeholder="Enter your campus organization name"
-                                        value={f.organization_name}
-                                        onChange={e=>setF({...f,organization_name:e.target.value})}
-                                    />
-                                </div>
-                            )}
                         </div>
 
                         <div className="panel p-5 sm:p-6 bg-white space-y-5">
@@ -13568,11 +13711,18 @@ function Profile(){
                                     {label:'Email Address',value:user.email||'—'},
                                     {label:'Contact Number',value:user.contact_number||'Not provided'},
                                     {label:'Account Type',value:user.role==='beneficiary'?'Request Support (Beneficiary)':user.role==='donor'?'Make a Donation (Donor)':title(user.role)},
-                                    {label:'Campus Role',value:user.campus_role?title(user.campus_role):'Standard'},
-                                    {label:idLabel,value:user.campus_id||'N/A',isMono:true},
-                                    {label:'Role Specification',value:user.other_role_specify||user.organization_name||'Standard Registration'},
                                     {label:'Country / Region',value:user.country||'Campus Resident'},
-                                    {label:'Country Code',value:user.country_code||'Not provided'},
+                                    ...(user.role==='donor'?[
+                                        {label:'Address',value:user.address||'Not provided'},
+                                        {label:'Valid ID Number',value:user.campus_id||'N/A',isMono:true},
+                                    ]:[]),
+                                    ...(user.role==='beneficiary'?[
+                                        {label:'Student ID Number',value:user.student_id_number||'N/A',isMono:true},
+                                        {label:'School Email',value:user.school_email||'Not provided'},
+                                        {label:'Department',value:user.department||'Not provided'},
+                                        {label:'Course',value:user.course||'Not provided'},
+                                        {label:'Year Level',value:user.year_level||'Not provided'},
+                                    ]:[]),
                                     {label:'Member Since',value:memberSince},
                                     {label:'Account Status',value:'Active',accent:true}
                                 ].map((item,i)=>(

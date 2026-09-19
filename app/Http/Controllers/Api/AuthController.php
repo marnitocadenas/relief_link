@@ -38,12 +38,14 @@ class AuthController extends Controller
             // Unique indexes remain the final authority if two requests pass
             // validation at the same time.
             $message = strtolower($exception->getMessage());
-            $field = str_contains($message, 'campus_id') ? 'campus_id'
-                : (str_contains($message, 'contact_number') ? 'contact_number' : 'email');
+            $field = str_contains($message, 'student_id_number') ? 'student_id_number'
+                : (str_contains($message, 'campus_id') ? 'campus_id'
+                : (str_contains($message, 'contact_number') ? 'contact_number' : 'email'));
             $messages = [
                 'email' => 'This email address is already taken.',
                 'contact_number' => 'This contact number is already taken.',
                 'campus_id' => 'This ID number is already taken.',
+                'student_id_number' => 'This student ID number is already taken.',
             ];
             throw ValidationException::withMessages([$field => $messages[$field]]);
         }
@@ -57,7 +59,7 @@ class AuthController extends Controller
     public function checkRegistrationAvailability(Request $r)
     {
         $data = $r->validate([
-            'field' => ['required', 'in:name,email,contact_number,campus_id'],
+            'field' => ['required', 'in:name,email,contact_number,campus_id,student_id_number'],
             'value' => ['required', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:100'],
         ]);
@@ -76,6 +78,10 @@ class AuthController extends Controller
             $value = RegisterRequest::normalizeId($value);
             $exists = User::query()->where('campus_id', $value)->exists();
             $message = 'This ID number is already taken.';
+        } elseif ($field === 'student_id_number') {
+            $value = RegisterRequest::normalizeId($value);
+            $exists = User::query()->where('student_id_number', $value)->exists();
+            $message = 'This student ID number is already taken.';
         } else {
             // The registration request stores valid phone numbers in E.164.
             // Normalize here as well, so this endpoint treats equivalent local
@@ -269,6 +275,12 @@ class AuthController extends Controller
             'email' => RegisterRequest::normalizeEmail((string) $r->input('email', '')),
             'contact_number' => RegisterRequest::normalizeContactNumber((string) $r->input('contact_number', ''), $country),
             'campus_id' => RegisterRequest::normalizeId((string) $r->input('campus_id', '')),
+            'student_id_number' => RegisterRequest::normalizeId((string) $r->input('student_id_number', '')),
+            'school_email' => RegisterRequest::normalizeEmail((string) $r->input('school_email', '')),
+            'address' => trim((string) $r->input('address', '')),
+            'department' => trim((string) $r->input('department', '')),
+            'course' => trim((string) $r->input('course', '')),
+            'year_level' => trim((string) $r->input('year_level', '')),
             'country' => $country,
         ];
         if ($r->has('country_code')) {
@@ -295,10 +307,13 @@ class AuthController extends Controller
                     }
                 },
             ],
-            'campus_role' => 'nullable|string|max:50',
             'campus_id' => ['nullable', 'string', 'max:50', 'unique:users,campus_id,' . $u->id],
-            'organization_name' => 'nullable|string|max:255',
-            'other_role_specify' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:255',
+            'student_id_number' => ['nullable', 'string', 'max:50', 'unique:users,student_id_number,' . $u->id],
+            'school_email' => 'nullable|email|max:255',
+            'department' => 'nullable|string|max:255',
+            'course' => 'nullable|string|max:255',
+            'year_level' => 'nullable|string|max:50',
             'country' => 'nullable|string|max:100',
             'country_code' => 'nullable|string|size:2',
         ]);

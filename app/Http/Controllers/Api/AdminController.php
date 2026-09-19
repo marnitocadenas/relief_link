@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -75,20 +76,47 @@ class AdminController extends Controller
 
     public function storeUser(Request $r)
     {
+        $role = $r->input('role', 'donor');
+        $isAdminOrStaff = in_array($role, ['admin', 'staff'], true);
         $d = $r->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8',
             'role' => 'required|in:donor,beneficiary,staff,admin',
-            'campus_role' => 'nullable|string|max:50',
-            'contact_number' => 'nullable|string|max:30',
-            'campus_id' => 'nullable|string|max:50',
-            'organization_name' => 'nullable|string|max:255',
-            'other_role_specify' => 'nullable|string|max:100',
+            'contact_number' => 'nullable|string|max:30|unique:users,contact_number',
             'country' => 'nullable|string|max:100',
-            'country_code' => 'nullable|string|size:2',
+            'campus_id' => $isAdminOrStaff ? 'required|string|max:50|unique:users,campus_id' : 'nullable|string|max:50',
+            'address' => 'nullable|string|max:255',
+            'student_id_number' => $role === 'beneficiary' ? 'required|string|max:50|unique:users,student_id_number' : 'nullable|string|max:50',
+            'school_email' => $role === 'beneficiary' ? 'required|email|max:255' : 'nullable|email|max:255',
+            'department' => $role === 'beneficiary' ? 'required|string|max:255' : 'nullable|string|max:255',
+            'course' => $role === 'beneficiary' ? 'required|string|max:255' : 'nullable|string|max:255',
+            'year_level' => $role === 'beneficiary' ? 'required|string|max:50' : 'nullable|string|max:50',
+        ], [
+            'campus_id.required' => 'Campus ID Number is required for ' . ($role === 'admin' ? 'Administrator' : 'Staff') . ' accounts.',
         ]);
+
+        if ($role === 'beneficiary') {
+            $d['campus_id'] = null;
+            $d['address'] = null;
+        } elseif ($role === 'donor') {
+            $d['campus_id'] = null;
+            $d['student_id_number'] = null;
+            $d['school_email'] = null;
+            $d['department'] = null;
+            $d['course'] = null;
+            $d['year_level'] = null;
+        } elseif ($isAdminOrStaff) {
+            $d['address'] = null;
+            $d['student_id_number'] = null;
+            $d['school_email'] = null;
+            $d['department'] = null;
+            $d['course'] = null;
+            $d['year_level'] = null;
+        }
+
         $d['password'] = Hash::make($d['password']);
+        $d['email_verified_at'] = now();
         $u = User::create($d);
         ActivityService::log($r->user(), 'created user', $u);
         return new UserResource($u);
@@ -96,19 +124,47 @@ class AdminController extends Controller
 
     public function updateUser(Request $r, User $user)
     {
+        $role = $r->input('role', $user->role);
+        $isAdminOrStaff = in_array($role, ['admin', 'staff'], true);
         $d = $r->validate([
             'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8',
+            'email' => 'sometimes|required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
             'role' => 'sometimes|required|in:donor,beneficiary,staff,admin',
-            'campus_role' => 'nullable|string|max:50',
-            'contact_number' => 'nullable|string|max:30',
-            'campus_id' => 'nullable|string|max:50',
-            'organization_name' => 'nullable|string|max:255',
-            'other_role_specify' => 'nullable|string|max:100',
+            'contact_number' => 'nullable|string|max:30|unique:users,contact_number,' . $user->id,
             'country' => 'nullable|string|max:100',
-            'country_code' => 'nullable|string|size:2',
+            'campus_id' => $isAdminOrStaff ? 'required|string|max:50|unique:users,campus_id,' . $user->id : 'nullable|string|max:50|unique:users,campus_id,' . $user->id,
+            'address' => 'nullable|string|max:255',
+            'student_id_number' => 'nullable|string|max:50|unique:users,student_id_number,' . $user->id,
+            'school_email' => 'nullable|email|max:255',
+            'department' => 'nullable|string|max:255',
+            'course' => 'nullable|string|max:255',
+            'year_level' => 'nullable|string|max:50',
+        ], [
+            'campus_id.required' => 'Campus ID Number is required for ' . ($role === 'admin' ? 'Administrator' : 'Staff') . ' accounts.',
         ]);
+
+        if (array_key_exists('role', $d)) {
+            if ($d['role'] === 'beneficiary') {
+                $d['campus_id'] = null;
+                $d['address'] = null;
+            } elseif ($d['role'] === 'donor') {
+                $d['campus_id'] = null;
+                $d['student_id_number'] = null;
+                $d['school_email'] = null;
+                $d['department'] = null;
+                $d['course'] = null;
+                $d['year_level'] = null;
+            } elseif (in_array($d['role'], ['admin', 'staff'], true)) {
+                $d['address'] = null;
+                $d['student_id_number'] = null;
+                $d['school_email'] = null;
+                $d['department'] = null;
+                $d['course'] = null;
+                $d['year_level'] = null;
+            }
+        }
+
         if (!empty($d['password'])) {
             $d['password'] = Hash::make($d['password']);
         } else {
@@ -124,6 +180,26 @@ class AdminController extends Controller
         abort_if($user->role === 'admin' && User::where('role', 'admin')->count() === 1, 422, 'Keep at least one administrator.');
         ActivityService::log($r->user(), 'deleted user', $user);
         $user->delete();
+        return response()->noContent();
+    }
+
+    public function destroyDonation(Request $r, Donation $donation)
+    {
+        if ($donation->image_path) {
+            Storage::disk('public')->delete($donation->image_path);
+        }
+        ActivityService::log($r->user(), 'deleted donation', $donation);
+        $donation->delete();
+        return response()->noContent();
+    }
+
+    public function destroyRequest(Request $r, AidRequest $aidRequest)
+    {
+        if ($aidRequest->supporting_document_path) {
+            Storage::delete($aidRequest->supporting_document_path);
+        }
+        ActivityService::log($r->user(), 'deleted support request', $aidRequest);
+        $aidRequest->delete();
         return response()->noContent();
     }
 

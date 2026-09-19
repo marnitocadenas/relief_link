@@ -85,6 +85,10 @@ export default function InternationalPhoneInput({
         };
     }, [isOpen]);
 
+    useEffect(() => {
+        if (disabled) setIsOpen(false);
+    }, [disabled]);
+
     // Start each country search fresh and place the cursor directly in the
     // search field when the calling-code list opens.
     useEffect(() => {

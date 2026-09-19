@@ -63,8 +63,18 @@ class AidRequestController extends Controller
 
     public function destroy(Request $request, AidRequest $aidRequest)
     {
+        if (in_array($request->user()->role, ['admin', 'staff'], true)) {
+            if ($aidRequest->supporting_document_path) {
+                Storage::delete($aidRequest->supporting_document_path);
+            }
+            ActivityService::log($request->user(), 'deleted support request', $aidRequest);
+            $aidRequest->delete();
+            return response()->noContent();
+        }
         abort_unless($aidRequest->beneficiary_id === $request->user()->id && $aidRequest->status === 'pending_review', 403);
-        Storage::delete($aidRequest->supporting_document_path);
+        if ($aidRequest->supporting_document_path) {
+            Storage::delete($aidRequest->supporting_document_path);
+        }
         ActivityService::log($request->user(), 'deleted support request', $aidRequest);
         $aidRequest->delete();
         return response()->noContent();

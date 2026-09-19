@@ -10,12 +10,32 @@ return new class extends Migration
     public function up(): void
     {
         // Bring legacy values into the same canonical form used at registration
-        // before MySQL enforces the new database-level guarantees.
-        DB::table('users')->orderBy('id')->each(function ($user) {
+        // and resolve any duplicate values in legacy test data before MySQL enforces uniqueness.
+        $seenContacts = [];
+        $seenCampusIds = [];
+        DB::table('users')->orderBy('id')->each(function ($user) use (&$seenContacts, &$seenCampusIds) {
+            $contact = $user->contact_number ? trim($user->contact_number) : null;
+            if ($contact !== null) {
+                if (in_array($contact, $seenContacts, true)) {
+                    $contact = $contact . '-dup-' . $user->id;
+                } else {
+                    $seenContacts[] = $contact;
+                }
+            }
+
+            $campusId = $user->campus_id ? strtoupper(trim($user->campus_id)) : null;
+            if ($campusId !== null) {
+                if (in_array($campusId, $seenCampusIds, true)) {
+                    $campusId = $campusId . '-DUP-' . $user->id;
+                } else {
+                    $seenCampusIds[] = $campusId;
+                }
+            }
+
             DB::table('users')->where('id', $user->id)->update([
                 'email' => strtolower(trim($user->email)),
-                'contact_number' => $user->contact_number ? trim($user->contact_number) : null,
-                'campus_id' => $user->campus_id ? strtoupper(trim($user->campus_id)) : null,
+                'contact_number' => $contact,
+                'campus_id' => $campusId,
             ]);
         });
 
