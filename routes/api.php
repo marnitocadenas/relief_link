@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('donations', DonationController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::apiResource('requests', AidRequestController::class)->parameters(['requests' => 'aidRequest'])->only(['index', 'store', 'update', 'destroy']);
     Route::get('requests/{aidRequest}/document', [AidRequestController::class, 'document']);
-    Route::patch('requests/{aidRequest}/cancel', [AidRequestController::class, 'cancel']);
+    Route::match(['post', 'patch'], 'requests/{aidRequest}/cancel', [AidRequestController::class, 'cancel']);
 
     Route::get('matches', [MatchController::class, 'index']);
     Route::patch('matches/{match}/schedule', [MatchController::class, 'schedule']);

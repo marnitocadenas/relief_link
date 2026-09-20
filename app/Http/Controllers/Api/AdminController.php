@@ -22,12 +22,18 @@ class AdminController extends Controller
         return [
             'total_donations' => Donation::count(),
             'total_requests' => AidRequest::count(),
+            'physical_requests' => AidRequest::where(function ($q) {
+                $q->whereNull('request_type')->orWhere('request_type', 'physical');
+            })->count(),
+            'financial_requests' => AidRequest::where('request_type', 'financial')->count(),
+            'total_financial_amount_requested' => (float) AidRequest::where('request_type', 'financial')->sum('amount_requested'),
+            'total_financial_amount_fulfilled' => (float) DonationMatch::where('status', 'fulfilled')->sum('matched_amount'),
             'total_matches' => $t,
             'fulfillment_rate' => $t ? round(DonationMatch::where('status', 'fulfilled')->count() / $t * 100) : 0,
-            'pending_reviews' => AidRequest::where('status', 'pending_review')->count(),
+            'pending_reviews' => AidRequest::whereIn('status', ['pending_review', 'under_review'])->count(),
             'proposed_matches' => DonationMatch::where('status', 'proposed')->count(),
             'role_counts' => User::selectRaw('role,count(*) as total')->groupBy('role')->get(),
-            'priority_queue' => AidRequest::where('status', 'approved')
+            'priority_queue' => AidRequest::whereIn('status', ['approved', 'partially_fulfilled'])
                 ->orderByRaw("CASE urgency WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")
                 ->oldest()
                 ->limit(5)
@@ -44,13 +50,19 @@ class AdminController extends Controller
     public function report()
     {
         return [
-            'approval_rate' => AidRequest::count() ? round(AidRequest::where('status', '!=', 'pending_review')->count() / AidRequest::count() * 100) : 0,
+            'approval_rate' => AidRequest::count() ? round(AidRequest::whereNotIn('status', ['pending_review', 'under_review'])->count() / AidRequest::count() * 100) : 0,
             'confirmation_rate' => DonationMatch::count() ? round(DonationMatch::whereIn('status', ['confirmed', 'fulfilled'])->count() / DonationMatch::count() * 100) : 0,
             'coverage' => [
                 'active_donors' => User::where('role', 'donor')->count(),
                 'active_beneficiaries' => User::where('role', 'beneficiary')->count(),
                 'fulfilled_donations' => Donation::where('status', 'fulfilled')->count(),
                 'fulfilled_requests' => AidRequest::where('status', 'fulfilled')->count(),
+                'physical_requests' => AidRequest::where(function ($q) {
+                    $q->whereNull('request_type')->orWhere('request_type', 'physical');
+                })->count(),
+                'financial_requests' => AidRequest::where('request_type', 'financial')->count(),
+                'financial_amount_requested' => (float) AidRequest::where('request_type', 'financial')->sum('amount_requested'),
+                'financial_amount_fulfilled' => (float) DonationMatch::where('status', 'fulfilled')->sum('matched_amount'),
             ],
             'category_balance' => Donation::selectRaw('category,sum(quantity) as donated_quantity')->groupBy('category')->get()->map(fn($d) => [
                 'category' => $d->category,
@@ -229,7 +241,7 @@ class AdminController extends Controller
         }
 
         $d = $r->validate([
-            'status' => 'required|in:approved,rejected,pending_review',
+            'status' => 'required|in:approved,rejected,pending_review,under_review,matched,partially_fulfilled,fulfilled',
             'verification_tier' => 'nullable|in:unverified,identity_verified,financial_hardship,emergency',
             'verification_state' => 'nullable|in:pending,under_review,needs_revision,approved,rejected',
             'verification_checklist' => 'nullable|array',
@@ -244,31 +256,32 @@ class AdminController extends Controller
             $d['status'] = 'approved';
         } elseif (($d['verification_state'] ?? null) === 'rejected') {
             $d['status'] = 'rejected';
-        } elseif (in_array($d['verification_state'] ?? null, ['needs_revision', 'under_review'], true)) {
+        } elseif (($d['verification_state'] ?? null) === 'under_review') {
+            $d['status'] = 'under_review';
+        } elseif (($d['verification_state'] ?? null) === 'needs_revision') {
             $d['status'] = 'pending_review';
         }
 
         $d['verified_by_user_id'] = $r->user()->id;
-        $d['verification_state'] = $d['verification_state'] ?? ($d['status'] === 'approved' ? 'approved' : ($d['status'] === 'rejected' ? 'rejected' : 'needs_revision'));
+        $d['verification_state'] = $d['verification_state'] ?? ($d['status'] === 'approved' ? 'approved' : ($d['status'] === 'rejected' ? 'rejected' : ($d['status'] === 'under_review' ? 'under_review' : 'needs_revision')));
         if (in_array($d['verification_state'], ['rejected', 'needs_revision'], true) && blank($d['verification_decision_reason'] ?? null)) {
             throw ValidationException::withMessages([
                 'verification_decision_reason' => 'A reason is required when rejecting a request or requesting a revision.',
             ]);
         }
-        if (in_array($d['verification_state'], ['approved', 'rejected', 'needs_revision'], true)) {
+        if (in_array($d['verification_state'], ['approved', 'rejected', 'needs_revision', 'under_review'], true)) {
             $d['verification_decided_at'] = now();
         }
         $aidRequest->update($d);
 
-        if ($d['verification_state'] !== 'under_review') {
-            $message = match ($d['verification_state']) {
-                'needs_revision' => 'Your help request needs additional information before it can be verified.',
-                'rejected' => 'Your help request was rejected.',
-                'approved' => 'Your help request was approved and is ready for matching.',
-                default => 'Your help request was updated.',
-            };
-            AlertService::send($aidRequest->beneficiary, $message, 'request', $d['verification_state'] === 'rejected' ? 'high' : 'normal', $aidRequest, '/requests');
-        }
+        $message = match ($d['verification_state']) {
+            'under_review' => 'Your help request is currently under review by campus operations.',
+            'needs_revision' => 'Your help request needs additional information before it can be verified.',
+            'rejected' => 'Your help request was rejected.',
+            'approved' => 'Your help request was approved and is ready for matching.',
+            default => 'Your help request was updated.',
+        };
+        AlertService::send($aidRequest->beneficiary, $message, 'request', $d['verification_state'] === 'rejected' ? 'high' : 'normal', $aidRequest, '/requests');
         ActivityService::log($r->user(), $d['verification_state'] . ' support request', $aidRequest, ['checklist' => $d['verification_checklist'] ?? []]);
 
         return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy']));

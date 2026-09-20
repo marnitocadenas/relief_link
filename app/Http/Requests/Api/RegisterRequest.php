@@ -74,7 +74,7 @@ class RegisterRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return true;
+        return (bool) \App\Services\SystemSettings::get('allow_self_registration', true);
     }
 
     protected function prepareForValidation(): void
@@ -82,21 +82,21 @@ class RegisterRequest extends FormRequest
         $countryInput = trim((string) $this->input('country', ''));
         $contactRaw = self::normalizeContactNumber((string) $this->input('contact_number', ''), $countryInput);
 
+        $nullable = fn (string $v): ?string => $v === '' ? null : $v;
+
         $normalized = [
-            'name' => self::normalizeName((string) $this->input('name', '')),
-            // Store one canonical form so an address cannot be registered again
-            // merely by changing its letter case.
-            'email' => self::normalizeEmail((string) $this->input('email', '')),
-            'role' => trim((string) $this->input('role', '')),
-            'contact_number' => $contactRaw,
-            'campus_id' => self::normalizeId((string) $this->input('campus_id', '')),
-            'student_id_number' => self::normalizeId((string) $this->input('student_id_number', '')),
-            'school_email' => self::normalizeEmail((string) $this->input('school_email', '')),
-            'address' => trim((string) $this->input('address', '')),
-            'department' => trim((string) $this->input('department', '')),
-            'course' => trim((string) $this->input('course', '')),
-            'year_level' => trim((string) $this->input('year_level', '')),
-            'country' => $countryInput,
+            'name'               => self::normalizeName((string) $this->input('name', '')),
+            'email'              => self::normalizeEmail((string) $this->input('email', '')),
+            'role'               => trim((string) $this->input('role', '')),
+            'contact_number'     => $contactRaw,
+            'campus_id'          => $nullable(self::normalizeId((string) $this->input('campus_id', ''))),
+            'student_id_number'  => $nullable(self::normalizeId((string) $this->input('student_id_number', ''))),
+            'school_email'       => $nullable(self::normalizeEmail((string) $this->input('school_email', ''))),
+            'address'            => $nullable(trim((string) $this->input('address', ''))),
+            'department'         => $nullable(trim((string) $this->input('department', ''))),
+            'course'             => $nullable(trim((string) $this->input('course', ''))),
+            'year_level'         => $nullable(trim((string) $this->input('year_level', ''))),
+            'country'            => $nullable($countryInput),
         ];
         if ($this->has('country_code')) {
             $normalized['country_code'] = strtoupper(trim((string) $this->input('country_code')));
@@ -154,24 +154,23 @@ class RegisterRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/'],
             'role' => ['required', Rule::in(['donor', 'beneficiary', 'staff'])],
             'campus_id' => [
-                'exclude_unless:role,donor',
-                Rule::requiredIf(fn () => $this->role === 'donor'),
+                'nullable',
                 'string',
                 'max:50',
                 'unique:users,campus_id',
             ],
-            'address' => ['exclude_unless:role,donor', 'required', 'string', 'max:255'],
-            'student_id_number' => ['exclude_unless:role,beneficiary', 'required', 'string', 'max:50', 'unique:users,student_id_number'],
-            'school_email' => ['exclude_unless:role,beneficiary', 'required', 'email', 'max:255'],
-            'department' => ['exclude_unless:role,beneficiary', 'required', 'string', 'max:255'],
-            'course' => ['exclude_unless:role,beneficiary', 'required', 'string', 'max:255'],
-            'year_level' => ['exclude_unless:role,beneficiary', 'required', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'student_id_number' => ['nullable', 'string', 'max:50', 'unique:users,student_id_number'],
+            'school_email' => ['nullable', 'email', 'max:255'],
+            'department' => ['nullable', 'string', 'max:255'],
+            'course' => ['nullable', 'string', 'max:255'],
+            'year_level' => ['nullable', 'string', 'max:50'],
             'country' => [
-                'required',
+                'nullable',
                 'string',
                 'max:100',
                 function ($attribute, $value, $fail) {
-                    if (trim(strtolower($value)) === 'select your country' || trim($value) === '') {
+                    if (!is_null($value) && (trim(strtolower($value)) === 'select your country' || trim($value) === '')) {
                         $fail('Please select a valid country.');
                     }
                 },

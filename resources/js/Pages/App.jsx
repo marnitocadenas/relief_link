@@ -52,11 +52,11 @@ function NotificationsNavButton(){
     );
 }
 
-function Sidebar({mobileOpen,setMobileOpen}){
-    const{user}=useAuth();
-    const location=useLocation();
+function Sidebar({ mobileOpen, setMobileOpen }) {
+    const { user } = useAuth();
+    const location = useLocation();
 
-    if(!user) return null;
+    if (!user) return null;
 
     const getModulesForRole = (role) => {
         if (role === 'admin') {
@@ -109,10 +109,17 @@ function Sidebar({mobileOpen,setMobileOpen}){
 
     const modules = getModulesForRole(user.role);
 
-    const sidebarContent=(
+    const sidebarContent = (
         <div className="flex h-full flex-col p-4">
-            <Link to={getRoleDashboard(user.role)} className="mb-6 flex items-center gap-3 border-b border-white/30 pb-4 text-xl font-extrabold text-white no-underline">
-                <img src="/images/relieflink-logo.png" className="h-10 w-10 rounded-lg border border-white/50 object-cover shadow-sm" alt="ReliefLink"/>
+            <Link
+                to={getRoleDashboard(user.role)}
+                className="mb-6 flex items-center gap-3 border-b border-white/30 pb-4 text-xl font-extrabold text-white no-underline"
+            >
+                <img
+                    src="/images/relieflink-logo.png"
+                    className="h-10 w-10 rounded-lg border border-white/50 object-cover shadow-sm"
+                    alt="ReliefLink"
+                />
                 <div className="flex flex-col">
                     <span className="leading-tight">ReliefLink</span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">Campus Exchange</span>
@@ -120,16 +127,20 @@ function Sidebar({mobileOpen,setMobileOpen}){
             </Link>
 
             <nav className="space-y-1 flex-1 overflow-y-auto">
-                {modules.map((m)=>{
-                    const isActive=location.pathname===m.path;
+                {modules.map((m) => {
+                    const isActive = location.pathname === m.path;
                     return (
                         <NavLink
                             key={m.name}
                             to={m.path}
-                            onClick={()=>setMobileOpen(false)}
-                            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold no-underline transition ${isActive?'bg-white text-[#2563EB]':'text-white/90 hover:bg-white/10 hover:text-white'}`}
+                            onClick={() => setMobileOpen(false)}
+                            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold no-underline transition ${
+                                isActive
+                                    ? 'bg-white text-[#2563EB]'
+                                    : 'text-white/90 hover:bg-white/10 hover:text-white'
+                            }`}
                         >
-                            <Icon name={m.icon}/>
+                            <Icon name={m.icon} />
                             <span>{m.name}</span>
                         </NavLink>
                     );
@@ -144,13 +155,20 @@ function Sidebar({mobileOpen,setMobileOpen}){
                 {sidebarContent}
             </aside>
 
-            {mobileOpen&&(
+            {mobileOpen && (
                 <div className="fixed inset-0 z-50 flex lg:hidden">
-                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={()=>setMobileOpen(false)}/>
+                    <div
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={() => setMobileOpen(false)}
+                    />
                     <aside className="relative z-10 flex h-full w-72 flex-col bg-[#2563EB] border-r border-white shadow-2xl">
                         <div className="absolute right-3 top-3">
-                            <button className="p-2 text-white hover:bg-white/10 rounded-lg transition" onClick={()=>setMobileOpen(false)} aria-label="Close menu">
-                                <Icon name="close"/>
+                            <button
+                                className="p-2 text-white hover:bg-white/10 rounded-lg transition"
+                                onClick={() => setMobileOpen(false)}
+                                aria-label="Close menu"
+                            >
+                                <Icon name="close" />
                             </button>
                         </div>
                         {sidebarContent}
@@ -279,14 +297,20 @@ function Header({ setMobileOpen }) {
             <div className="flex items-center gap-3">
                 {user && (
                     <button
+                        type="button"
                         className="nav-link p-2 lg:hidden"
                         onClick={() => setMobileOpen(true)}
-                        aria-label="Open menu"
+                        aria-label="Open navigation menu"
                     >
-                        <Icon name="menu" />
+                        <Icon name="menu" size={20} />
                     </button>
                 )}
-                {!user && <NavLink to="/" className="flex items-center gap-2.5 no-underline" aria-label="ReliefLink home"><img src="/images/relieflink-logo.png" alt="ReliefLink logo" className="h-10 w-10 object-contain"/><span className="text-lg font-extrabold tracking-tight text-[#2563EB]">ReliefLink</span></NavLink>}
+                {!user && (
+                    <NavLink to="/" className="flex items-center gap-2.5 no-underline" aria-label="ReliefLink home">
+                        <img src="/images/relieflink-logo.png" alt="ReliefLink logo" className="h-10 w-10 object-contain" />
+                        <span className="text-lg font-extrabold tracking-tight text-[#2563EB]">ReliefLink</span>
+                    </NavLink>
+                )}
             </div>
 
             {!user && (
@@ -2793,11 +2817,18 @@ function BeneficiaryRequestForm() {
     const navigate = useNavigate();
 
     const initialFormState = {
-        category: 'food',
-        quantity_needed: 1,
-        urgency: 'medium',
-        item_details: '',
-        justification: '',
+        request_type: 'physical', // 'physical' | 'financial'
+        category: '',
+        item_details: '', // Assistance Needed
+        quantity_needed: 1, // Quantity Needed
+        unit: 'pieces (pcs)', // Unit
+        amount_requested: '', // Amount Requested
+        currency: 'PHP', // Currency
+        purpose_of_funds: '', // Purpose of Funds
+        justification: '', // Reason for Request
+        preferred_assistance_date: '', // Preferred Assistance Date
+        urgency: 'medium', // Priority Level
+        additional_info: '',
         alternative_categories: '',
         pickup_location: 'Campus Student Center - Main Entrance',
         custom_location: '',
@@ -2850,7 +2881,7 @@ function BeneficiaryRequestForm() {
         }
 
         setError('');
-        setF({ ...f, image: file });
+        setF((prev) => ({ ...prev, image: file }));
         if (file.type.startsWith('image/')) {
             setPreviewUrl(URL.createObjectURL(file));
         } else {
@@ -2859,7 +2890,7 @@ function BeneficiaryRequestForm() {
     };
 
     const removeFile = () => {
-        setF({ ...f, image: null });
+        setF((prev) => ({ ...prev, image: null }));
         if (previewUrl) {
             URL.revokeObjectURL(previewUrl);
             setPreviewUrl(null);
@@ -2869,11 +2900,18 @@ function BeneficiaryRequestForm() {
     // Save draft
     const handleSaveDraft = () => {
         const draftPayload = {
+            request_type: f.request_type,
             category: f.category,
-            quantity_needed: f.quantity_needed,
-            urgency: f.urgency,
             item_details: f.item_details,
+            quantity_needed: f.quantity_needed,
+            unit: f.unit,
+            amount_requested: f.amount_requested,
+            currency: f.currency,
+            purpose_of_funds: f.purpose_of_funds,
             justification: f.justification,
+            preferred_assistance_date: f.preferred_assistance_date,
+            urgency: f.urgency,
+            additional_info: f.additional_info,
             alternative_categories: f.alternative_categories,
             pickup_location: f.pickup_location,
             custom_location: f.custom_location,
@@ -2894,6 +2932,41 @@ function BeneficiaryRequestForm() {
         setTimeout(() => setActionBanner(''), 3000);
     };
 
+    // Sequential Field Validation Logic
+    const isPhysical = f.request_type === 'physical';
+    const isFinancial = f.request_type === 'financial';
+
+    // Step 1: Type is chosen
+    const typeValid = !!f.request_type;
+
+    // Step 2: Category
+    const categoryValid = typeValid && !!f.category.trim();
+
+    // Step 3 (Physical: Assistance Needed / Financial: Amount Requested)
+    const itemDetailsValid = categoryValid && (isPhysical ? !!f.item_details.trim() : true);
+    const amountValid = categoryValid && (isFinancial ? Number(f.amount_requested) > 0 : true);
+
+    // Step 4 (Physical: Quantity / Financial: Currency)
+    const quantityValid = itemDetailsValid && (isPhysical ? Number(f.quantity_needed) >= 1 : true);
+    const currencyValid = amountValid && (isFinancial ? !!f.currency.trim() : true);
+
+    // Step 5 (Physical: Unit / Financial: Purpose of Funds)
+    const unitValid = quantityValid && (isPhysical ? !!f.unit.trim() : true);
+    const purposeValid = currencyValid && (isFinancial ? !!f.purpose_of_funds.trim() : true);
+
+    // Step 6: Reason for Request
+    const step5Passed = isPhysical ? unitValid : purposeValid;
+    const reasonValid = step5Passed && !!f.justification.trim();
+
+    // Step 7: Preferred Assistance Date
+    const dateValid = reasonValid && !!f.preferred_assistance_date.trim();
+
+    // Step 8: Priority Level
+    const priorityValid = dateValid && !!f.urgency;
+
+    // Overall Validity
+    const isFormComplete = priorityValid;
+
     // Submit form to API
     const handleFinalSubmit = async () => {
         setShowConfirmModal(false);
@@ -2905,36 +2978,64 @@ function BeneficiaryRequestForm() {
 
         try {
             const data = new FormData();
+            data.append('request_type', f.request_type);
             data.append('category', f.category);
-            data.append('quantity_needed', f.quantity_needed);
             data.append('urgency', f.urgency);
             data.append('justification', f.justification.trim());
-            if (f.item_details.trim()) data.append('item_details', f.item_details.trim());
-            if (f.alternative_categories.trim())
-                data.append('alternative_categories', f.alternative_categories.trim());
-            data.append('pickup_location', finalLocation);
-            data.append('availability_window', f.availability_window);
-            if (f.image) data.append('image', f.image);
+            data.append('preferred_assistance_date', f.preferred_assistance_date.trim());
+
+            if (isPhysical) {
+                data.append('item_details', f.item_details.trim());
+                data.append('quantity_needed', f.quantity_needed);
+                data.append('unit', f.unit.trim());
+                if (f.alternative_categories.trim()) {
+                    data.append('alternative_categories', f.alternative_categories.trim());
+                }
+                data.append('pickup_location', finalLocation);
+                data.append('availability_window', f.availability_window);
+            } else {
+                data.append('amount_requested', f.amount_requested);
+                data.append('currency', f.currency.trim());
+                data.append('purpose_of_funds', f.purpose_of_funds.trim());
+                data.append('quantity_needed', 1);
+            }
+
+            if (f.additional_info.trim()) {
+                data.append('additional_info', f.additional_info.trim());
+            }
+            if (f.image) {
+                data.append('image', f.image);
+            }
 
             const res = await api.post('/requests', data);
 
-            // Remove draft
+            // Remove saved draft
             localStorage.removeItem('relieflink_request_draft');
 
             const createdObj = res.data.data || res.data || {};
             setSubmittedRequestData({
                 id: createdObj.id || Date.now(),
+                request_type: f.request_type,
                 category: f.category,
+                item_details: f.item_details,
                 quantity_needed: f.quantity_needed,
+                unit: f.unit,
+                amount_requested: f.amount_requested,
+                currency: f.currency,
+                purpose_of_funds: f.purpose_of_funds,
                 urgency: f.urgency,
                 justification: f.justification,
-                item_details: f.item_details,
-                location: finalLocation,
+                preferred_assistance_date: f.preferred_assistance_date,
                 status: 'pending_review',
                 created_at: new Date().toISOString(),
             });
         } catch (e) {
-            setError(e.response?.data?.message || 'Could not submit support request. Please verify all inputs.');
+            const valErrors = e.response?.data?.errors;
+            if (valErrors) {
+                setError(Object.values(valErrors).flat().join(' '));
+            } else {
+                setError(e.response?.data?.message || 'Could not submit support request. Please verify all inputs.');
+            }
         } finally {
             setLoading(false);
         }
@@ -2950,26 +3051,62 @@ function BeneficiaryRequestForm() {
     };
 
     return (
-        <main className="page max-w-4xl">
-            <p className="eyebrow">SUPPORT REQUEST</p>
-            <h1 className="page-title">Request help with confidence</h1>
-            <p className="page-copy">
-                Complete the details below so ReliefLink can connect the right people quickly.
-            </p>
+        <main className="page max-w-4xl space-y-6">
+            <div>
+                <p className="eyebrow">BENEFICIARY WORKSPACE</p>
+                <h1 className="page-title">Create Support Request</h1>
+                <p className="page-copy">
+                    Submit a student assistance request for educational supplies, living essentials, or campus financial aid.
+                </p>
+            </div>
 
             {/* Banner Notifications */}
             {actionBanner && (
-                <div className="mt-4 rounded-xl border border-[#22C55E] bg-white p-3.5 text-sm font-extrabold text-[#22C55E] flex items-center gap-2">
+                <div className="rounded-xl border border-[#22C55E] bg-white p-3.5 text-sm font-extrabold text-[#22C55E] flex items-center gap-2 shadow-sm">
                     <Icon name="check" size={18} />
                     <span>{actionBanner}</span>
                 </div>
             )}
             {error && <Error>{error}</Error>}
 
-            {/* Expected Request Workflow Pipeline Bar */}
-            <div className="mt-6 rounded-2xl border border-[#2563EB] bg-white p-4">
+            {/* Beneficiary Profile Reference Card (Auto-linked) */}
+            <div className="panel p-5 bg-[#2563EB]/5 border border-[#2563EB]/30">
+                <div className="flex items-center gap-2 text-xs font-extrabold text-[#2563EB] uppercase tracking-wider mb-2">
+                    <Icon name="users" size={16} />
+                    <span>Beneficiary Student Profile Details (Automatic from Account)</span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3 text-xs">
+                    <div>
+                        <span className="font-bold text-[#2563EB]/70 block">Full Name</span>
+                        <span className="font-extrabold text-[#2563EB]">{user?.name || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <span className="font-bold text-[#2563EB]/70 block">Student ID</span>
+                        <span className="font-extrabold text-[#2563EB]">{user?.student_id_number || user?.campus_id || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <span className="font-bold text-[#2563EB]/70 block">School Email</span>
+                        <span className="font-extrabold text-[#2563EB]">{user?.school_email || user?.email || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <span className="font-bold text-[#2563EB]/70 block">Department</span>
+                        <span className="font-extrabold text-[#2563EB]">{user?.department || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <span className="font-bold text-[#2563EB]/70 block">Course / Program</span>
+                        <span className="font-extrabold text-[#2563EB]">{user?.course || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <span className="font-bold text-[#2563EB]/70 block">Year Level</span>
+                        <span className="font-extrabold text-[#2563EB]">{user?.year_level || 'N/A'}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Workflow Pipeline Indicator */}
+            <div className="rounded-2xl border border-[#2563EB] bg-white p-4">
                 <div className="mb-2 text-xs font-extrabold text-[#2563EB]">
-                    Request Fulfillment Workflow Stages
+                    Request Workflow & Verification Stages
                 </div>
                 <div className="grid grid-cols-5 gap-2 text-center text-[11px] font-extrabold">
                     <div className="rounded-xl border border-[#22C55E] bg-[#22C55E] text-white p-2">
@@ -2992,39 +3129,58 @@ function BeneficiaryRequestForm() {
 
             {/* Interactive Post-Submission Success View */}
             {submittedRequestData ? (
-                <div className="panel mt-8 p-8 text-center text-[#2563EB] space-y-6">
+                <div className="panel p-8 text-center text-[#2563EB] space-y-6">
                     <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border-2 border-[#22C55E] bg-[#22C55E] text-white">
                         <Icon name="check" size={32} />
                     </div>
 
                     <div>
-                        <span className="rounded-full border border-[#22C55E] bg-white px-3 py-1 text-xs font-extrabold text-[#22C55E] uppercase tracking-wider">
-                            REQUEST SUBMITTED SUCCESSFULLY
+                        <span className="rounded-full border border-[#22C55E] bg-[#22C55E]/10 px-4 py-1.5 text-xs font-extrabold text-[#22C55E] uppercase tracking-wider">
+                            Request submitted successfully.
                         </span>
-                        <h2 className="mt-3 text-2xl font-extrabold text-[#2563EB]">
+                        <h2 className="mt-4 text-2xl font-black text-[#2563EB]">
                             Reference ID: #REQ-{String(submittedRequestData.id).padStart(3, '0')}
                         </h2>
-                        <p className="mt-1 text-xs font-semibold text-[#2563EB] opacity-85 max-w-md mx-auto">
-                            Your support request has been registered and sent to the ReliefLink administration team for review and donor matching.
+                        <p className="mt-1 text-xs font-semibold text-[#2563EB]/80 max-w-md mx-auto">
+                            Your support request has been securely recorded in the ReliefLink database and forwarded to campus operations for review and matching.
                         </p>
                     </div>
 
                     {/* Summary Card */}
-                    <div className="mx-auto max-w-md rounded-xl border border-[#2563EB] bg-white p-4 text-left text-xs font-bold space-y-2">
+                    <div className="mx-auto max-w-md rounded-xl border border-[#2563EB] bg-white p-5 text-left text-xs font-bold space-y-2.5 shadow-sm">
                         <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
-                            <span className="text-[#2563EB] opacity-70">Category</span>
-                            <span className="font-extrabold uppercase">{submittedRequestData.category}</span>
+                            <span className="text-[#2563EB]/70">Request Type</span>
+                            <span className="font-extrabold uppercase text-[#2563EB]">
+                                {submittedRequestData.request_type === 'financial' ? 'Financial Assistance' : 'Physical Item'}
+                            </span>
                         </div>
                         <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
-                            <span className="text-[#2563EB] opacity-70">Quantity Needed</span>
-                            <span>{submittedRequestData.quantity_needed} unit(s)</span>
+                            <span className="text-[#2563EB]/70">Category</span>
+                            <span className="font-extrabold uppercase">{title(submittedRequestData.category)}</span>
                         </div>
+                        {submittedRequestData.request_type === 'financial' ? (
+                            <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
+                                <span className="text-[#2563EB]/70">Amount Requested</span>
+                                <span className="font-extrabold text-[#22C55E]">
+                                    {submittedRequestData.currency} {Number(submittedRequestData.amount_requested).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
+                                <span className="text-[#2563EB]/70">Assistance Needed</span>
+                                <span>{submittedRequestData.quantity_needed} {submittedRequestData.unit} of {submittedRequestData.item_details}</span>
+                            </div>
+                        )}
                         <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
-                            <span className="text-[#2563EB] opacity-70">Urgency Level</span>
+                            <span className="text-[#2563EB]/70">Priority Level</span>
                             <span className="uppercase text-[#22C55E]">{submittedRequestData.urgency}</span>
                         </div>
+                        <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
+                            <span className="text-[#2563EB]/70">Preferred Assistance Date</span>
+                            <span>{submittedRequestData.preferred_assistance_date}</span>
+                        </div>
                         <div className="flex justify-between">
-                            <span className="text-[#2563EB] opacity-70">Current Status</span>
+                            <span className="text-[#2563EB]/70">Current Status</span>
                             <Badge status={submittedRequestData.status} />
                         </div>
                     </div>
@@ -3032,11 +3188,11 @@ function BeneficiaryRequestForm() {
                     {/* Navigation Buttons */}
                     <div className="flex flex-wrap items-center justify-center gap-3 pt-4 border-t border-[#2563EB]/20">
                         <Link to="/requests" className="no-underline">
-                            <Button variant="primary" className="py-2.5 px-5 text-xs font-extrabold">
+                            <Button variant="primary" className="py-2.5 px-6 text-xs font-extrabold">
                                 View My Requests
                             </Button>
                         </Link>
-                        <Button variant="secondary" className="py-2.5 px-5 text-xs font-extrabold" onClick={handleCreateAnother}>
+                        <Button variant="secondary" className="py-2.5 px-6 text-xs font-extrabold" onClick={handleCreateAnother}>
                             + Submit Another Request
                         </Button>
                     </div>
@@ -3044,285 +3200,391 @@ function BeneficiaryRequestForm() {
             ) : (
                 /* Request Form */
                 <form
-                    className="panel mt-8 p-6 sm:p-8 space-y-8"
+                    className="panel p-6 sm:p-8 space-y-8"
                     onSubmit={(e) => {
                         e.preventDefault();
-                        if (!f.justification.trim()) {
-                            setError('Please provide a justification and description of your need.');
+                        if (!isFormComplete) {
+                            setError('Please complete all sequentially required fields before submitting.');
                             return;
                         }
                         setShowConfirmModal(true);
                     }}
                 >
-                    {/* SECTION 1: Basic Request Information */}
+                    {/* STEP 1: Request Type Selection */}
+                    <div>
+                        <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
+                            <Icon name="request" className="text-[#2563EB]" size={18} />
+                            <h2 className="text-base font-extrabold text-[#2563EB]">
+                                1. Select Request Type <span className="text-[#22C55E]">*</span>
+                            </h2>
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <label
+                                className={`flex cursor-pointer items-center gap-3.5 rounded-2xl border p-4 transition ${
+                                    f.request_type === 'physical'
+                                        ? 'border-[#2563EB] bg-[#2563EB] text-white shadow-md'
+                                        : 'border-[#2563EB]/40 bg-white text-[#2563EB] hover:bg-[#2563EB]/5'
+                                }`}
+                            >
+                                <input
+                                    type="radio"
+                                    name="request_type"
+                                    value="physical"
+                                    checked={f.request_type === 'physical'}
+                                    onChange={(e) => setF({ ...f, request_type: e.target.value, category: '' })}
+                                    className="hidden"
+                                />
+                                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${f.request_type === 'physical' ? 'border-white bg-white/20 text-white' : 'border-[#2563EB] bg-white text-[#2563EB]'}`}>
+                                    <Icon name="donation" size={20} />
+                                </span>
+                                <div>
+                                    <h3 className="text-sm font-extrabold">Physical Item Request</h3>
+                                    <p className={`text-xs ${f.request_type === 'physical' ? 'text-white/80' : 'text-[#2563EB]/70'}`}>
+                                        Books, meals, school supplies, clothes, medical gear, tech
+                                    </p>
+                                </div>
+                            </label>
+
+                            <label
+                                className={`flex cursor-pointer items-center gap-3.5 rounded-2xl border p-4 transition ${
+                                    f.request_type === 'financial'
+                                        ? 'border-[#2563EB] bg-[#2563EB] text-white shadow-md'
+                                        : 'border-[#2563EB]/40 bg-white text-[#2563EB] hover:bg-[#2563EB]/5'
+                                }`}
+                            >
+                                <input
+                                    type="radio"
+                                    name="request_type"
+                                    value="financial"
+                                    checked={f.request_type === 'financial'}
+                                    onChange={(e) => setF({ ...f, request_type: e.target.value, category: '' })}
+                                    className="hidden"
+                                />
+                                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${f.request_type === 'financial' ? 'border-white bg-white/20 text-white' : 'border-[#2563EB] bg-white text-[#2563EB]'}`}>
+                                    <Icon name="report" size={20} />
+                                </span>
+                                <div>
+                                    <h3 className="text-sm font-extrabold">Financial Assistance Request</h3>
+                                    <p className={`text-xs ${f.request_type === 'financial' ? 'text-white/80' : 'text-[#2563EB]/70'}`}>
+                                        Tuition aid, transport allowance, study grants, emergency funds
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* STEP 2: Category Selection */}
+                    <div>
+                        <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
+                            <Icon name="categories" className="text-[#2563EB]" size={18} />
+                            <h2 className="text-base font-extrabold text-[#2563EB]">
+                                2. Assistance Category <span className="text-[#22C55E]">*</span>
+                            </h2>
+                        </div>
+
+                        <div>
+                            <label htmlFor="req_category" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                Category <span className="text-[#22C55E]">*</span>
+                            </label>
+                            <select
+                                id="req_category"
+                                disabled={!typeValid}
+                                className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                value={f.category}
+                                onChange={(e) => setF({ ...f, category: e.target.value })}
+                            >
+                                <option value="">-- Select Assistance Category --</option>
+                                {isPhysical ? (
+                                    <>
+                                        <option value="Food & Meals">Food & Meals</option>
+                                        <option value="Educational & Books">Educational & Books</option>
+                                        <option value="Clothing & Apparel">Clothing & Apparel</option>
+                                        <option value="School Supplies">School Supplies</option>
+                                        <option value="Medical & Health Supplies">Medical & Health Supplies</option>
+                                        <option value="Electronics & Tech">Electronics & Tech</option>
+                                        <option value="Household & Bedding">Household & Bedding</option>
+                                        <option value="Personal Care & Hygiene">Personal Care & Hygiene</option>
+                                        <option value="Emergency & Disaster Relief">Emergency & Disaster Relief</option>
+                                        <option value="Other Useful Items">Other Useful Items</option>
+                                    </>
+                                ) : (
+                                    <>
+                                        <option value="Tuition & Academic Fees">Tuition & Academic Fees</option>
+                                        <option value="Books & Study Materials Grant">Books & Study Materials Grant</option>
+                                        <option value="Daily Living & Food Allowance">Daily Living & Food Allowance</option>
+                                        <option value="Transportation Allowance">Transportation Allowance</option>
+                                        <option value="Medical & Health Assistance">Medical & Health Assistance</option>
+                                        <option value="Emergency Student Relief Fund">Emergency Student Relief Fund</option>
+                                        <option value="General Financial Aid">General Financial Aid</option>
+                                    </>
+                                )}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* STEP 3 & 4: Specific Assistance Details (Physical vs Financial) */}
                     <div>
                         <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
                             <Icon name="info" className="text-[#2563EB]" size={18} />
                             <h2 className="text-base font-extrabold text-[#2563EB]">
-                                1. Basic Request Information
+                                3. {isPhysical ? 'Physical Item Specifications' : 'Financial Aid Details'}
                             </h2>
                         </div>
 
-                        <div className="grid gap-5 sm:grid-cols-2">
-                            {/* Category */}
-                            <div>
-                                <label htmlFor="req_category" className="block text-xs font-bold text-[#2563EB]">
-                                    Category <span className="text-[#22C55E]">*</span>
-                                </label>
-                                <select
-                                    id="req_category"
-                                    className="field mt-1 text-xs"
-                                    value={f.category}
-                                    onChange={(e) => setF({ ...f, category: e.target.value })}
-                                >
-                                    <option value="food">Food & Meals</option>
-                                    <option value="clothing">Clothing & Apparel</option>
-                                    <option value="books">Educational & Books</option>
-                                    <option value="medical">Medical & Health Supplies</option>
-                                    <option value="electronics">Electronics & Tech</option>
-                                    <option value="household">Household & Bedding</option>
-                                    <option value="hygiene">Personal Care & Hygiene</option>
-                                    <option value="emergency">Emergency & Disaster Relief</option>
-                                    <option value="other">Other Useful Items</option>
-                                </select>
-                            </div>
-
-                            {/* Quantity Needed Stepper */}
-                            <div>
-                                <label htmlFor="req_qty" className="block text-xs font-bold text-[#2563EB]">
-                                    Quantity Needed <span className="text-[#22C55E]">*</span>
-                                </label>
-                                <div className="mt-1 flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        className="h-9 w-9 rounded-xl border border-[#2563EB] bg-white font-extrabold text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition"
-                                        onClick={() => setF({ ...f, quantity_needed: Math.max(1, f.quantity_needed - 1) })}
-                                    >
-                                        -
-                                    </button>
+                        {isPhysical ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <label htmlFor="req_item_details" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                        Assistance Needed (Item / Supply Name) <span className="text-[#22C55E]">*</span>
+                                    </label>
                                     <input
-                                        id="req_qty"
-                                        required
-                                        min={1}
-                                        type="number"
-                                        className="field text-center font-extrabold text-xs py-1.5"
-                                        value={f.quantity_needed}
-                                        onChange={(e) =>
-                                            setF({
-                                                ...f,
-                                                quantity_needed: Math.max(1, parseInt(e.target.value, 10) || 1),
-                                            })
-                                        }
+                                        id="req_item_details"
+                                        type="text"
+                                        disabled={!categoryValid}
+                                        placeholder="e.g. Spiral Notebooks (80 leaves), Scientific Calculator, Winter Jacket Size M..."
+                                        className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                        value={f.item_details}
+                                        onChange={(e) => setF({ ...f, item_details: e.target.value })}
                                     />
-                                    <button
-                                        type="button"
-                                        className="h-9 w-9 rounded-xl border border-[#2563EB] bg-white font-extrabold text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition"
-                                        onClick={() => setF({ ...f, quantity_needed: f.quantity_needed + 1 })}
-                                    >
-                                        +
-                                    </button>
+                                    {!categoryValid && (
+                                        <p className="text-[11px] font-semibold text-[#2563EB]/60 mt-1">Select a category above to unlock this field.</p>
+                                    )}
+                                </div>
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label htmlFor="req_qty" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                            Quantity Needed <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            id="req_qty"
+                                            type="number"
+                                            min={1}
+                                            disabled={!itemDetailsValid}
+                                            className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                            value={f.quantity_needed}
+                                            onChange={(e) => setF({ ...f, quantity_needed: Math.max(1, parseInt(e.target.value, 10) || 1) })}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="req_unit" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                            Unit of Measure <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <select
+                                            id="req_unit"
+                                            disabled={!quantityValid}
+                                            className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                            value={f.unit}
+                                            onChange={(e) => setF({ ...f, unit: e.target.value })}
+                                        >
+                                            <option value="pieces (pcs)">pieces (pcs)</option>
+                                            <option value="sets">sets</option>
+                                            <option value="boxes">boxes</option>
+                                            <option value="packs">packs</option>
+                                            <option value="books">books</option>
+                                            <option value="pairs">pairs</option>
+                                            <option value="bundles">bundles</option>
+                                            <option value="kg">kilograms (kg)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="grid gap-4 sm:grid-cols-3">
+                                    <div className="sm:col-span-2">
+                                        <label htmlFor="req_amount" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                            Amount Requested <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <input
+                                            id="req_amount"
+                                            type="number"
+                                            step="0.01"
+                                            min="1"
+                                            disabled={!categoryValid}
+                                            placeholder="e.g. 2500.00"
+                                            className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                            value={f.amount_requested}
+                                            onChange={(e) => setF({ ...f, amount_requested: e.target.value })}
+                                        />
+                                        {!categoryValid && (
+                                            <p className="text-[11px] font-semibold text-[#2563EB]/60 mt-1">Select a category above to unlock this field.</p>
+                                        )}
+                                    </div>
 
-                            {/* Urgency Level */}
-                            <div>
-                                <label htmlFor="req_urgency" className="block text-xs font-bold text-[#2563EB]">
-                                    Urgency Level <span className="text-[#22C55E]">*</span>
-                                </label>
-                                <select
-                                    id="req_urgency"
-                                    className="field mt-1 text-xs"
-                                    value={f.urgency}
-                                    onChange={(e) => setF({ ...f, urgency: e.target.value })}
-                                >
-                                    <option value="low">Low - Routine Need</option>
-                                    <option value="medium">Medium - Standard Need</option>
-                                    <option value="high">High - Urgent Support</option>
-                                    <option value="high">High / Critical Support</option>
-                                </select>
-                            </div>
+                                    <div>
+                                        <label htmlFor="req_currency" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                            Currency <span className="text-[#22C55E]">*</span>
+                                        </label>
+                                        <select
+                                            id="req_currency"
+                                            disabled={!amountValid}
+                                            className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                            value={f.currency}
+                                            onChange={(e) => setF({ ...f, currency: e.target.value })}
+                                        >
+                                            <option value="PHP">PHP (₱ - Philippine Peso)</option>
+                                            <option value="USD">USD ($ - US Dollar)</option>
+                                        </select>
+                                    </div>
+                                </div>
 
-                            {/* Alternative Categories */}
-                            <div>
-                                <label htmlFor="req_alt" className="block text-xs font-bold text-[#2563EB]">
-                                    Alternative Categories (Optional)
-                                </label>
-                                <input
-                                    id="req_alt"
-                                    type="text"
-                                    placeholder="e.g. Hygiene supplies, Canned goods"
-                                    className="field mt-1 text-xs"
-                                    value={f.alternative_categories}
-                                    onChange={(e) => setF({ ...f, alternative_categories: e.target.value })}
-                                />
+                                <div>
+                                    <label htmlFor="req_purpose" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                        Purpose of Funds <span className="text-[#22C55E]">*</span>
+                                    </label>
+                                    <input
+                                        id="req_purpose"
+                                        type="text"
+                                        disabled={!currencyValid}
+                                        placeholder="e.g. Final semester tuition assessment balance, monthly bus transit pass..."
+                                        className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                        value={f.purpose_of_funds}
+                                        onChange={(e) => setF({ ...f, purpose_of_funds: e.target.value })}
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
-                    {/* SECTION 2: Need Description & Specific Item Details */}
+                    {/* STEP 5 & 6: Reason for Request & Preferred Assistance Date */}
                     <div>
                         <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
-                            <Icon name="requests" className="text-[#2563EB]" size={18} />
+                            <Icon name="history" className="text-[#2563EB]" size={18} />
                             <h2 className="text-base font-extrabold text-[#2563EB]">
-                                2. Need Description & Item Specifications
+                                4. Reason for Request & Schedule
                             </h2>
                         </div>
 
                         <div className="space-y-4">
-                            {/* Specific Item Details */}
                             <div>
-                                <label htmlFor="req_item_details" className="block text-xs font-bold text-[#2563EB]">
-                                    Specific Item / Supply Details (Optional)
-                                </label>
-                                <input
-                                    id="req_item_details"
-                                    type="text"
-                                    placeholder="e.g. Biology 101 Textbook 5th Edition, Winter Jacket Size M..."
-                                    className="field mt-1 text-xs"
-                                    value={f.item_details}
-                                    onChange={(e) => setF({ ...f, item_details: e.target.value })}
-                                />
-                            </div>
-
-                            {/* Justification & Need Details */}
-                            <div>
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between mb-1">
                                     <label htmlFor="req_just" className="block text-xs font-bold text-[#2563EB]">
-                                        Justification & Need Details <span className="text-[#22C55E]">*</span>
+                                        Reason for Request <span className="text-[#22C55E]">*</span>
                                     </label>
-                                    <span className="text-[11px] font-bold text-[#2563EB] opacity-75">
+                                    <span className="text-[11px] font-bold text-[#2563EB]/70">
                                         {f.justification.length} / 2000 chars
                                     </span>
                                 </div>
                                 <textarea
                                     id="req_just"
-                                    required
+                                    rows={3}
                                     maxLength={2000}
-                                    rows={4}
-                                    placeholder="Please describe why this assistance is needed and any specific requirements..."
-                                    className="field mt-1 text-xs"
+                                    disabled={!step5Passed}
+                                    placeholder="Please describe why this assistance is needed and how it will support your academic/personal wellbeing..."
+                                    className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
                                     value={f.justification}
                                     onChange={(e) => setF({ ...f, justification: e.target.value })}
                                 />
                             </div>
-                        </div>
-                    </div>
 
-                    {/* SECTION 3: Logistics & Schedule Preferences */}
-                    <div>
-                        <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
-                            <Icon name="location" className="text-[#2563EB]" size={18} />
-                            <h2 className="text-base font-extrabold text-[#2563EB]">
-                                3. Logistics & Schedule Preferences
-                            </h2>
-                        </div>
-
-                        <div className="grid gap-5 sm:grid-cols-2">
-                            {/* Pickup Location */}
-                            <div>
-                                <label htmlFor="req_location" className="block text-xs font-bold text-[#2563EB]">
-                                    Preferred Handoff / Meeting Location <span className="text-[#22C55E]">*</span>
-                                </label>
-                                <select
-                                    id="req_location"
-                                    className="field mt-1 text-xs"
-                                    value={f.pickup_location}
-                                    onChange={(e) => setF({ ...f, pickup_location: e.target.value })}
-                                >
-                                    <option value="Campus Student Center - Main Entrance">Campus Student Center - Main Entrance</option>
-                                    <option value="Main University Library Plaza">Main University Library Plaza</option>
-                                    <option value="Athletics Complex Lobby">Athletics Complex Lobby</option>
-                                    <option value="North Campus Dining Hall">North Campus Dining Hall</option>
-                                    <option value="South Dormitory Common Room">South Dormitory Common Room</option>
-                                    <option value="other">Custom Meeting Spot...</option>
-                                </select>
-
-                                {f.pickup_location === 'other' && (
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label htmlFor="req_pref_date" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                        Preferred Assistance Date <span className="text-[#22C55E]">*</span>
+                                    </label>
                                     <input
+                                        id="req_pref_date"
                                         type="text"
-                                        required
-                                        placeholder="Specify custom meeting location..."
-                                        className="field mt-2 text-xs"
-                                        value={f.custom_location}
-                                        onChange={(e) => setF({ ...f, custom_location: e.target.value })}
+                                        disabled={!reasonValid}
+                                        placeholder="e.g. Within 7 days, By Nov 15, 2026, Before midterm exams..."
+                                        className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                        value={f.preferred_assistance_date}
+                                        onChange={(e) => setF({ ...f, preferred_assistance_date: e.target.value })}
                                     />
-                                )}
-                            </div>
+                                </div>
 
-                            {/* Availability Window */}
-                            <div>
-                                <label htmlFor="req_window" className="block text-xs font-bold text-[#2563EB]">
-                                    Preferred Availability Window <span className="text-[#22C55E]">*</span>
-                                </label>
-                                <select
-                                    id="req_window"
-                                    className="field mt-1 text-xs"
-                                    value={f.availability_window}
-                                    onChange={(e) => setF({ ...f, availability_window: e.target.value })}
-                                >
-                                    <option value="Weekdays 2:00 PM - 5:00 PM">Weekdays 2:00 PM - 5:00 PM</option>
-                                    <option value="Mondays & Wednesdays 9:00 AM - 12:00 PM">Mondays & Wednesdays 9:00 AM - 12:00 PM</option>
-                                    <option value="Tuesdays & Thursdays 1:00 PM - 4:00 PM">Tuesdays & Thursdays 1:00 PM - 4:00 PM</option>
-                                    <option value="Fridays 10:00 AM - 3:00 PM">Fridays 10:00 AM - 3:00 PM</option>
-                                    <option value="Weekend Mornings 9:00 AM - 12:00 PM">Weekend Mornings 9:00 AM - 12:00 PM</option>
-                                </select>
+                                <div>
+                                    <label htmlFor="req_urgency" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                        Priority Level <span className="text-[#22C55E]">*</span>
+                                    </label>
+                                    <select
+                                        id="req_urgency"
+                                        disabled={!dateValid}
+                                        className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
+                                        value={f.urgency}
+                                        onChange={(e) => setF({ ...f, urgency: e.target.value })}
+                                    >
+                                        <option value="low">Low - Routine Need</option>
+                                        <option value="medium">Medium - Standard Need</option>
+                                        <option value="high">High - Urgent Support</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* SECTION 4: Supporting Document / Photo Upload */}
+                    {/* STEP 7: Optional Supporting Document & Additional Information */}
                     <div>
                         <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
                             <Icon name="upload" className="text-[#2563EB]" size={18} />
                             <h2 className="text-base font-extrabold text-[#2563EB]">
-                                4. Optional Supporting Document / Photo Upload
+                                5. Optional Supporting Document & Notes
                             </h2>
                         </div>
 
-                        <div className="rounded-2xl border-2 border-dashed border-[#2563EB] bg-white p-5 text-center">
-                            {previewUrl ? (
-                                <div className="space-y-3">
-                                    <img
-                                        src={previewUrl}
-                                        alt="Request Preview"
-                                        className="mx-auto h-36 max-w-xs rounded-xl border border-[#2563EB] object-cover"
-                                    />
-                                    <div className="flex justify-center">
+                        <div className="space-y-4">
+                            <div className="rounded-2xl border-2 border-dashed border-[#2563EB]/40 bg-white p-5 text-center">
+                                {previewUrl ? (
+                                    <div className="space-y-3">
+                                        <img
+                                            src={previewUrl}
+                                            alt="Request Preview"
+                                            className="mx-auto h-36 max-w-xs rounded-xl border border-[#2563EB] object-cover"
+                                        />
+                                        <div className="flex justify-center">
+                                            <Button type="button" variant="secondary" className="py-1 px-3 text-xs" onClick={removeFile}>
+                                                <Icon name="close" className="mr-1" size={14} /> Remove File
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : f.image ? (
+                                    <div className="space-y-2 text-xs font-bold text-[#2563EB]">
+                                        <p>📄 Document Attached: {f.image.name}</p>
                                         <Button type="button" variant="secondary" className="py-1 px-3 text-xs" onClick={removeFile}>
-                                            <Icon name="close" className="mr-1" size={14} /> Remove File
+                                            Remove File
                                         </Button>
                                     </div>
-                                </div>
-                            ) : f.image ? (
-                                <div className="space-y-2 text-xs font-bold text-[#2563EB]">
-                                    <p>📄 Document Attached: {f.image.name}</p>
-                                    <Button type="button" variant="secondary" className="py-1 px-3 text-xs" onClick={removeFile}>
-                                        Remove File
-                                    </Button>
-                                </div>
-                            ) : (
-                                <div>
-                                    <Icon name="upload" className="mx-auto mb-2 text-[#2563EB]" size={32} />
-                                    <p className="text-xs font-bold text-[#2563EB]">
-                                        Click to upload or drag & drop supporting document or photo
-                                    </p>
-                                    <p className="mt-1 text-[11px] text-[#2563EB] opacity-75">
-                                        Supported formats: PNG, JPG, WEBP, PDF (Max 4MB)
-                                    </p>
-                                    <input
-                                        type="file"
-                                        accept="image/png, image/jpeg, image/webp, application/pdf"
-                                        className="hidden"
-                                        id="req_file_upload"
-                                        onChange={handleFileChange}
-                                    />
-                                    <label htmlFor="req_file_upload" className="mt-3 inline-block">
-                                        <span className="rounded-xl border border-[#2563EB] bg-white px-4 py-2 text-xs font-extrabold text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition cursor-pointer">
-                                            Select File
-                                        </span>
-                                    </label>
-                                </div>
-                            )}
+                                ) : (
+                                    <div>
+                                        <Icon name="upload" className="mx-auto mb-2 text-[#2563EB]" size={32} />
+                                        <p className="text-xs font-bold text-[#2563EB]">
+                                            Upload Supporting Document / Verification Proof (Optional)
+                                        </p>
+                                        <p className="mt-1 text-[11px] text-[#2563EB]/70">
+                                            e.g. Assessment form, book list, syllabus, medical certificate (PNG, JPG, PDF max 4MB)
+                                        </p>
+                                        <input
+                                            type="file"
+                                            accept="image/png, image/jpeg, image/webp, application/pdf"
+                                            className="hidden"
+                                            id="req_file_upload"
+                                            onChange={handleFileChange}
+                                        />
+                                        <label htmlFor="req_file_upload" className="mt-3 inline-block">
+                                            <span className="rounded-xl border border-[#2563EB] bg-white px-4 py-2 text-xs font-extrabold text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition cursor-pointer">
+                                                Select File
+                                            </span>
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                <label htmlFor="req_add_info" className="block text-xs font-bold text-[#2563EB] mb-1">
+                                    Additional Information (Optional)
+                                </label>
+                                <textarea
+                                    id="req_add_info"
+                                    rows={2}
+                                    placeholder="Any special handling instructions, alternatives, or schedule preferences..."
+                                    className="field w-full text-xs font-semibold"
+                                    value={f.additional_info}
+                                    onChange={(e) => setF({ ...f, additional_info: e.target.value })}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -3342,7 +3604,13 @@ function BeneficiaryRequestForm() {
                             </Button>
                         </div>
 
-                        <Button type="submit" variant="primary" loading={loading} className="text-xs py-2.5 px-6 font-extrabold">
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            disabled={loading || !isFormComplete}
+                            loading={loading}
+                            className="text-xs py-2.5 px-6 font-extrabold disabled:opacity-50"
+                        >
                             Submit Support Request
                         </Button>
                     </div>
@@ -3387,23 +3655,50 @@ function BeneficiaryRequestForm() {
 
                         <div className="mt-4 space-y-2.5 text-xs font-bold">
                             <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
+                                <span className="opacity-70">Request Type</span>
+                                <span className="font-extrabold uppercase">
+                                    {f.request_type === 'financial' ? 'Financial Assistance' : 'Physical Item'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
                                 <span className="opacity-70">Category</span>
                                 <span className="font-extrabold uppercase">{f.category}</span>
                             </div>
+                            {isPhysical ? (
+                                <>
+                                    <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
+                                        <span className="opacity-70">Assistance Needed</span>
+                                        <span>{f.item_details}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
+                                        <span className="opacity-70">Quantity Needed</span>
+                                        <span>{f.quantity_needed} {f.unit}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
+                                        <span className="opacity-70">Amount Requested</span>
+                                        <span className="text-[#22C55E]">
+                                            {f.currency} {Number(f.amount_requested).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
+                                        <span className="opacity-70">Purpose of Funds</span>
+                                        <span>{f.purpose_of_funds}</span>
+                                    </div>
+                                </>
+                            )}
                             <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
-                                <span className="opacity-70">Quantity Needed</span>
-                                <span>{f.quantity_needed} unit(s)</span>
-                            </div>
-                            <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
-                                <span className="opacity-70">Urgency Level</span>
+                                <span className="opacity-70">Priority Level</span>
                                 <span className="uppercase text-[#22C55E]">{f.urgency}</span>
                             </div>
                             <div className="border-b border-[#2563EB]/20 pb-2">
-                                <span className="opacity-70 block">Preferred Handoff Location</span>
-                                <span>{f.pickup_location === 'other' ? f.custom_location : f.pickup_location}</span>
+                                <span className="opacity-70 block">Preferred Assistance Date</span>
+                                <span>{f.preferred_assistance_date}</span>
                             </div>
                             <div>
-                                <span className="opacity-70 block">Justification</span>
+                                <span className="opacity-70 block">Reason for Request</span>
                                 <p className="font-normal text-[11px] whitespace-pre-wrap">{f.justification}</p>
                             </div>
                         </div>
@@ -3412,7 +3707,7 @@ function BeneficiaryRequestForm() {
                             <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
                                 Back & Edit
                             </Button>
-                            <Button variant="primary" loading={loading} onClick={handleFinalSubmit}>
+                            <Button variant="primary" loading={loading} disabled={loading} onClick={handleFinalSubmit}>
                                 Confirm & Submit
                             </Button>
                         </div>
@@ -4809,11 +5104,15 @@ function RequestManager(){
     const {user} = useAuth();
     const [state, setState] = useState({loading: true, data: [], error: ''});
     const [search, setSearch] = useState('');
+    const [typeFilter, setTypeFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [sortBy, setSortBy] = useState('urgency_desc');
+    const [sortBy, setSortBy] = useState('date_desc');
     const [editing, setEditing] = useState(null);
     const [viewingRequest, setViewingRequest] = useState(null);
+    const [cancellingRequest, setCancellingRequest] = useState(null);
+    const [cancellationReason, setCancellationReason] = useState('');
+    const [cancelling, setCancelling] = useState(false);
     const [deletingRequest, setDeletingRequest] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
@@ -4836,15 +5135,18 @@ function RequestManager(){
     if(!['beneficiary','admin'].includes(user.role)) return <Navigate to={getRoleDashboard(user.role)} replace/>;
 
     let filtered = state.data.filter(r => {
+        const matchesType = typeFilter === 'all' || (r.request_type || 'physical') === typeFilter;
         const matchesCategory = categoryFilter === 'all' || r.category === categoryFilter;
         const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
         const q = search.toLowerCase();
         const matchesSearch = !search ||
             (r.category && r.category.toLowerCase().includes(q)) ||
+            (r.item_details && r.item_details.toLowerCase().includes(q)) ||
+            (r.purpose_of_funds && r.purpose_of_funds.toLowerCase().includes(q)) ||
             (r.beneficiary?.name && r.beneficiary.name.toLowerCase().includes(q)) ||
             (r.urgency && r.urgency.toLowerCase().includes(q)) ||
             (r.justification && r.justification.toLowerCase().includes(q));
-        return matchesCategory && matchesStatus && matchesSearch;
+        return matchesType && matchesCategory && matchesStatus && matchesSearch;
     });
 
     const urgencyWeight = { high: 3, medium: 2, low: 1 };
@@ -4862,9 +5164,9 @@ function RequestManager(){
     const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     const totalCount = state.data.length;
-    const pendingCount = state.data.filter(r => r.status === 'pending_review' || r.status === 'proposed').length;
-    const approvedCount = state.data.filter(r => r.status === 'approved' || r.status === 'matched').length;
-    const fulfilledCount = state.data.filter(r => r.status === 'fulfilled' || r.status === 'completed').length;
+    const pendingCount = state.data.filter(r => ['pending_review', 'under_review', 'proposed'].includes(r.status)).length;
+    const approvedCount = state.data.filter(r => ['approved', 'matched', 'partially_fulfilled'].includes(r.status)).length;
+    const fulfilledCount = state.data.filter(r => ['fulfilled', 'completed'].includes(r.status)).length;
 
     const handleApproveDecline = async (id, status) => {
         setActionLoading(true);
@@ -4873,11 +5175,30 @@ function RequestManager(){
             if (viewingRequest?.id === id) {
                 setViewingRequest(prev => prev ? ({ ...prev, status }) : null);
             }
+            setSuccessMessage(`Request status updated to ${status}.`);
+            setTimeout(() => setSuccessMessage(''), 4000);
             load();
         } catch(e) {
             setState(s => ({...s, error: e.response?.data?.message || 'Could not update request status.'}));
         } finally {
             setActionLoading(false);
+        }
+    };
+
+    const confirmCancel = async () => {
+        if (!cancellingRequest || !cancellationReason.trim()) return;
+        setCancelling(true);
+        try {
+            await api.patch(`/requests/${cancellingRequest.id}/cancel`, { reason: cancellationReason.trim() });
+            setCancellingRequest(null);
+            setCancellationReason('');
+            setSuccessMessage('Support request was successfully cancelled.');
+            setTimeout(() => setSuccessMessage(''), 4000);
+            load();
+        } catch (e) {
+            setState(s => ({...s, error: e.response?.data?.message || 'Could not cancel request.'}));
+        } finally {
+            setCancelling(false);
         }
     };
 
@@ -4898,6 +5219,17 @@ function RequestManager(){
         }
     };
 
+    const openSupportingDocument = async (req) => {
+        try {
+            const response = await api.get(`/requests/${req.id}/document`, { responseType: 'blob' });
+            const objectUrl = URL.createObjectURL(response.data);
+            window.open(objectUrl, '_blank', 'noopener,noreferrer');
+            window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+        } catch (err) {
+            setState(s => ({...s, error: err.response?.data?.message || 'The supporting document could not be opened.'}));
+        }
+    };
+
     return (
         <main className="page space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
@@ -4905,13 +5237,13 @@ function RequestManager(){
                     <p className="eyebrow">{user.role === 'admin' ? 'ADMINISTRATOR WORKSPACE' : 'BENEFICIARY WORKSPACE'}</p>
                     <h1 className="page-title">Support Requests & Needs</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
-                        Review, authorize, track, and manage campus support requests.
+                        Review, track, manage, and monitor status updates for campus support requests.
                     </p>
                 </div>
                 {user.role === 'beneficiary' && (
                     <NavLink to="/request-help" className="rounded-xl border border-[#2563EB] bg-[#2563EB] px-4 py-2.5 text-sm font-bold text-white no-underline hover:bg-white hover:text-[#2563EB] transition inline-flex items-center gap-2">
                         <Icon name="plus"/>
-                        <span>Create Support Request</span>
+                        <span>+ Create Support Request</span>
                     </NavLink>
                 )}
             </div>
@@ -4924,6 +5256,7 @@ function RequestManager(){
                 </div>
             )}
 
+            {/* KPI Metric Cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <article className="panel p-5 flex items-center justify-between">
                     <div>
@@ -4937,7 +5270,7 @@ function RequestManager(){
 
                 <article className="panel p-5 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Pending Review</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Pending / Review</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{pendingCount}</strong>
                     </div>
                     <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
@@ -4947,7 +5280,7 @@ function RequestManager(){
 
                 <article className="panel p-5 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Approved</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Approved / Active</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{approvedCount}</strong>
                     </div>
                     <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#22C55E] bg-white text-[#22C55E]">
@@ -4966,19 +5299,33 @@ function RequestManager(){
                 </article>
             </div>
 
+            {/* Filter & Search Bar */}
             <div className="panel p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex-1 min-w-[220px]">
+                <div className="flex-1 min-w-[200px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Requests</label>
                     <input
                         type="text"
-                        placeholder="Search by category, requester, justification..."
+                        placeholder="Search category, item, purpose, requester..."
                         className="field w-full text-sm"
                         value={search}
                         onChange={e => { setSearch(e.target.value); setPage(1); }}
                     />
                 </div>
 
-                <div className="min-w-[150px]">
+                <div className="min-w-[130px]">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Type</label>
+                    <select
+                        className="field w-full text-sm"
+                        value={typeFilter}
+                        onChange={e => { setTypeFilter(e.target.value); setPage(1); }}
+                    >
+                        <option value="all">All Types</option>
+                        <option value="physical">Physical Item</option>
+                        <option value="financial">Financial Assistance</option>
+                    </select>
+                </div>
+
+                <div className="min-w-[140px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Category</label>
                     <select
                         className="field w-full text-sm"
@@ -4986,16 +5333,19 @@ function RequestManager(){
                         onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
                     >
                         <option value="all">All Categories</option>
-                        <option value="food">Food</option>
-                        <option value="clothing">Clothing</option>
-                        <option value="hygiene">Hygiene</option>
-                        <option value="school supplies">School Supplies</option>
-                        <option value="books">Books</option>
-                        <option value="technology">Technology</option>
+                        <option value="Food & Meals">Food & Meals</option>
+                        <option value="Educational & Books">Educational & Books</option>
+                        <option value="Clothing & Apparel">Clothing & Apparel</option>
+                        <option value="School Supplies">School Supplies</option>
+                        <option value="Medical & Health Supplies">Medical Supplies</option>
+                        <option value="Electronics & Tech">Electronics & Tech</option>
+                        <option value="Tuition & Academic Fees">Tuition Aid</option>
+                        <option value="Transportation Allowance">Transport Allowance</option>
+                        <option value="Daily Living & Food Allowance">Living Allowance</option>
                     </select>
                 </div>
 
-                <div className="min-w-[150px]">
+                <div className="min-w-[140px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Status</label>
                     <select
                         className="field w-full text-sm"
@@ -5004,22 +5354,25 @@ function RequestManager(){
                     >
                         <option value="all">All Statuses</option>
                         <option value="pending_review">Pending Review</option>
+                        <option value="under_review">Under Review</option>
                         <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
                         <option value="matched">Matched</option>
+                        <option value="partially_fulfilled">Partially Fulfilled</option>
                         <option value="fulfilled">Fulfilled</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
 
-                <div className="min-w-[150px]">
+                <div className="min-w-[140px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
                     <select
                         className="field w-full text-sm"
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
                     >
-                        <option value="urgency_desc">Urgency (High First)</option>
                         <option value="date_desc">Newest First</option>
+                        <option value="urgency_desc">Priority (High First)</option>
                         <option value="category">Category</option>
                         <option value="status">Status</option>
                     </select>
@@ -5028,7 +5381,7 @@ function RequestManager(){
 
             {state.loading ? (
                 <div className="panel p-8 text-center font-bold text-[#2563EB]">
-                    Loading support requests...
+                    Loading support requests from database...
                 </div>
             ) : !filtered.length ? (
                 <div className="panel p-8 text-center">
@@ -5041,117 +5394,156 @@ function RequestManager(){
                         <table className="data-table">
                             <thead>
                                 <tr>
-                                    <th>Resource Needed</th>
-                                    <th>Category</th>
-                                    <th>Urgency</th>
-                                    <th>Requester</th>
-                                    <th>Status</th>
+                                    <th>Request ID</th>
+                                    <th>Type</th>
+                                    <th>Assistance / Category</th>
+                                    <th>Needed & Remaining</th>
+                                    <th>Priority</th>
+                                    <th>Preferred Date</th>
+                                    <th>Status & Progress</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {paginated.map(item => (
-                                    <tr key={item.id}>
-                                        <td className="max-w-[200px] truncate" title={title(item.category)}>
-                                            <strong>{title(item.category)} ({item.quantity_needed} needed)</strong>
-                                        </td>
-                                        <td>{title(item.category)}</td>
-                                        <td><Badge status={item.urgency}/></td>
-                                        <td className="max-w-[180px] truncate" title={item.beneficiary?.name || 'Student'}>
-                                            <span className="text-sm font-semibold text-[#2563EB]">{item.beneficiary?.name || 'Student Requester'}</span>
-                                        </td>
-                                        <td><Badge status={item.status}/></td>
-                                        <td>
-                                            <div className="flex flex-wrap gap-2">
-                                                <Button title="View Request" variant="secondary" onClick={() => setViewingRequest(item)}>
-                                                    <Icon name="eye"/>
-                                                    <span className="ml-1 text-xs">View</span>
-                                                </Button>
-                                                {user.role === 'admin' && item.status === 'pending_review' && (
-                                                    <>
-                                                        <Button title="Approve Request" loading={actionLoading} onClick={() => handleApproveDecline(item.id, 'approved')}>
-                                                            <Icon name="check"/>
-                                                            <span className="ml-1 text-xs">Approve</span>
-                                                        </Button>
-                                                        <Button title="Decline Request" variant="secondary" loading={actionLoading} onClick={() => handleApproveDecline(item.id, 'rejected')}>
-                                                            <Icon name="decline"/>
-                                                            <span className="ml-1 text-xs">Decline</span>
-                                                        </Button>
-                                                    </>
+                                {paginated.map(item => {
+                                    const isFin = item.request_type === 'financial';
+                                    const reqAmount = Number(item.amount_requested || 0);
+                                    const remAmount = Number(item.remaining_amount ?? reqAmount);
+                                    const reqQty = Number(item.quantity_needed || 1);
+                                    const remQty = Number(item.remaining_quantity ?? reqQty);
+                                    const progressPercent = isFin
+                                        ? (reqAmount > 0 ? Math.round(((reqAmount - remAmount) / reqAmount) * 100) : 0)
+                                        : (reqQty > 0 ? Math.round(((reqQty - remQty) / reqQty) * 100) : 0);
+
+                                    return (
+                                        <tr key={item.id}>
+                                            <td className="font-extrabold text-[#2563EB]">
+                                                #REQ-{String(item.id).padStart(3, '0')}
+                                            </td>
+                                            <td>
+                                                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${isFin ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-[#2563EB]'}`}>
+                                                    {isFin ? 'Financial' : 'Physical'}
+                                                </span>
+                                            </td>
+                                            <td className="max-w-[180px] truncate" title={item.item_details || item.purpose_of_funds || item.category}>
+                                                <strong className="block text-xs">{title(item.category)}</strong>
+                                                <span className="text-[11px] font-semibold text-[#2563EB]/70 truncate block">
+                                                    {isFin ? (item.purpose_of_funds || 'Financial aid') : (item.item_details || 'Assistance item')}
+                                                </span>
+                                            </td>
+                                            <td className="text-xs">
+                                                {isFin ? (
+                                                    <div>
+                                                        <span className="font-extrabold text-[#22C55E]">
+                                                            {item.currency || 'PHP'} {reqAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                        </span>
+                                                        <span className="block text-[10px] font-semibold text-[#2563EB]/70">
+                                                            Remaining: {item.currency || 'PHP'} {remAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <span className="font-extrabold text-[#2563EB]">
+                                                            {reqQty} {item.unit || 'unit(s)'}
+                                                        </span>
+                                                        <span className="block text-[10px] font-semibold text-[#2563EB]/70">
+                                                            Remaining: {remQty} {item.unit || 'unit(s)'}
+                                                        </span>
+                                                    </div>
                                                 )}
-                                                {((user.role === 'beneficiary' && item.status?.startsWith('pending')) || user.role === 'admin') && (
-                                                    <Button title="Edit Request" variant="secondary" onClick={() => setEditing(item)}>
-                                                        <Icon name="edit"/>
-                                                        <span className="ml-1 text-xs">Edit</span>
+                                            </td>
+                                            <td><Badge status={item.urgency}/></td>
+                                            <td className="text-xs font-semibold text-[#2563EB]/80 max-w-[120px] truncate">
+                                                {item.preferred_assistance_date || 'Flexible'}
+                                            </td>
+                                            <td>
+                                                <div className="space-y-1">
+                                                    <Badge status={item.status}/>
+                                                    <div className="w-20 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                                        <div className="bg-[#22C55E] h-1.5 rounded-full" style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    <Button title="View Request Details" variant="secondary" onClick={() => setViewingRequest(item)}>
+                                                        <Icon name="eye"/>
+                                                        <span className="ml-1 text-xs">View</span>
                                                     </Button>
-                                                )}
-                                                {((user.role === 'beneficiary' && item.status?.startsWith('pending')) || user.role === 'admin') && (
-                                                    <Button title="Delete Request" variant="secondary" onClick={() => setDeletingRequest(item)}>
-                                                        <Icon name="delete"/>
-                                                        <span className="ml-1 text-xs">Delete</span>
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                                    {user.role === 'admin' && ['pending_review', 'under_review'].includes(item.status) && (
+                                                        <>
+                                                            <Button title="Approve Request" loading={actionLoading} onClick={() => handleApproveDecline(item.id, 'approved')}>
+                                                                <Icon name="check"/>
+                                                                <span className="ml-1 text-xs">Approve</span>
+                                                            </Button>
+                                                            <Button title="Decline Request" variant="secondary" loading={actionLoading} onClick={() => handleApproveDecline(item.id, 'rejected')}>
+                                                                <Icon name="decline"/>
+                                                                <span className="ml-1 text-xs">Decline</span>
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    {user.role === 'beneficiary' && ['pending_review', 'under_review', 'approved'].includes(item.status) && (
+                                                        <Button title="Cancel Request" variant="secondary" onClick={() => setCancellingRequest(item)}>
+                                                            <Icon name="close"/>
+                                                            <span className="ml-1 text-xs">Cancel</span>
+                                                        </Button>
+                                                    )}
+                                                    {user.role === 'admin' && (
+                                                        <Button title="Delete Request" variant="secondary" onClick={() => setDeletingRequest(item)}>
+                                                            <Icon name="delete"/>
+                                                            <span className="ml-1 text-xs">Delete</span>
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
 
+                    {/* Mobile Card Layout */}
                     <div className="grid gap-3 sm:hidden">
-                        {paginated.map(item => (
-                            <article key={item.id} className="panel p-4 space-y-3 bg-white">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div>
-                                        <strong className="text-base text-[#2563EB] block">{title(item.category)} ({item.quantity_needed} needed)</strong>
-                                        <span className="text-xs font-semibold text-[#2563EB]/80">Requester: {item.beneficiary?.name || 'Student'}</span>
+                        {paginated.map(item => {
+                            const isFin = item.request_type === 'financial';
+                            return (
+                                <article key={item.id} className="panel p-4 space-y-3 bg-white">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div>
+                                            <span className="text-xs font-black text-[#2563EB]">#REQ-{String(item.id).padStart(3, '0')}</span>
+                                            <strong className="text-sm text-[#2563EB] block">{title(item.category)}</strong>
+                                            <span className="text-xs font-semibold text-[#2563EB]/80">
+                                                {isFin ? `${item.currency || 'PHP'} ${Number(item.amount_requested).toLocaleString()}` : `${item.quantity_needed} ${item.unit || 'unit(s)'} of ${item.item_details}`}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <Badge status={item.status}/>
+                                            <Badge status={item.urgency}/>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1">
-                                        <Badge status={item.status}/>
-                                        <Badge status={item.urgency}/>
+                                    <div className="text-xs font-semibold text-[#2563EB]/70 border-t border-[#2563EB]/20 pt-2 flex items-center justify-between">
+                                        <span>Target: {item.preferred_assistance_date || 'Flexible'}</span>
+                                        <span>{item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}</span>
                                     </div>
-                                </div>
-                                {item.justification && (
-                                    <p className="text-xs text-[#2563EB]/80 italic line-clamp-2 border-t border-[#2563EB]/10 pt-2">"{item.justification}"</p>
-                                )}
-                                <div className="text-xs font-semibold text-[#2563EB]/70 border-t border-[#2563EB]/20 pt-2 flex items-center justify-between">
-                                    <span>Submitted: {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2 pt-1">
-                                    <Button title="View Request" variant="secondary" onClick={() => setViewingRequest(item)}>
-                                        <Icon name="eye"/>
-                                        <span className="ml-1 text-xs">View</span>
-                                    </Button>
-                                    {user.role === 'admin' && item.status === 'pending_review' && (
-                                        <>
-                                            <Button title="Approve Request" loading={actionLoading} onClick={() => handleApproveDecline(item.id, 'approved')}>
-                                                <Icon name="check"/>
-                                                <span className="ml-1 text-xs">Approve</span>
-                                            </Button>
-                                            <Button title="Decline Request" variant="secondary" loading={actionLoading} onClick={() => handleApproveDecline(item.id, 'rejected')}>
-                                                <Icon name="decline"/>
-                                                <span className="ml-1 text-xs">Decline</span>
-                                            </Button>
-                                        </>
-                                    )}
-                                    {((user.role === 'beneficiary' && item.status?.startsWith('pending')) || user.role === 'admin') && (
-                                        <Button title="Edit Request" variant="secondary" onClick={() => setEditing(item)}>
-                                            <Icon name="edit"/>
-                                            <span className="ml-1 text-xs">Edit</span>
+                                    <div className="flex flex-wrap gap-2 pt-1">
+                                        <Button title="View Details" variant="secondary" onClick={() => setViewingRequest(item)}>
+                                            <Icon name="eye"/>
+                                            <span className="ml-1 text-xs">View</span>
                                         </Button>
-                                    )}
-                                    {((user.role === 'beneficiary' && item.status?.startsWith('pending')) || user.role === 'admin') && (
-                                        <Button title="Delete Request" variant="secondary" onClick={() => setDeletingRequest(item)}>
-                                            <Icon name="delete"/>
-                                            <span className="ml-1 text-xs">Delete</span>
-                                        </Button>
-                                    )}
-                                </div>
-                            </article>
-                        ))}
+                                        {user.role === 'beneficiary' && ['pending_review', 'approved'].includes(item.status) && (
+                                            <Button title="Cancel" variant="secondary" onClick={() => setCancellingRequest(item)}>
+                                                <Icon name="close"/>
+                                                <span className="ml-1 text-xs">Cancel</span>
+                                            </Button>
+                                        )}
+                                    </div>
+                                </article>
+                            );
+                        })}
                     </div>
 
+                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
@@ -5181,58 +5573,126 @@ function RequestManager(){
                 </div>
             )}
 
+            {/* Request Details Inspection Modal */}
             {viewingRequest && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
+                    <div className="panel w-full max-w-xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
-                            <h2 className="text-lg font-extrabold text-[#2563EB]">Support Request Details Inspection</h2>
+                            <div>
+                                <span className="text-xs font-black text-[#2563EB]">
+                                    #REQ-{String(viewingRequest.id).padStart(3, '0')}
+                                </span>
+                                <h2 className="text-lg font-black text-[#2563EB]">Support Request Inspection</h2>
+                            </div>
                             <button className="nav-link p-1" onClick={() => setViewingRequest(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <Badge status={viewingRequest.urgency}/>
-                                <Badge status={viewingRequest.status}/>
-                            </div>
-                            <h3 className="text-xl font-extrabold text-[#2563EB] mt-2">{title(viewingRequest.category)} ({viewingRequest.quantity_needed} units)</h3>
+
+                        <div className="flex items-center gap-2">
+                            <span className={`px-2.5 py-1 rounded text-xs font-black uppercase ${viewingRequest.request_type === 'financial' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-[#2563EB]'}`}>
+                                {viewingRequest.request_type === 'financial' ? 'Financial Assistance' : 'Physical Item Request'}
+                            </span>
+                            <Badge status={viewingRequest.urgency}/>
+                            <Badge status={viewingRequest.status}/>
                         </div>
-                        <div className="space-y-2 border-t border-b border-[#2563EB]/20 py-3 text-sm">
-                            <div className="flex justify-between">
-                                <span className="font-bold text-[#2563EB]/70">Requester Name:</span>
-                                <span className="font-semibold text-[#2563EB]">{viewingRequest.beneficiary?.name || 'Student Requester'}</span>
-                            </div>
-                            {viewingRequest.beneficiary?.email && (
-                                <div className="flex justify-between">
-                                    <span className="font-bold text-[#2563EB]/70">Requester Email:</span>
-                                    <span className="font-semibold text-[#2563EB]">{viewingRequest.beneficiary.email}</span>
+
+                        {/* Beneficiary Student Information Section */}
+                        {viewingRequest.beneficiary && (
+                            <div className="rounded-xl border border-[#2563EB]/30 bg-[#2563EB]/5 p-3.5 text-xs space-y-1.5">
+                                <span className="font-extrabold text-[#2563EB] uppercase tracking-wider block">Student Beneficiary Profile</span>
+                                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                    <div><span className="font-bold text-[#2563EB]/70">Name:</span> <span className="font-semibold">{viewingRequest.beneficiary.name}</span></div>
+                                    <div><span className="font-bold text-[#2563EB]/70">Student ID:</span> <span className="font-semibold">{viewingRequest.beneficiary.student_id_number || viewingRequest.student_id_number || 'N/A'}</span></div>
+                                    <div><span className="font-bold text-[#2563EB]/70">Department:</span> <span className="font-semibold">{viewingRequest.beneficiary.department || 'N/A'}</span></div>
+                                    <div><span className="font-bold text-[#2563EB]/70">Course:</span> <span className="font-semibold">{viewingRequest.beneficiary.course || 'N/A'}</span></div>
+                                    <div><span className="font-bold text-[#2563EB]/70">Year Level:</span> <span className="font-semibold">{viewingRequest.beneficiary.year_level || 'N/A'}</span></div>
+                                    <div><span className="font-bold text-[#2563EB]/70">School Email:</span> <span className="font-semibold">{viewingRequest.beneficiary.school_email || viewingRequest.beneficiary.email || 'N/A'}</span></div>
                                 </div>
+                            </div>
+                        )}
+
+                        <div className="space-y-2.5 border-t border-b border-[#2563EB]/20 py-3 text-xs font-bold">
+                            <div className="flex justify-between">
+                                <span className="text-[#2563EB]/70">Category:</span>
+                                <span className="font-black text-[#2563EB]">{title(viewingRequest.category)}</span>
+                            </div>
+                            {viewingRequest.request_type === 'financial' ? (
+                                <>
+                                    <div className="flex justify-between">
+                                        <span className="text-[#2563EB]/70">Amount Requested:</span>
+                                        <span className="font-black text-[#22C55E]">
+                                            {viewingRequest.currency || 'PHP'} {Number(viewingRequest.amount_requested).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-[#2563EB]/70">Remaining Amount:</span>
+                                        <span className="font-black text-[#2563EB]">
+                                            {viewingRequest.currency || 'PHP'} {Number(viewingRequest.remaining_amount ?? viewingRequest.amount_requested).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        </span>
+                                    </div>
+                                    {viewingRequest.purpose_of_funds && (
+                                        <div className="pt-1">
+                                            <span className="text-[#2563EB]/70 block mb-1">Purpose of Funds:</span>
+                                            <p className="font-normal text-[11px] bg-white p-2.5 rounded border border-[#2563EB]/20">{viewingRequest.purpose_of_funds}</p>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex justify-between">
+                                        <span className="text-[#2563EB]/70">Assistance Needed:</span>
+                                        <span className="font-black text-[#2563EB]">{viewingRequest.item_details || 'Standard Need'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-[#2563EB]/70">Quantity Needed:</span>
+                                        <span>{viewingRequest.quantity_needed} {viewingRequest.unit || 'unit(s)'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-[#2563EB]/70">Remaining Quantity:</span>
+                                        <span>{viewingRequest.remaining_quantity ?? viewingRequest.quantity_needed} {viewingRequest.unit || 'unit(s)'}</span>
+                                    </div>
+                                </>
                             )}
                             <div className="flex justify-between">
-                                <span className="font-bold text-[#2563EB]/70">Quantity Needed:</span>
-                                <span className="font-extrabold text-[#2563EB]">{viewingRequest.quantity_needed} units</span>
+                                <span className="text-[#2563EB]/70">Preferred Assistance Date:</span>
+                                <span>{viewingRequest.preferred_assistance_date || 'Flexible'}</span>
                             </div>
                             {viewingRequest.justification && (
                                 <div className="pt-1">
-                                    <span className="font-bold text-[#2563EB]/70 block">Justification / Request Statement:</span>
-                                    <p className="mt-1 text-xs text-[#2563EB] bg-[#2563EB]/5 p-3 rounded-lg border border-[#2563EB]/20 leading-relaxed">{viewingRequest.justification}</p>
+                                    <span className="text-[#2563EB]/70 block mb-1">Reason for Request:</span>
+                                    <p className="font-normal text-[11px] bg-white p-2.5 rounded border border-[#2563EB]/20 leading-relaxed whitespace-pre-wrap">{viewingRequest.justification}</p>
                                 </div>
                             )}
-                            {viewingRequest.alternative_categories && (
+                            {viewingRequest.additional_info && (
                                 <div className="pt-1">
-                                    <span className="font-bold text-[#2563EB]/70 block">Alternative Acceptable Categories:</span>
-                                    <p className="mt-1 text-xs text-[#2563EB] font-semibold">{viewingRequest.alternative_categories}</p>
+                                    <span className="text-[#2563EB]/70 block mb-1">Additional Notes:</span>
+                                    <p className="font-normal text-[11px]">{viewingRequest.additional_info}</p>
                                 </div>
                             )}
-                            <div className="flex justify-between pt-1">
-                                <span className="font-bold text-[#2563EB]/70">Date Submitted:</span>
-                                <span className="font-semibold text-[#2563EB]">
-                                    {viewingRequest.created_at ? new Date(viewingRequest.created_at).toLocaleString() : 'N/A'}
-                                </span>
-                            </div>
+                            {viewingRequest.cancellation_reason && (
+                                <div className="pt-1 text-red-600">
+                                    <span className="font-extrabold block">Cancellation Reason:</span>
+                                    <p className="font-normal text-[11px]">{viewingRequest.cancellation_reason}</p>
+                                </div>
+                            )}
                         </div>
+
+                        {/* Supporting Document Viewer Button */}
+                        {viewingRequest.supporting_document_url && (
+                            <div className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                <div className="flex items-center gap-2 text-xs font-bold text-[#2563EB]">
+                                    <Icon name="upload" size={16} />
+                                    <span>Supporting Verification Document Attached</span>
+                                </div>
+                                <Button variant="secondary" className="text-xs py-1.5 px-3" onClick={() => openSupportingDocument(viewingRequest)}>
+                                    View Document
+                                </Button>
+                            </div>
+                        )}
+
                         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                            {user.role === 'admin' && viewingRequest.status === 'pending_review' && (
+                            {user.role === 'admin' && ['pending_review', 'under_review'].includes(viewingRequest.status) && (
                                 <div className="flex items-center gap-2">
                                     <Button loading={actionLoading} onClick={() => handleApproveDecline(viewingRequest.id, 'approved')}>
                                         <Icon name="check"/>
@@ -5252,6 +5712,45 @@ function RequestManager(){
                 </div>
             )}
 
+            {/* Cancel Request Modal (Beneficiary) */}
+            {cancellingRequest && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                    <div className="panel max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
+                            <h3 className="text-lg font-extrabold text-[#2563EB]">Cancel Support Request?</h3>
+                            <button className="nav-link p-1" onClick={() => setCancellingRequest(null)} title="Close">
+                                <Icon name="close"/>
+                            </button>
+                        </div>
+                        <p className="text-xs font-semibold text-[#2563EB]/80">
+                            Please provide a reason for cancelling request <strong>#REQ-{String(cancellingRequest.id).padStart(3, '0')}</strong>:
+                        </p>
+                        <textarea
+                            required
+                            rows={3}
+                            placeholder="e.g. Need was fulfilled by another scholarship program, no longer needed..."
+                            className="field w-full text-xs font-semibold"
+                            value={cancellationReason}
+                            onChange={(e) => setCancellationReason(e.target.value)}
+                        />
+                        <div className="flex justify-end gap-3 pt-3 border-t border-[#2563EB]/20">
+                            <Button variant="secondary" onClick={() => setCancellingRequest(null)}>
+                                Keep Request
+                            </Button>
+                            <Button
+                                variant="primary"
+                                loading={cancelling}
+                                disabled={!cancellationReason.trim()}
+                                onClick={confirmCancel}
+                            >
+                                Confirm Cancellation
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Request Modal (Admin) */}
             {deletingRequest && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
@@ -5265,7 +5764,7 @@ function RequestManager(){
                             Are you sure you want to delete support request for <strong>"{title(deletingRequest.category)}"</strong>?
                         </p>
                         <p className="text-xs font-bold text-[#2563EB]/70">
-                            This action cannot be undone and will permanently remove this request listing.
+                            This action cannot be undone and will permanently remove this request listing from the database.
                         </p>
                         <div className="flex flex-wrap gap-3 pt-3">
                             <Button loading={deleting} onClick={confirmDelete}>
@@ -8896,9 +9395,10 @@ function BeneficiaryDashboard() {
                                 <thead>
                                     <tr>
                                         <th>Ref ID</th>
-                                        <th>Category / Item</th>
-                                        <th>Quantity Needed</th>
-                                        <th>Urgency</th>
+                                        <th>Type</th>
+                                        <th>Category / Need</th>
+                                        <th>Assistance Needed</th>
+                                        <th>Priority</th>
                                         <th>Status</th>
                                         <th>Date Created</th>
                                         <th className="text-right">Action</th>
@@ -8907,15 +9407,25 @@ function BeneficiaryDashboard() {
                                 <tbody>
                                     {requests.slice(0, 5).map((r) => {
                                         const refId = `#REQ-${String(r.id).padStart(3, '0')}`;
+                                        const isFinancial = r.request_type === 'financial';
                                         return (
                                             <tr key={r.id}>
                                                 <td className="font-mono text-xs font-bold text-[#2563EB]">{refId}</td>
+                                                <td>
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold ${isFinancial ? 'bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30' : 'bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/20'}`}>
+                                                        {isFinancial ? 'Financial' : 'Physical'}
+                                                    </span>
+                                                </td>
                                                 <td>
                                                     <strong className="font-extrabold text-[#2563EB]">
                                                         {title(r.category)}
                                                     </strong>
                                                 </td>
-                                                <td className="font-bold text-[#2563EB]">{r.quantity_needed} unit(s)</td>
+                                                <td className="font-bold text-[#2563EB]">
+                                                    {isFinancial
+                                                        ? `₱${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                        : `${r.quantity_needed} ${r.unit || 'unit(s)'}`}
+                                                </td>
                                                 <td>
                                                     <span className="rounded-full border border-[#2563EB] bg-white px-2 py-0.5 text-[10px] font-extrabold text-[#2563EB] uppercase">
                                                         {r.urgency || 'Normal'}
@@ -8945,16 +9455,22 @@ function BeneficiaryDashboard() {
                         <div className="sm:hidden space-y-3">
                             {requests.slice(0, 5).map((r) => {
                                 const refId = `#REQ-${String(r.id).padStart(3, '0')}`;
+                                const isFinancial = r.request_type === 'financial';
                                 return (
                                     <div key={r.id} className="panel p-4 space-y-2 text-xs font-bold text-[#2563EB]">
                                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-2">
-                                            <span className="font-mono text-[11px]">{refId}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono text-[11px]">{refId}</span>
+                                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold ${isFinancial ? 'bg-[#22C55E]/15 text-[#22C55E]' : 'bg-[#2563EB]/10 text-[#2563EB]'}`}>
+                                                    {isFinancial ? 'Financial' : 'Physical'}
+                                                </span>
+                                            </div>
                                             <Badge status={r.status} />
                                         </div>
                                         <div>
                                             <h4 className="font-extrabold text-sm">{title(r.category)}</h4>
                                             <p className="text-[11px] opacity-80 mt-0.5">
-                                                Quantity Needed: {r.quantity_needed} • Urgency: {title(r.urgency || 'normal')}
+                                                Assistance Needed: {isFinancial ? `₱${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : `${r.quantity_needed} ${r.unit || 'unit(s)'}`} • Priority: {title(r.urgency || 'normal')}
                                             </p>
                                             <p className="text-[10px] opacity-70 mt-0.5">Submitted {formatDate(r.created_at)}</p>
                                         </div>
@@ -8978,7 +9494,7 @@ function BeneficiaryDashboard() {
             {/* Selected Request Details Modal */}
             {selectedRequestDetails && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
-                    <div className="panel max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
+                    <div className="panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
                                 <Icon name="requests" size={20} className="text-[#2563EB]" />
@@ -8999,26 +9515,53 @@ function BeneficiaryDashboard() {
                         <div className="mt-4 space-y-3 text-xs font-bold">
                             <div className="flex items-center justify-between border-b border-[#2563EB]/30 pb-2">
                                 <div>
-                                    <span className="text-[#2563EB] opacity-70 block">Category</span>
+                                    <span className="text-[#2563EB] opacity-70 block">Assistance Category</span>
                                     <span className="text-base font-extrabold">{title(selectedRequestDetails.category)}</span>
                                 </div>
-                                <Badge status={selectedRequestDetails.status} />
+                                <div className="text-right">
+                                    <span className="text-[#2563EB] opacity-70 block">Status</span>
+                                    <Badge status={selectedRequestDetails.status} />
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2 border-b border-[#2563EB]/30 pb-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 border-b border-[#2563EB]/30 pb-2">
                                 <div>
-                                    <span className="text-[#2563EB] opacity-70 block">Quantity Needed</span>
-                                    <span>{selectedRequestDetails.quantity_needed} unit(s)</span>
+                                    <span className="text-[#2563EB] opacity-70 block">Request Type</span>
+                                    <span className="text-[#2563EB] font-extrabold">{selectedRequestDetails.request_type === 'financial' ? 'Financial Assistance' : 'Physical Goods'}</span>
                                 </div>
                                 <div>
-                                    <span className="text-[#2563EB] opacity-70 block">Urgency Level</span>
-                                    <span className="uppercase text-[#22C55E]">{selectedRequestDetails.urgency || 'Normal'}</span>
+                                    <span className="text-[#2563EB] opacity-70 block">
+                                        {selectedRequestDetails.request_type === 'financial' ? 'Amount Requested' : 'Quantity Needed'}
+                                    </span>
+                                    <span className="text-[#22C55E] font-black text-sm">
+                                        {selectedRequestDetails.request_type === 'financial'
+                                            ? `₱${Number(selectedRequestDetails.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                                            : `${selectedRequestDetails.quantity_needed} ${selectedRequestDetails.unit || 'unit(s)'}`}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[#2563EB] opacity-70 block">Priority Level</span>
+                                    <span className="uppercase text-[#2563EB] font-extrabold">{selectedRequestDetails.urgency || 'Normal'}</span>
                                 </div>
                             </div>
+
+                            {selectedRequestDetails.purpose_of_funds && (
+                                <div className="border-b border-[#2563EB]/30 pb-2">
+                                    <span className="text-[#2563EB] opacity-70 block">Purpose of Funds</span>
+                                    <p className="font-normal text-[#2563EB]">{selectedRequestDetails.purpose_of_funds}</p>
+                                </div>
+                            )}
+
+                            {selectedRequestDetails.preferred_assistance_date && (
+                                <div className="border-b border-[#2563EB]/30 pb-2">
+                                    <span className="text-[#2563EB] opacity-70 block">Preferred Assistance Date</span>
+                                    <p className="font-extrabold text-[#2563EB]">📅 {selectedRequestDetails.preferred_assistance_date}</p>
+                                </div>
+                            )}
 
                             {selectedRequestDetails.justification && (
                                 <div className="border-b border-[#2563EB]/30 pb-2">
-                                    <span className="text-[#2563EB] opacity-70 block">Justification / Reason</span>
+                                    <span className="text-[#2563EB] opacity-70 block">Reason for Request / Justification</span>
                                     <p className="font-normal whitespace-pre-wrap">{selectedRequestDetails.justification}</p>
                                 </div>
                             )}
@@ -9027,6 +9570,13 @@ function BeneficiaryDashboard() {
                                 <div className="border-b border-[#2563EB]/30 pb-2">
                                     <span className="text-[#2563EB] opacity-70 block">Alternative Acceptable Categories</span>
                                     <p className="font-normal">{selectedRequestDetails.alternative_categories}</p>
+                                </div>
+                            )}
+
+                            {selectedRequestDetails.additional_info && (
+                                <div className="border-b border-[#2563EB]/30 pb-2">
+                                    <span className="text-[#2563EB] opacity-70 block">Additional Information</span>
+                                    <p className="font-normal whitespace-pre-wrap">{selectedRequestDetails.additional_info}</p>
                                 </div>
                             )}
 
@@ -9055,6 +9605,7 @@ function DonorNeeds() {
 
     // Filter, Search, Sort & Pagination States
     const [search, setSearch] = useState('');
+    const [typeFilter, setTypeFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [urgencyFilter, setUrgencyFilter] = useState('all');
     const [sortBy, setSortBy] = useState('latest');
@@ -9069,6 +9620,7 @@ function DonorNeeds() {
     const [donationForm, setDonationForm] = useState({
         item_name: '',
         quantity: 1,
+        amount: 100,
         condition_type: 'Gently Used',
         condition_notes: '',
         pickup_location: 'Campus Student Center - Main Entrance',
@@ -9092,7 +9644,10 @@ function DonorNeeds() {
         { value: 'household', label: 'Household & Bedding' },
         { value: 'hygiene', label: 'Personal Care & Hygiene' },
         { value: 'emergency', label: 'Emergency & Disaster Relief' },
-        { value: 'other', label: 'Other Useful Items' },
+        { value: 'tuition', label: 'Tuition & Academic Fees' },
+        { value: 'living_allowance', label: 'Living & Food Allowance' },
+        { value: 'transportation', label: 'Transportation & Commute' },
+        { value: 'other', label: 'Other Useful Needs' },
     ];
 
     const loadRequests = () => {
@@ -9121,7 +9676,13 @@ function DonorNeeds() {
             const catMatch = (req.category || '').toLowerCase().includes(q);
             const justMatch = (req.justification || '').toLowerCase().includes(q);
             const altMatch = (req.alternative_categories || '').toLowerCase().includes(q);
-            if (!catMatch && !justMatch && !altMatch) return false;
+            const purpMatch = (req.purpose_of_funds || '').toLowerCase().includes(q);
+            if (!catMatch && !justMatch && !altMatch && !purpMatch) return false;
+        }
+
+        // Type filter
+        if (typeFilter !== 'all' && (req.request_type || 'physical') !== typeFilter) {
+            return false;
         }
 
         // Category filter
@@ -9145,11 +9706,10 @@ function DonorNeeds() {
             const urgencyWeight = { high: 3, medium: 2, low: 1 };
             return (urgencyWeight[b.urgency] || 0) - (urgencyWeight[a.urgency] || 0);
         }
-        if (sortBy === 'quantity_desc') {
-            return (b.quantity_needed || 0) - (a.quantity_needed || 0);
-        }
-        if (sortBy === 'quantity_asc') {
-            return (a.quantity_needed || 0) - (b.quantity_needed || 0);
+        if (sortBy === 'amount_desc') {
+            const aVal = a.request_type === 'financial' ? Number(a.amount_requested || 0) : Number(a.quantity_needed || 0);
+            const bVal = b.request_type === 'financial' ? Number(b.amount_requested || 0) : Number(b.quantity_needed || 0);
+            return bVal - aVal;
         }
         return 0;
     });
@@ -9162,6 +9722,7 @@ function DonorNeeds() {
 
     const resetFilters = () => {
         setSearch('');
+        setTypeFilter('all');
         setCategoryFilter('all');
         setUrgencyFilter('all');
         setSortBy('latest');
@@ -9169,15 +9730,18 @@ function DonorNeeds() {
     };
 
     const openQuickDonateModal = (req) => {
-        const matched = req.matched_quantity || 0;
-        const remaining = Math.max(1, (req.quantity_needed || 1) - matched);
+        const isFinancial = req.request_type === 'financial';
+        const remainingQty = Math.max(1, (req.quantity_needed || 1) - (req.matched_quantity || 0));
+        const remainingAmt = Math.max(1, (Number(req.amount_requested) || 0) - (Number(req.matched_amount) || 0));
+
         setDonatingRequest(req);
         setDonationForm({
-            item_name: `Donation for ${title(req.category)} Need`,
-            quantity: remaining,
+            item_name: isFinancial ? `Financial Aid for ${title(req.category)}` : `Donation for ${title(req.category)} Need`,
+            quantity: remainingQty,
+            amount: remainingAmt || 100,
             condition_type: 'Gently Used',
             condition_notes: '',
-            pickup_location: 'Campus Student Center - Main Entrance',
+            pickup_location: isFinancial ? 'Campus Financial Office / Online Transfer' : 'Campus Student Center - Main Entrance',
             availability_window: 'Available Immediately',
             preferred_handoff_slots: 'Morning (8:00 AM - 12:00 PM)',
         });
@@ -9210,18 +9774,30 @@ function DonorNeeds() {
         setDonationError('');
 
         try {
+            const isFinancial = donatingRequest.request_type === 'financial';
             const data = new FormData();
-            data.append('item_name', donationForm.item_name.trim());
+            data.append('donation_type', isFinancial ? 'financial' : 'physical');
             data.append('category', donatingRequest.category);
-            data.append('quantity', donationForm.quantity);
+            data.append('request_id', donatingRequest.id);
 
-            const notes = donationForm.condition_type
-                ? `[For Request #${donatingRequest.id}] [Condition: ${donationForm.condition_type}] ${donationForm.condition_notes.trim()}`.trim()
-                : `[For Request #${donatingRequest.id}] ${donationForm.condition_notes.trim()}`.trim();
-            data.append('condition_notes', notes);
+            if (isFinancial) {
+                data.append('item_name', donationForm.item_name.trim() || `Financial Aid for ${title(donatingRequest.category)}`);
+                data.append('amount', donationForm.amount);
+                data.append('currency', 'PHP');
+                const notes = `[For Request #${donatingRequest.id}] ${donationForm.condition_notes.trim()}`.trim();
+                data.append('condition_notes', notes);
+                data.append('pickup_location', donationForm.pickup_location || 'Campus Financial Office / Online Transfer');
+            } else {
+                data.append('item_name', donationForm.item_name.trim());
+                data.append('quantity', donationForm.quantity);
+                const notes = donationForm.condition_type
+                    ? `[For Request #${donatingRequest.id}] [Condition: ${donationForm.condition_type}] ${donationForm.condition_notes.trim()}`.trim()
+                    : `[For Request #${donatingRequest.id}] ${donationForm.condition_notes.trim()}`.trim();
+                data.append('condition_notes', notes);
+                data.append('pickup_location', donationForm.pickup_location);
+            }
 
             data.append('availability_window', donationForm.availability_window);
-            data.append('pickup_location', donationForm.pickup_location);
             data.append('preferred_handoff_slots', donationForm.preferred_handoff_slots);
 
             if (donationPhoto) {
@@ -9249,14 +9825,14 @@ function DonorNeeds() {
             <p className="eyebrow">COMMUNITY IMPACT</p>
             <h1 className="page-title">Requests & Campus Needs</h1>
             <p className="page-copy">
-                Explore support requests submitted by campus members to see where your donations can make a direct difference.
+                Explore student support requests and campus needs to provide physical goods or direct financial assistance.
             </p>
 
             {/* Controls Bar: Search, Filters & Sorting */}
             <div className="panel mt-8 p-4 sm:p-6 space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     {/* Search Input */}
-                    <div className="relative">
+                    <div className="relative lg:col-span-2">
                         <label htmlFor="search_needs" className="block text-xs font-bold text-[#2563EB] mb-1">
                             Search Needs
                         </label>
@@ -9276,6 +9852,26 @@ function DonorNeeds() {
                                 <Icon name="search" size={16} />
                             </div>
                         </div>
+                    </div>
+
+                    {/* Type Filter */}
+                    <div>
+                        <label htmlFor="filter_type" className="block text-xs font-bold text-[#2563EB] mb-1">
+                            Request Type
+                        </label>
+                        <select
+                            id="filter_type"
+                            className="field text-xs"
+                            value={typeFilter}
+                            onChange={(e) => {
+                                setTypeFilter(e.target.value);
+                                setPage(1);
+                            }}
+                        >
+                            <option value="all">All Request Types</option>
+                            <option value="physical">Physical Goods</option>
+                            <option value="financial">Financial Assistance</option>
+                        </select>
                     </div>
 
                     {/* Category Filter */}
@@ -9303,7 +9899,7 @@ function DonorNeeds() {
                     {/* Urgency Filter */}
                     <div>
                         <label htmlFor="filter_urgency" className="block text-xs font-bold text-[#2563EB] mb-1">
-                            Filter by Priority / Urgency
+                            Priority Level
                         </label>
                         <select
                             id="filter_urgency"
@@ -9314,37 +9910,16 @@ function DonorNeeds() {
                                 setPage(1);
                             }}
                         >
-                            <option value="all">All Urgency Levels</option>
+                            <option value="all">All Priority Levels</option>
                             <option value="high">High Priority</option>
                             <option value="medium">Medium Priority</option>
                             <option value="low">Low Priority</option>
                         </select>
                     </div>
-
-                    {/* Sort By */}
-                    <div>
-                        <label htmlFor="sort_by" className="block text-xs font-bold text-[#2563EB] mb-1">
-                            Sort Results
-                        </label>
-                        <select
-                            id="sort_by"
-                            className="field text-xs"
-                            value={sortBy}
-                            onChange={(e) => {
-                                setSortBy(e.target.value);
-                                setPage(1);
-                            }}
-                        >
-                            <option value="latest">Latest Posted</option>
-                            <option value="urgency_desc">Urgency: High to Low</option>
-                            <option value="quantity_desc">Units Needed: High to Low</option>
-                            <option value="quantity_asc">Units Needed: Low to High</option>
-                        </select>
-                    </div>
                 </div>
 
                 {/* Filter Summary & Reset Action */}
-                {(search || categoryFilter !== 'all' || urgencyFilter !== 'all' || sortBy !== 'latest') && (
+                {(search || typeFilter !== 'all' || categoryFilter !== 'all' || urgencyFilter !== 'all' || sortBy !== 'latest') && (
                     <div className="flex items-center justify-between border-t border-[#2563EB]/20 pt-3 text-xs font-bold text-[#2563EB]">
                         <span>
                             Showing filtered results ({sortedRequests.length} item{sortedRequests.length === 1 ? '' : 's'})
@@ -9396,22 +9971,37 @@ function DonorNeeds() {
                     <>
                         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                             {paginatedRequests.map((req) => {
-                                const matchedQty = req.matched_quantity || 0;
+                                const isFinancial = req.request_type === 'financial';
                                 const neededQty = req.quantity_needed || 1;
-                                const remainingQty = Math.max(0, neededQty - matchedQty);
-                                const progressPercent = Math.min(100, Math.round((matchedQty / neededQty) * 100));
+                                const matchedQty = req.matched_quantity || 0;
+                                const remainingQty = req.remaining_quantity !== undefined ? req.remaining_quantity : Math.max(0, neededQty - matchedQty);
+
+                                const requestedAmt = Number(req.amount_requested || 0);
+                                const matchedAmt = Number(req.matched_amount || 0);
+                                const remainingAmt = req.remaining_amount !== undefined ? Number(req.remaining_amount) : Math.max(0, requestedAmt - matchedAmt);
+
+                                const progressPercent = isFinancial
+                                    ? (requestedAmt > 0 ? Math.min(100, Math.round((matchedAmt / requestedAmt) * 100)) : 0)
+                                    : (neededQty > 0 ? Math.min(100, Math.round((matchedQty / neededQty) * 100)) : 0);
 
                                 return (
                                     <article
                                         key={req.id}
-                                        className="panel p-5 flex flex-col justify-between h-full min-h-[350px] transition-all hover:border-[#22C55E]"
+                                        className="panel p-5 flex flex-col justify-between h-full min-h-[360px] transition-all hover:border-[#22C55E]"
                                     >
                                         <div>
-                                            {/* Top Row: Urgency Badge & Units Badge */}
+                                            {/* Top Row: Type & Urgency & Remaining Badge */}
                                             <div className="flex items-center justify-between gap-2 border-b border-[#2563EB]/20 pb-3">
-                                                <Badge status={req.urgency} />
-                                                <span className="rounded-full border border-[#2563EB] bg-white px-2.5 py-1 text-xs font-extrabold text-[#2563EB]">
-                                                    {remainingQty} unit{remainingQty === 1 ? '' : 's'} needed
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold ${isFinancial ? 'bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30' : 'bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/20'}`}>
+                                                        {isFinancial ? 'Financial Aid' : 'Physical Item'}
+                                                    </span>
+                                                    <Badge status={req.urgency} />
+                                                </div>
+                                                <span className="rounded-full border border-[#2563EB] bg-white px-2.5 py-1 text-xs font-black text-[#2563EB]">
+                                                    {isFinancial
+                                                        ? `₱${remainingAmt.toLocaleString(undefined, { minimumFractionDigits: 2 })} needed`
+                                                        : `${remainingQty} ${req.unit || 'unit(s)'} needed`}
                                                 </span>
                                             </div>
 
@@ -9425,7 +10015,17 @@ function DonorNeeds() {
                                                         {formatDate(req.created_at)}
                                                     </span>
                                                 </div>
-                                                {req.alternative_categories && (
+                                                {req.purpose_of_funds && (
+                                                    <p className="mt-1 text-xs font-bold text-[#22C55E] truncate">
+                                                        Purpose: {req.purpose_of_funds}
+                                                    </p>
+                                                )}
+                                                {req.preferred_assistance_date && (
+                                                    <p className="mt-0.5 text-[11px] font-bold text-[#2563EB]/80">
+                                                        📅 Needed by: {req.preferred_assistance_date}
+                                                    </p>
+                                                )}
+                                                {req.alternative_categories && !isFinancial && (
                                                     <p className="mt-0.5 text-xs font-bold text-[#2563EB] opacity-80 truncate">
                                                         Alt: {req.alternative_categories}
                                                     </p>
@@ -9445,7 +10045,9 @@ function DonorNeeds() {
                                                 <div className="flex items-center justify-between text-[11px] font-extrabold text-[#2563EB] mb-1">
                                                     <span>Fulfillment Progress</span>
                                                     <span>
-                                                        {matchedQty} / {neededQty} ({progressPercent}%)
+                                                        {isFinancial
+                                                            ? `₱${matchedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} / ₱${requestedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} (${progressPercent}%)`
+                                                            : `${matchedQty} / ${neededQty} ${req.unit || 'units'} (${progressPercent}%)`}
                                                     </span>
                                                 </div>
                                                 <div className="h-2 w-full overflow-hidden rounded-full border border-[#2563EB] bg-white">
@@ -9536,36 +10138,82 @@ function DonorNeeds() {
                         <div className="mt-4 space-y-4 text-xs font-bold">
                             <div className="flex items-center justify-between border-b border-[#2563EB]/30 pb-3">
                                 <div>
-                                    <span className="text-[#2563EB] opacity-70 block">Category</span>
+                                    <span className="text-[#2563EB] opacity-70 block">Assistance Category</span>
                                     <span className="text-base font-extrabold">{title(selectedDetailRequest.category)}</span>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-[#2563EB] opacity-70 block">Urgency</span>
+                                    <span className="text-[#2563EB] opacity-70 block">Priority Level</span>
                                     <Badge status={selectedDetailRequest.urgency} />
                                 </div>
                             </div>
 
+                            {/* Request Type and Numeric Overview */}
                             <div className="grid grid-cols-3 gap-2 rounded-xl border border-[#2563EB] bg-white p-3 text-center">
-                                <div>
-                                    <span className="text-[#2563EB] opacity-70 block text-[10px]">Total Needed</span>
-                                    <span className="text-sm font-extrabold">{selectedDetailRequest.quantity_needed}</span>
-                                </div>
-                                <div>
-                                    <span className="text-[#2563EB] opacity-70 block text-[10px]">Matched Units</span>
-                                    <span className="text-sm font-extrabold text-[#22C55E]">
-                                        {selectedDetailRequest.matched_quantity || 0}
-                                    </span>
-                                </div>
-                                <div>
-                                    <span className="text-[#2563EB] opacity-70 block text-[10px]">Remaining</span>
-                                    <span className="text-sm font-extrabold">
-                                        {Math.max(0, (selectedDetailRequest.quantity_needed || 0) - (selectedDetailRequest.matched_quantity || 0))}
-                                    </span>
-                                </div>
+                                {selectedDetailRequest.request_type === 'financial' ? (
+                                    <>
+                                        <div>
+                                            <span className="text-[#2563EB] opacity-70 block text-[10px]">Amount Requested</span>
+                                            <span className="text-sm font-extrabold text-[#2563EB]">
+                                                ₱{Number(selectedDetailRequest.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[#2563EB] opacity-70 block text-[10px]">Matched Aid</span>
+                                            <span className="text-sm font-extrabold text-[#22C55E]">
+                                                ₱{Number(selectedDetailRequest.matched_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[#2563EB] opacity-70 block text-[10px]">Remaining</span>
+                                            <span className="text-sm font-extrabold text-[#2563EB]">
+                                                ₱{Math.max(0, (Number(selectedDetailRequest.amount_requested) || 0) - (Number(selectedDetailRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <span className="text-[#2563EB] opacity-70 block text-[10px]">Quantity Needed</span>
+                                            <span className="text-sm font-extrabold text-[#2563EB]">
+                                                {selectedDetailRequest.quantity_needed} {selectedDetailRequest.unit || 'unit(s)'}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[#2563EB] opacity-70 block text-[10px]">Matched Units</span>
+                                            <span className="text-sm font-extrabold text-[#22C55E]">
+                                                {selectedDetailRequest.matched_quantity || 0}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[#2563EB] opacity-70 block text-[10px]">Remaining</span>
+                                            <span className="text-sm font-extrabold text-[#2563EB]">
+                                                {Math.max(0, (selectedDetailRequest.quantity_needed || 0) - (selectedDetailRequest.matched_quantity || 0))}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
+                            {selectedDetailRequest.purpose_of_funds && (
+                                <div>
+                                    <span className="text-[#2563EB] opacity-70 block mb-1">Purpose of Funds</span>
+                                    <p className="rounded-xl border border-[#2563EB] bg-white p-3 font-medium text-[#22C55E]">
+                                        {selectedDetailRequest.purpose_of_funds}
+                                    </p>
+                                </div>
+                            )}
+
+                            {selectedDetailRequest.preferred_assistance_date && (
+                                <div>
+                                    <span className="text-[#2563EB] opacity-70 block mb-1">Preferred Assistance Date</span>
+                                    <p className="font-extrabold text-[#2563EB]">
+                                        📅 {selectedDetailRequest.preferred_assistance_date}
+                                    </p>
+                                </div>
+                            )}
+
                             <div>
-                                <span className="text-[#2563EB] opacity-70 block mb-1">Full Justification / Needs Description</span>
+                                <span className="text-[#2563EB] opacity-70 block mb-1">Reason for Request / Justification</span>
                                 <p className="rounded-xl border border-[#2563EB] bg-white p-3 font-normal leading-relaxed whitespace-pre-wrap">
                                     {selectedDetailRequest.justification}
                                 </p>
@@ -9576,6 +10224,15 @@ function DonorNeeds() {
                                     <span className="text-[#2563EB] opacity-70 block mb-1">Acceptable Alternatives</span>
                                     <p className="font-normal text-[#2563EB]">
                                         {selectedDetailRequest.alternative_categories}
+                                    </p>
+                                </div>
+                            )}
+
+                            {selectedDetailRequest.additional_info && (
+                                <div>
+                                    <span className="text-[#2563EB] opacity-70 block mb-1">Additional Information / Bank Notes</span>
+                                    <p className="rounded-xl border border-[#2563EB] bg-white p-3 font-normal whitespace-pre-wrap">
+                                        {selectedDetailRequest.additional_info}
                                     </p>
                                 </div>
                             )}
@@ -9633,7 +10290,7 @@ function DonorNeeds() {
                                 </div>
                                 <h3 className="text-base font-extrabold text-[#2563EB]">Donation Submitted Successfully!</h3>
                                 <p className="mt-2 text-xs text-[#2563EB] max-w-xs mx-auto">
-                                    Your donation has been created and logged in the system. It will now be processed to match this campus need.
+                                    Your donation has been created and logged in the system. It will now be processed to fulfill this campus need.
                                 </p>
                                 <div className="mt-6 flex justify-center gap-3">
                                     <Button variant="primary" onClick={() => setDonatingRequest(null)}>
@@ -9646,77 +10303,131 @@ function DonorNeeds() {
                                 <div className="rounded-xl border border-[#2563EB] bg-white p-3 text-xs font-bold">
                                     <span className="text-[#2563EB] opacity-70 block">Target Request</span>
                                     <span>
-                                        {title(donatingRequest.category)} — {donatingRequest.quantity_needed - (donatingRequest.matched_quantity || 0)} unit(s) remaining needed
+                                        {title(donatingRequest.category)} — {donatingRequest.request_type === 'financial'
+                                            ? `₱${Math.max(0, (Number(donatingRequest.amount_requested) || 0) - (Number(donatingRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })} remaining needed`
+                                            : `${donatingRequest.quantity_needed - (donatingRequest.matched_quantity || 0)} ${donatingRequest.unit || 'unit(s)'} remaining needed`}
                                     </span>
                                 </div>
 
-                                {/* Item Name */}
-                                <div>
-                                    <label htmlFor="q_item_name" className="block text-xs font-bold text-[#2563EB]">
-                                        Donation Item Name <span className="text-[#22C55E]">*</span>
-                                    </label>
-                                    <input
-                                        id="q_item_name"
-                                        required
-                                        type="text"
-                                        className="field mt-1 text-xs"
-                                        value={donationForm.item_name}
-                                        onChange={(e) => setDonationForm({ ...donationForm, item_name: e.target.value })}
-                                    />
-                                </div>
+                                {donatingRequest.request_type === 'financial' ? (
+                                    <>
+                                        {/* Financial Donation Amount */}
+                                        <div>
+                                            <label htmlFor="q_amount" className="block text-xs font-bold text-[#2563EB]">
+                                                Donation Amount (₱ PHP) <span className="text-[#22C55E]">*</span>
+                                            </label>
+                                            <input
+                                                id="q_amount"
+                                                required
+                                                min={1}
+                                                step="0.01"
+                                                type="number"
+                                                className="field mt-1 text-xs font-black text-lg text-[#22C55E]"
+                                                value={donationForm.amount}
+                                                onChange={(e) => setDonationForm({ ...donationForm, amount: Math.max(1, parseFloat(e.target.value) || 0) })}
+                                            />
+                                        </div>
 
-                                {/* Quantity */}
-                                <div>
-                                    <label htmlFor="q_quantity" className="block text-xs font-bold text-[#2563EB]">
-                                        Donation Quantity <span className="text-[#22C55E]">*</span>
-                                    </label>
-                                    <input
-                                        id="q_quantity"
-                                        required
-                                        min={1}
-                                        type="number"
-                                        className="field mt-1 text-xs font-bold"
-                                        value={donationForm.quantity}
-                                        onChange={(e) => setDonationForm({ ...donationForm, quantity: Math.max(1, parseInt(e.target.value, 10) || 1) })}
-                                    />
-                                </div>
+                                        {/* Donation Note / Description */}
+                                        <div>
+                                            <label htmlFor="q_item_name" className="block text-xs font-bold text-[#2563EB]">
+                                                Donation Title / Reference
+                                            </label>
+                                            <input
+                                                id="q_item_name"
+                                                type="text"
+                                                className="field mt-1 text-xs"
+                                                value={donationForm.item_name}
+                                                onChange={(e) => setDonationForm({ ...donationForm, item_name: e.target.value })}
+                                            />
+                                        </div>
 
-                                {/* Condition */}
-                                <div>
-                                    <label htmlFor="q_condition" className="block text-xs font-bold text-[#2563EB]">
-                                        Item Condition
-                                    </label>
-                                    <select
-                                        id="q_condition"
-                                        className="field mt-1 text-xs"
-                                        value={donationForm.condition_type}
-                                        onChange={(e) => setDonationForm({ ...donationForm, condition_type: e.target.value })}
-                                    >
-                                        <option value="New / Sealed">New / Sealed</option>
-                                        <option value="Like New">Like New</option>
-                                        <option value="Gently Used">Gently Used</option>
-                                        <option value="Fair / Functional">Fair / Functional</option>
-                                    </select>
-                                </div>
+                                        {/* Transfer / Cashier Method Notes */}
+                                        <div>
+                                            <label htmlFor="q_cond_notes" className="block text-xs font-bold text-[#2563EB]">
+                                                Payment / Transfer Method & Notes
+                                            </label>
+                                            <textarea
+                                                id="q_cond_notes"
+                                                rows={2}
+                                                placeholder="e.g. Bank Transfer Ref #, GCash Ref #, or Campus Cashier deposit details"
+                                                className="field mt-1 text-xs"
+                                                value={donationForm.condition_notes}
+                                                onChange={(e) => setDonationForm({ ...donationForm, condition_notes: e.target.value })}
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Physical Item Name */}
+                                        <div>
+                                            <label htmlFor="q_item_name" className="block text-xs font-bold text-[#2563EB]">
+                                                Donation Item Name <span className="text-[#22C55E]">*</span>
+                                            </label>
+                                            <input
+                                                id="q_item_name"
+                                                required
+                                                type="text"
+                                                className="field mt-1 text-xs"
+                                                value={donationForm.item_name}
+                                                onChange={(e) => setDonationForm({ ...donationForm, item_name: e.target.value })}
+                                            />
+                                        </div>
 
-                                {/* Pickup Location */}
-                                <div>
-                                    <label htmlFor="q_pickup" className="block text-xs font-bold text-[#2563EB]">
-                                        Pickup Location
-                                    </label>
-                                    <input
-                                        id="q_pickup"
-                                        type="text"
-                                        className="field mt-1 text-xs"
-                                        value={donationForm.pickup_location}
-                                        onChange={(e) => setDonationForm({ ...donationForm, pickup_location: e.target.value })}
-                                    />
-                                </div>
+                                        {/* Quantity */}
+                                        <div>
+                                            <label htmlFor="q_quantity" className="block text-xs font-bold text-[#2563EB]">
+                                                Donation Quantity <span className="text-[#22C55E]">*</span>
+                                            </label>
+                                            <input
+                                                id="q_quantity"
+                                                required
+                                                min={1}
+                                                type="number"
+                                                className="field mt-1 text-xs font-bold"
+                                                value={donationForm.quantity}
+                                                onChange={(e) => setDonationForm({ ...donationForm, quantity: Math.max(1, parseInt(e.target.value, 10) || 1) })}
+                                            />
+                                        </div>
 
-                                {/* Photo Upload */}
+                                        {/* Condition */}
+                                        <div>
+                                            <label htmlFor="q_condition" className="block text-xs font-bold text-[#2563EB]">
+                                                Item Condition
+                                            </label>
+                                            <select
+                                                id="q_condition"
+                                                className="field mt-1 text-xs"
+                                                value={donationForm.condition_type}
+                                                onChange={(e) => setDonationForm({ ...donationForm, condition_type: e.target.value })}
+                                            >
+                                                <option value="New / Sealed">New / Sealed</option>
+                                                <option value="Like New">Like New</option>
+                                                <option value="Gently Used">Gently Used</option>
+                                                <option value="Fair / Functional">Fair / Functional</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Pickup Location */}
+                                        <div>
+                                            <label htmlFor="q_pickup" className="block text-xs font-bold text-[#2563EB]">
+                                                Pickup / Drop-off Location
+                                            </label>
+                                            <input
+                                                id="q_pickup"
+                                                type="text"
+                                                className="field mt-1 text-xs"
+                                                value={donationForm.pickup_location}
+                                                onChange={(e) => setDonationForm({ ...donationForm, pickup_location: e.target.value })}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Photo / Receipt Upload */}
                                 <div>
                                     <label className="block text-xs font-bold text-[#2563EB]">
-                                        Item Photo (Optional)
+                                        {donatingRequest.request_type === 'financial' ? 'Payment Receipt / Deposit Slip (Optional)' : 'Item Photo (Optional)'}
                                     </label>
                                     {!donationPhotoPreview ? (
                                         <div
@@ -9724,7 +10435,7 @@ function DonorNeeds() {
                                             onClick={() => donationFileInputRef.current?.click()}
                                         >
                                             <Icon name="upload" size={18} className="text-[#2563EB]" />
-                                            <span className="text-[11px] font-bold text-[#2563EB]">Click to upload photo (Max 4MB)</span>
+                                            <span className="text-[11px] font-bold text-[#2563EB]">Click to upload photo or receipt (Max 4MB)</span>
                                             <input
                                                 ref={donationFileInputRef}
                                                 type="file"
@@ -14897,7 +15608,7 @@ function NotificationsPage(){
     );
 }
 
-export default function App(){
+export default function App() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (

@@ -1,3 +1,68 @@
 <?php
-namespace App\Models; use Illuminate\Database\Eloquent\Model;
-class DonationMatch extends Model { protected $table='matches'; protected $fillable=['donation_id','request_id','matched_quantity','status','handoff_scheduled_at','handoff_notes','donor_completed_at','beneficiary_completed_at','pickup_hub','verification_pin','pin_attempt_count','pin_locked_at','pin_verified_at','pin_expires_at','handed_off_by_user_id','handed_off_at']; protected $casts=['handoff_scheduled_at'=>'datetime','donor_completed_at'=>'datetime','beneficiary_completed_at'=>'datetime','handed_off_at'=>'datetime','pin_locked_at'=>'datetime','pin_verified_at'=>'datetime','pin_expires_at'=>'datetime']; protected static function boot(){parent::boot();static::creating(function($m){if(!$m->verification_pin){$m->verification_pin=str_pad((string)random_int(100000,999999),6,'0',STR_PAD_LEFT);$m->pin_expires_at=now()->addDays(7);}});} public function donation(){return $this->belongsTo(Donation::class);} public function request(){return $this->belongsTo(AidRequest::class,'request_id');} public function handedOffBy(){return $this->belongsTo(User::class,'handed_off_by_user_id');} }
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class DonationMatch extends Model
+{
+    protected $table = 'matches';
+
+    protected $fillable = [
+        'donation_id',
+        'request_id',
+        'matched_quantity',
+        'matched_amount',
+        'status',
+        'handoff_scheduled_at',
+        'handoff_notes',
+        'donor_completed_at',
+        'beneficiary_completed_at',
+        'pickup_hub',
+        'verification_pin',
+        'pin_attempt_count',
+        'pin_locked_at',
+        'pin_verified_at',
+        'pin_expires_at',
+        'handed_off_by_user_id',
+        'handed_off_at',
+    ];
+
+    protected $casts = [
+        'matched_quantity' => 'integer',
+        'matched_amount' => 'decimal:2',
+        'handoff_scheduled_at' => 'datetime',
+        'donor_completed_at' => 'datetime',
+        'beneficiary_completed_at' => 'datetime',
+        'handed_off_at' => 'datetime',
+        'pin_locked_at' => 'datetime',
+        'pin_verified_at' => 'datetime',
+        'pin_expires_at' => 'datetime',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($m) {
+            if (!$m->verification_pin) {
+                $m->verification_pin = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+                $m->pin_expires_at = now()->addDays(7);
+            }
+        });
+    }
+
+    public function donation()
+    {
+        return $this->belongsTo(Donation::class);
+    }
+
+    public function request()
+    {
+        return $this->belongsTo(AidRequest::class, 'request_id');
+    }
+
+    public function handedOffBy()
+    {
+        return $this->belongsTo(User::class, 'handed_off_by_user_id');
+    }
+}
