@@ -524,7 +524,7 @@ function Home() {
                         ['Smarter matching', 'Availability windows, pickup locations, and urgency levels guide intelligent resource matching.', 'heart'],
                         ['Visible outcomes', 'Follow every resource donation through scheduling, two-party confirmation, and fulfillment.', 'fulfillment'],
                     ].map(([heading, copy, iconName]) => (
-                        <article className="panel p-7 transition hover:border-[#22C55E] flex flex-col justify-between" key={heading}>
+                        <article className="panel no-hover p-7 transition hover:border-[#22C55E] flex flex-col justify-between" key={heading}>
                             <div>
                                 <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#22C55E] bg-[#22C55E] text-white">
                                     <Icon name={iconName} size={24} />
@@ -548,7 +548,7 @@ function Home() {
 
             <section className="shell py-14">
                 <div className="text-center"><p className="eyebrow">THE RELIEFLINK FLOW</p><h2 className="mt-2 text-3xl font-extrabold text-[#2563EB]">From generous offer to real support</h2></div>
-                <div className="mt-8 grid gap-3 sm:grid-cols-5">{[['Donate', 'donation'], ['Verify', 'approvals'], ['Match', 'match'], ['Handoff', 'fulfillment'], ['Impact', 'check']].map(([label, icon], index) => <div key={label} className="relative text-center"><div className="panel grid min-h-32 place-items-center p-4 transition hover:-translate-y-1 hover:border-[#22C55E]"><div><span className={`mx-auto grid h-10 w-10 place-items-center rounded-full ${index === 4 ? 'bg-[#22C55E] text-white' : 'bg-[#2563EB] text-white'}`}><Icon name={icon}/></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">{['Share a resource', 'Confirm eligibility', 'Connect the right need', 'Coordinate safely', 'See the outcome'][index]}</p></div></div>{index < 4 && <span className="hidden sm:block absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-xl font-extrabold text-[#22C55E]">→</span>}</div>)}</div>
+                <div className="mt-8 grid gap-3 sm:grid-cols-5">{[['Donate', 'donation'], ['Verify', 'approvals'], ['Match', 'match'], ['Handoff', 'fulfillment'], ['Impact', 'check']].map(([label, icon], index) => <div key={label} className="relative text-center"><div className="panel no-hover min-h-32 place-items-center p-4 transition hover:-translate-y-1 hover:border-[#22C55E]"><div><span className={`mx-auto grid h-10 w-10 place-items-center rounded-full ${index === 4 ? 'bg-[#22C55E] text-white' : 'bg-[#2563EB] text-white'}`}><Icon name={icon}/></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">{['Share a resource', 'Confirm eligibility', 'Connect the right need', 'Coordinate safely', 'See the outcome'][index]}</p></div></div>{index < 4 && <span className="hidden sm:block absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-xl font-extrabold text-[#22C55E]">→</span>}</div>)}</div>
             </section>
 
             {/* RESOURCE CATEGORIES SHOWCASE */}
@@ -568,7 +568,7 @@ function Home() {
                         {categories.map((cat) => (
                             <div
                                 key={cat.name}
-                                className="panel p-4 flex items-center gap-3 text-xs font-extrabold text-[#2563EB] hover:border-[#22C55E] transition cursor-pointer"
+                                className="panel no-hover p-4 flex items-center gap-3 text-xs font-extrabold text-[#2563EB] hover:border-[#22C55E] transition cursor-pointer"
                             >
                                 <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#2563EB] bg-white text-[#2563EB]">
                                     <Icon name={cat.icon} size={16} />
@@ -1373,7 +1373,7 @@ function Auth({ register = false }) {
 
                     {/* Mode 1: LOGIN */}
                     {mode === 'login' && (
-                        <form className="panel space-y-5 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleAuthSubmit} autoComplete="off">
+                        <form className="panel no-hover space-y-5 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleAuthSubmit} autoComplete="off">
                             <div className="text-center">
                                 <p className="eyebrow">WELCOME BACK</p>
                                 <h1 className="page-title text-2xl font-extrabold text-[#2563EB]">
@@ -1484,7 +1484,7 @@ function Auth({ register = false }) {
 
                     {/* Mode 2: REGISTER */}
                     {mode === 'register' && (
-                        <form className="panel space-y-4 bg-white p-6 shadow-lg sm:p-8" noValidate onSubmit={handleAuthSubmit}>
+                        <form className="panel no-hover space-y-4 bg-white p-6 shadow-lg sm:p-8" noValidate onSubmit={handleAuthSubmit}>
                             <div className="text-center">
                                 <p className="eyebrow">JOIN RELIEFLINK</p>
                                 <h1 className="page-title text-2xl font-extrabold text-[#2563EB]">
@@ -1797,7 +1797,7 @@ function Auth({ register = false }) {
 
                     {/* Mode 3: FORGOT PASSWORD STEP 1 - Enter Email */}
                     {mode === 'forgot-email' && (
-                        <form className="panel space-y-5 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleSendOtp}>
+                        <form className="panel no-hover space-y-5 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleSendOtp}>
                             <div>
                                 <p className="eyebrow">PASSWORD RESET STEP 1 OF 3</p>
                                 <h1 className="page-title text-2xl font-extrabold text-[#2563EB]">
@@ -1843,7 +1843,7 @@ function Auth({ register = false }) {
 
                     {/* Mode 4: FORGOT PASSWORD STEP 2 - Enter OTP */}
                     {mode === 'forgot-otp' && (
-                        <form className="panel space-y-5 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleVerifyOtp}>
+                        <form className="panel no-hover space-y-5 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleVerifyOtp}>
                             <div>
                                 <p className="eyebrow">PASSWORD RESET STEP 2 OF 3</p>
                                 <h1 className="page-title text-2xl font-extrabold text-[#2563EB]">
@@ -1914,7 +1914,7 @@ function Auth({ register = false }) {
 
                     {/* Mode 5: FORGOT PASSWORD STEP 3 - Reset Password */}
                     {mode === 'forgot-reset' && (
-                        <form className="panel space-y-4 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleResetPassword}>
+                        <form className="panel no-hover space-y-4 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleResetPassword}>
                             <div>
                                 <p className="eyebrow">PASSWORD RESET STEP 3 OF 3</p>
                                 <h1 className="page-title text-2xl font-extrabold text-[#2563EB]">
@@ -2032,7 +2032,7 @@ function Auth({ register = false }) {
 
                     {/* Mode 6: FORGOT PASSWORD SUCCESS */}
                     {mode === 'forgot-success' && (
-                        <div className="panel space-y-6 bg-white p-6 text-center shadow-lg sm:p-8">
+                        <div className="panel no-hover space-y-6 bg-white p-6 text-center shadow-lg sm:p-8">
                             <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border-2 border-[#22C55E] bg-[#22C55E] text-white">
                                 <Icon name="check" size={32} />
                             </div>
@@ -2281,7 +2281,7 @@ function DonorDonationForm() {
     if (submitSuccess) {
         return (
             <main className="page max-w-4xl">
-                <div className="panel p-6 sm:p-10 text-center">
+                <div className="panel no-hover p-6 sm:p-10 text-center">
                     <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-[#22C55E] text-white shadow-md">
                         <Icon name="check" size={32} />
                     </div>
@@ -2327,7 +2327,7 @@ function DonorDonationForm() {
 
             <form className="mt-8 grid gap-6" onSubmit={handleReviewClick} noValidate>
                 {/* Section 1: Item Details */}
-                <div className="panel p-5 sm:p-7">
+                <div className="panel no-hover p-5 sm:p-7">
                     <div className="mb-5 flex items-center gap-2 border-b border-[#2563EB] pb-3">
                         <Icon name="donation" size={20} className="text-[#2563EB]" />
                         <h2 className="text-base font-extrabold text-[#2563EB]">1. Item Basic Information</h2>
@@ -2439,7 +2439,7 @@ function DonorDonationForm() {
                 </div>
 
                 {/* Section 2: Condition & Notes */}
-                <div className="panel p-5 sm:p-7">
+                <div className="panel no-hover p-5 sm:p-7">
                     <div className="mb-5 flex items-center gap-2 border-b border-[#2563EB] pb-3">
                         <Icon name="info" size={20} className="text-[#2563EB]" />
                         <h2 className="text-base font-extrabold text-[#2563EB]">2. Item Condition & Details</h2>
@@ -2497,7 +2497,7 @@ function DonorDonationForm() {
                 </div>
 
                 {/* Section 3: Logistics & Availability */}
-                <div className="panel p-5 sm:p-7">
+                <div className="panel no-hover p-5 sm:p-7">
                     <div className="mb-5 flex items-center gap-2 border-b border-[#2563EB] pb-3">
                         <Icon name="location" size={20} className="text-[#2563EB]" />
                         <h2 className="text-base font-extrabold text-[#2563EB]">3. Logistics & Preferred Schedule</h2>
@@ -2646,7 +2646,7 @@ function DonorDonationForm() {
                 </div>
 
                 {/* Section 4: Photo Upload with Preview */}
-                <div className="panel p-5 sm:p-7">
+                <div className="panel no-hover p-5 sm:p-7">
                     <div className="mb-5 flex items-center gap-2 border-b border-[#2563EB] pb-3">
                         <Icon name="image" size={20} className="text-[#2563EB]" />
                         <h2 className="text-base font-extrabold text-[#2563EB]">4. Donation Photo (Optional)</h2>
@@ -2756,7 +2756,7 @@ function DonorDonationForm() {
             {/* Confirmation & Review Modal */}
             {showReviewModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
-                    <div className="panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
+                    <div className="panel no-hover max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
                                 <Icon name="donation" size={20} className="text-[#2563EB]" />
@@ -3112,7 +3112,7 @@ function BeneficiaryRequestForm() {
             {error && <Error>{error}</Error>}
 
             {/* Beneficiary Profile Reference Card (Auto-linked) */}
-            <div className="panel p-5 bg-[#2563EB]/5 border border-[#2563EB]/30">
+            <div className="panel no-hover p-5 bg-[#2563EB]/5 border border-[#2563EB]/30">
                 <div className="flex items-center gap-2 text-xs font-extrabold text-[#2563EB] uppercase tracking-wider mb-2">
                     <Icon name="users" size={16} />
                     <span>Beneficiary Student Profile Details (Automatic from Account)</span>
@@ -3171,7 +3171,7 @@ function BeneficiaryRequestForm() {
 
             {/* Interactive Post-Submission Success View */}
             {submittedRequestData ? (
-                <div className="panel p-8 text-center text-[#2563EB] space-y-6">
+                <div className="panel no-hover p-8 text-center text-[#2563EB] space-y-6">
                     <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border-2 border-[#22C55E] bg-[#22C55E] text-white">
                         <Icon name="check" size={32} />
                     </div>
@@ -3242,7 +3242,7 @@ function BeneficiaryRequestForm() {
             ) : (
                 /* Request Form */
                 <form
-                    className="panel p-6 sm:p-8 space-y-8"
+                    className="panel no-hover p-6 sm:p-8 space-y-8"
                     onSubmit={(e) => {
                         e.preventDefault();
                         if (!isFormComplete) {
@@ -3662,7 +3662,7 @@ function BeneficiaryRequestForm() {
             {/* Clear Form Confirmation Modal */}
             {showClearModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
-                    <div className="panel max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
+                    <div className="panel no-hover max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <h3 className="text-lg font-extrabold text-[#2563EB]">Clear Request Form?</h3>
                         <p className="mt-2 text-xs font-bold text-[#2563EB]">
                             Are you sure you want to clear all entered details and saved draft? This action cannot be undone.
@@ -3682,7 +3682,7 @@ function BeneficiaryRequestForm() {
             {/* Review Summary Modal */}
             {showConfirmModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
-                    <div className="panel max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
+                    <div className="panel no-hover max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Confirm Request Details</h3>
                             <button
@@ -3890,7 +3890,7 @@ function EditModal({item, kind, admin, close, done}){
 
     return (
         <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-            <form className="panel w-full max-w-lg p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4" onSubmit={save}>
+            <form className="panel no-hover w-full max-w-lg p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4" onSubmit={save}>
                 <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                     <h2 className="text-lg font-extrabold text-[#2563EB]">{item.id ? (isUserKind ? 'Edit Member Account' : 'Edit entry') : (isUserKind ? 'Add New Member' : 'Add entry')}</h2>
                     <button type="button" title="Close" className="nav-link p-1" onClick={close}><Icon name="close"/></button>
@@ -4276,7 +4276,7 @@ function PeopleManager(){
             )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Members</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{totalMembers}</strong>
@@ -4286,7 +4286,7 @@ function PeopleManager(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Donors</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{totalDonors}</strong>
@@ -4296,7 +4296,7 @@ function PeopleManager(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Beneficiaries</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{totalBeneficiaries}</strong>
@@ -4306,7 +4306,7 @@ function PeopleManager(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Administrators</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{totalAdmins}</strong>
@@ -4317,7 +4317,7 @@ function PeopleManager(){
                 </article>
             </div>
 
-            <div className="panel p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="panel no-hover p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex-1 min-w-[240px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Members</label>
                     <input
@@ -4361,17 +4361,17 @@ function PeopleManager(){
             </div>
 
             {state.loading ? (
-                <div className="panel p-8 text-center font-bold text-[#2563EB]">
+                <div className="panel no-hover p-8 text-center font-bold text-[#2563EB]">
                     Loading member accounts...
                 </div>
             ) : !filtered.length ? (
-                <div className="panel p-8 text-center">
+                <div className="panel no-hover p-8 text-center">
                     <p className="font-bold text-[#2563EB] text-lg">No member accounts found.</p>
                     <p className="text-xs text-[#2563EB]/80 font-semibold mt-1">Try adjusting your search query or role filter.</p>
                 </div>
             ) : (
                 <div className="space-y-4">
-                    <div className="hidden sm:block table-wrap">
+                    <div className="hidden sm:block table-wrap no-hover">
                         <table className="data-table">
                             <thead>
                                 <tr>
@@ -4477,7 +4477,7 @@ function PeopleManager(){
                         {paginated.map(userItem => {
                             const initial = userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U';
                             return (
-                                <article key={userItem.id} className="panel p-4 space-y-3 bg-white">
+                                <article key={userItem.id} className="panel no-hover p-4 space-y-3 bg-white">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex items-center gap-3">
                                             {userItem.profile_photo_url ? (
@@ -4538,7 +4538,7 @@ function PeopleManager(){
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
+                        <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} members
                             </p>
@@ -4568,7 +4568,7 @@ function PeopleManager(){
 
             {viewingUser && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
+                    <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Member Account Details</h2>
                             <button className="nav-link p-1" onClick={() => setViewingUser(null)} title="Close">
@@ -4677,7 +4677,7 @@ function PeopleManager(){
 
             {deletingUser && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-md p-6 bg-white space-y-4">
+                    <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Member</h2>
                             <button className="nav-link p-1" onClick={() => setDeletingUser(null)} title="Close">
@@ -4812,7 +4812,7 @@ function DonationManager(){
             )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Donations</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{totalCount}</strong>
@@ -4822,7 +4822,7 @@ function DonationManager(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Pending / Proposed</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{pendingCount}</strong>
@@ -4832,7 +4832,7 @@ function DonationManager(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Matched Items</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{matchedCount}</strong>
@@ -4840,9 +4840,9 @@ function DonationManager(){
                     <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
                         <Icon name="match"/>
                     </span>
-                </article>
+</article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Fulfilled</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{fulfilledCount}</strong>
@@ -4853,7 +4853,7 @@ function DonationManager(){
                 </article>
             </div>
 
-            <div className="panel p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="panel no-hover p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex-1 min-w-[220px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Donations</label>
                     <input
@@ -4915,17 +4915,17 @@ function DonationManager(){
             </div>
 
             {state.loading ? (
-                <div className="panel p-8 text-center font-bold text-[#2563EB]">
+                <div className="panel no-hover p-8 text-center font-bold text-[#2563EB]">
                     Loading donation records...
                 </div>
             ) : !filtered.length ? (
-                <div className="panel p-8 text-center">
+                <div className="panel no-hover p-8 text-center">
                     <p className="font-bold text-[#2563EB] text-lg">No donation records found.</p>
                     <p className="text-xs text-[#2563EB]/80 font-semibold mt-1">Try adjusting your search terms or filters.</p>
                 </div>
             ) : (
                 <div className="space-y-4">
-                    <div className="hidden sm:block table-wrap">
+                    <div className="hidden sm:block table-wrap no-hover">
                         <table className="data-table">
                             <thead>
                                 <tr>
@@ -4977,7 +4977,7 @@ function DonationManager(){
 
                     <div className="grid gap-3 sm:hidden">
                         {paginated.map(item => (
-                            <article key={item.id} className="panel p-4 space-y-3 bg-white">
+                            <article key={item.id} className="panel no-hover p-4 space-y-3 bg-white">
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
                                         <strong className="text-base text-[#2563EB] block">{item.item_name || title(item.category)}</strong>
@@ -5012,7 +5012,7 @@ function DonationManager(){
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
+                        <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} donations
                             </p>
@@ -5042,7 +5042,7 @@ function DonationManager(){
 
             {viewingDonation && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
+                    <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Donation Details Inspection</h2>
                             <button className="nav-link p-1" onClick={() => setViewingDonation(null)} title="Close">
@@ -5111,7 +5111,7 @@ function DonationManager(){
 
             {deletingDonation && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-md p-6 bg-white space-y-4">
+                    <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Donation</h2>
                             <button className="nav-link p-1" onClick={() => setDeletingDonation(null)} title="Close">
@@ -5300,7 +5300,7 @@ function RequestManager(){
 
             {/* KPI Metric Cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Requests</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{totalCount}</strong>
@@ -5320,7 +5320,7 @@ function RequestManager(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Approved / Active</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{approvedCount}</strong>
@@ -5342,7 +5342,7 @@ function RequestManager(){
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="panel p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="panel no-hover p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex-1 min-w-[200px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Requests</label>
                     <input
@@ -5422,17 +5422,17 @@ function RequestManager(){
             </div>
 
             {state.loading ? (
-                <div className="panel p-8 text-center font-bold text-[#2563EB]">
+                <div className="panel no-hover p-8 text-center font-bold text-[#2563EB]">
                     Loading support requests from database...
                 </div>
             ) : !filtered.length ? (
-                <div className="panel p-8 text-center">
+                <div className="panel no-hover p-8 text-center">
                     <p className="font-bold text-[#2563EB] text-lg">No support requests found.</p>
                     <p className="text-xs text-[#2563EB]/80 font-semibold mt-1">Try adjusting your search query or status filter.</p>
                 </div>
             ) : (
                 <div className="space-y-4">
-                    <div className="hidden sm:block table-wrap">
+                    <div className="hidden sm:block table-wrap no-hover">
                         <table className="data-table">
                             <thead>
                                 <tr>
@@ -5550,7 +5550,7 @@ function RequestManager(){
                         {paginated.map(item => {
                             const isFin = item.request_type === 'financial';
                             return (
-                                <article key={item.id} className="panel p-4 space-y-3 bg-white">
+                                <article key={item.id} className="panel no-hover p-4 space-y-3 bg-white">
                                     <div className="flex items-start justify-between gap-2">
                                         <div>
                                             <span className="text-xs font-black text-[#2563EB]">#REQ-{String(item.id).padStart(3, '0')}</span>
@@ -5587,7 +5587,7 @@ function RequestManager(){
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
+                        <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} requests
                             </p>
@@ -5618,7 +5618,7 @@ function RequestManager(){
             {/* Request Details Inspection Modal */}
             {viewingRequest && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+                    <div className="panel no-hover w-full max-w-xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <div>
                                 <span className="text-xs font-black text-[#2563EB]">
@@ -5757,7 +5757,7 @@ function RequestManager(){
             {/* Cancel Request Modal (Beneficiary) */}
             {cancellingRequest && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
-                    <div className="panel max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl space-y-4">
+                    <div className="panel no-hover max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Cancel Support Request?</h3>
                             <button className="nav-link p-1" onClick={() => setCancellingRequest(null)} title="Close">
@@ -5795,7 +5795,7 @@ function RequestManager(){
             {/* Delete Request Modal (Admin) */}
             {deletingRequest && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-md p-6 bg-white space-y-4">
+                    <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Request</h2>
                             <button className="nav-link p-1" onClick={() => setDeletingRequest(null)} title="Close">
@@ -6989,7 +6989,7 @@ function StaffDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div
                     onClick={() => navigate('/staff/verifications')}
-                    className="panel p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
+                    className="panel no-hover p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
                 >
                     <div className="flex justify-between items-center text-xs font-bold text-[#2563EB]/70">
                         <span>Pending Verifications</span>
@@ -7001,7 +7001,7 @@ function StaffDashboard() {
 
                 <div
                     onClick={() => navigate('/staff/inventory')}
-                    className="panel p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
+                    className="panel no-hover p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
                 >
                     <div className="flex justify-between items-center text-xs font-bold text-[#2563EB]/70">
                         <span>Warehouse Items</span>
@@ -7013,7 +7013,7 @@ function StaffDashboard() {
 
                 <div
                     onClick={() => navigate('/staff/handoffs')}
-                    className="panel p-5 bg-white space-y-2 border-l-4 border-l-[#22C55E] cursor-pointer hover:shadow-lg transition"
+                    className="panel no-hover p-5 bg-white space-y-2 border-l-4 border-l-[#22C55E] cursor-pointer hover:shadow-lg transition"
                 >
                     <div className="flex justify-between items-center text-xs font-bold text-[#2563EB]/70">
                         <span>Active Handoffs</span>
@@ -7025,7 +7025,7 @@ function StaffDashboard() {
 
                 <div
                     onClick={() => navigate('/staff/desk')}
-                    className="panel p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
+                    className="panel no-hover p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
                 >
                     <div className="flex justify-between items-center text-xs font-bold text-[#2563EB]/70">
                         <span>Walk-In Relief Desk</span>
@@ -7111,8 +7111,8 @@ function StaffDashboard() {
             </section>
 
             <section className="grid gap-4 lg:grid-cols-3" aria-label="Operational status">
-                <div className="panel p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Manage inventory →</button></div>
-                <div className="panel p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Open dispatch hub →</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Manage inventory →</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Open dispatch hub →</button></div>
                 <div className="rounded-2xl bg-[#2563EB] p-5 text-white"><div className="flex items-start justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-white/70">Walk-in relief desk</p><h2 className="mt-1 font-extrabold">Ready to serve</h2></div><span className="grid h-9 w-9 place-items-center rounded-lg bg-white text-[#22C55E]"><Icon name="check"/></span></div><p className="mt-4 text-sm font-semibold leading-relaxed text-white/85">Log verified in-person needs and make an immediate allocation when stock is available.</p><button onClick={() => navigate('/staff/desk')} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-extrabold text-[#2563EB]">Launch desk <Icon name="arrow" size={15}/></button></div>
             </section>
 
@@ -7120,7 +7120,7 @@ function StaffDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div
                     onClick={() => navigate('/staff/verifications')}
-                    className="panel p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
+                    className="panel no-hover p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
                 >
                     <div className="space-y-2">
                         <span className="p-2.5 rounded-lg bg-[#2563EB]/10 text-[#2563EB] inline-block font-bold text-xs">
@@ -7136,7 +7136,7 @@ function StaffDashboard() {
 
                 <div
                     onClick={() => navigate('/staff/inventory')}
-                    className="panel p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
+                    className="panel no-hover p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
                 >
                     <div className="space-y-2">
                         <span className="p-2.5 rounded-lg bg-[#2563EB]/10 text-[#2563EB] inline-block font-bold text-xs">
@@ -7152,7 +7152,7 @@ function StaffDashboard() {
 
                 <div
                     onClick={() => navigate('/staff/desk')}
-                    className="panel p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
+                    className="panel no-hover p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
                 >
                     <div className="space-y-2">
                         <span className="p-2.5 rounded-lg bg-[#2563EB]/10 text-[#2563EB] inline-block font-bold text-xs">
@@ -7168,7 +7168,7 @@ function StaffDashboard() {
 
                 <div
                     onClick={() => navigate('/staff/handoffs')}
-                    className="panel p-6 bg-white space-y-3 hover:border-[#22C55E] transition cursor-pointer flex flex-col justify-between"
+                    className="panel no-hover p-6 bg-white space-y-3 hover:border-[#22C55E] transition cursor-pointer flex flex-col justify-between"
                 >
                     <div className="space-y-2">
                         <span className="p-2.5 rounded-lg bg-[#22C55E]/10 text-[#22C55E] inline-block font-bold text-xs">
@@ -7322,7 +7322,7 @@ function StaffVerificationDesk() {
 
     return (
         <main className="shell staff-workspace py-8 space-y-6 text-[#2563EB]">
-            <div className="panel p-6 bg-white space-y-4">
+            <div className="panel no-hover p-6 bg-white space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                     <div>
                         <span className="eyebrow">MODULE 1: ELIGIBILITY & PROOF</span>
@@ -7478,7 +7478,7 @@ function StaffVerificationDesk() {
             {/* Inspection & Verification Modal */}
             {inspecting && (
                 <div className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-xl p-6 bg-white space-y-4">
+                    <div className="panel no-hover w-full max-w-xl p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Verification Desk Inspection</h3>
                             <button className="nav-link p-1" onClick={() => setInspecting(null)}>
@@ -7713,7 +7713,7 @@ function StaffWarehouseInventory() {
 
     return (
         <main className="shell staff-workspace py-8 space-y-6 text-[#2563EB]">
-            <div className="panel p-6 bg-white space-y-4">
+            <div className="panel no-hover p-6 bg-white space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                     <div>
                         <span className="eyebrow">MODULE 2: PHYSICAL STORAGE</span>
@@ -7853,7 +7853,7 @@ function StaffWarehouseInventory() {
             {/* Modal: Physical Intake */}
             {showIntakeModal && (
                 <div className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <form onSubmit={handleCreateIntake} className="panel w-full max-w-lg p-6 bg-white space-y-4">
+                    <form onSubmit={handleCreateIntake} className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Physical Inventory Item Intake</h3>
                             <button type="button" className="nav-link p-1" onClick={() => setShowIntakeModal(false)}>
@@ -8120,7 +8120,7 @@ function StaffWalkInDesk() {
 
     return (
         <main className="shell staff-workspace py-8 space-y-6 text-[#2563EB]">
-            <div className="panel w-full max-w-6xl mx-auto p-6 sm:p-8 bg-white space-y-6">
+            <div className="panel no-hover w-full max-w-6xl mx-auto p-6 sm:p-8 bg-white space-y-6">
                 <div className="border-b border-[#2563EB]/20 pb-4 space-y-1">
                     <span className="eyebrow">MODULE 3: ON-SITE ASSISTANCE</span>
                     <h1 className="text-2xl font-extrabold text-[#2563EB]">Walk-In Student Relief Desk</h1>
@@ -8361,7 +8361,7 @@ function StaffHandoffDispatch() {
 
     return (
         <main className="shell staff-workspace py-8 space-y-6 text-[#2563EB]">
-            <div className="panel p-6 bg-white space-y-4">
+            <div className="panel no-hover p-6 bg-white space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                     <div>
                         <span className="eyebrow">MODULE 4: DISPATCH & 2FA CLEARANCE</span>
@@ -8450,7 +8450,7 @@ function StaffHandoffDispatch() {
             {/* PIN Verification Modal */}
             {verifyingMatch && (
                 <div className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <form onSubmit={handleVerifyPin} className="panel w-full max-w-md p-6 bg-white space-y-4">
+                    <form onSubmit={handleVerifyPin} className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">PIN Handoff Clearance</h3>
                             <button type="button" className="nav-link p-1" onClick={() => setVerifyingMatch(null)}>
@@ -14977,7 +14977,7 @@ function Activities(){
             <Error>{error}</Error>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Audit Logs</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{data.length}</strong>
@@ -14987,7 +14987,7 @@ function Activities(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">User Account Events</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{userCount}</strong>
@@ -14997,7 +14997,7 @@ function Activities(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Support Request Events</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{requestCount}</strong>
@@ -15007,7 +15007,7 @@ function Activities(){
                     </span>
                 </article>
 
-                <article className="panel p-5 flex items-center justify-between">
+                <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Match Operations</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{matchCount}</strong>
@@ -15018,7 +15018,7 @@ function Activities(){
                 </article>
             </div>
 
-            <div className="panel p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="panel no-hover p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex-1 min-w-[220px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Audit Trail</label>
                     <input
@@ -15132,7 +15132,7 @@ function Activities(){
 
             {viewingLog && (
                 <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
-                    <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
+                    <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Activity Audit Log Inspection</h2>
                             <button className="nav-link p-1" onClick={() => setViewingLog(null)} title="Close">
