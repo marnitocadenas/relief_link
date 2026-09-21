@@ -1,6 +1,7 @@
 import { Transition } from '@headlessui/react';
 import { Link } from '@inertiajs/react';
 import { createContext, useContext, useState } from 'react';
+import { Icon } from './UI';
 
 const DropDownContext = createContext();
 
@@ -18,12 +19,21 @@ const Dropdown = ({ children }) => {
     );
 };
 
-const Trigger = ({ children }) => {
+const Trigger = ({ children, className = '', 'aria-label': ariaLabel }) => {
     const { open, setOpen, toggleOpen } = useContext(DropDownContext);
 
     return (
         <>
-            <div onClick={toggleOpen}>{children}</div>
+            <button
+                type="button"
+                onClick={toggleOpen}
+                className={`btn btn-ghost btn-icon ${className}`}
+                aria-label={ariaLabel}
+                aria-expanded={open}
+                aria-haspopup="true"
+            >
+                {children}
+            </button>
 
             {open && (
                 <div

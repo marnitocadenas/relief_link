@@ -205,7 +205,7 @@ function UserDropdown() {
         <div className="relative">
             <button
                 onClick={() => setOpen(v => !v)}
-                className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-white px-3 py-1.5 font-semibold text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition group"
+                className="btn btn-ghost flex items-center gap-2.5"
                 aria-label="User menu"
                 aria-expanded={open}
             >
@@ -216,23 +216,12 @@ function UserDropdown() {
                         className="h-7 w-7 rounded-full object-cover border border-current"
                     />
                 ) : (
-                    <span className="grid h-7 w-7 place-items-center rounded-full bg-blue-100 text-sm font-bold text-blue-600 group-hover:bg-blue-200 transition">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-blue-100 text-sm font-bold text-blue-600">
                         {initial}
                     </span>
                 )}
                 <span className="text-sm font-semibold hidden sm:block">{user.name}</span>
-                <svg
-                    className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                >
-                    <path
-                        fillRule="evenodd"
-                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                    />
-                </svg>
+                <Icon name="arrow" size={16} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {open && (
@@ -297,7 +286,7 @@ function Header({ setMobileOpen }) {
                 {user && (
                     <button
                         type="button"
-                        className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden transition"
+                        className="btn btn-ghost btn-icon lg:hidden"
                         onClick={() => setMobileOpen(true)}
                         aria-label="Open navigation menu"
                     >
@@ -347,7 +336,7 @@ function Header({ setMobileOpen }) {
                         </div>
                         <button
                             type="button"
-                            className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden transition"
+                            className="btn btn-ghost btn-icon lg:hidden"
                             onClick={() => setPublicMenuOpen((open) => !open)}
                             aria-label="Toggle navigation menu"
                             aria-expanded={publicMenuOpen}
