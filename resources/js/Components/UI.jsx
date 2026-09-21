@@ -79,6 +79,7 @@ const Icon = ({ name, size = 18, className = '' }) => {
     close: <path d="m6 6 12 12M18 6 6 18" />,
     check: <path d="m5 12 4 4L19 6" />,
     arrow: <path d="M5 12h14m-6-6 6 6-6 6" />,
+    chevronDown: <path d="M6 9l6 6 6-6" />,
     edit: (
       <>
         <path d="M12 20h9" />

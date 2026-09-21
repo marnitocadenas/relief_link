@@ -53,6 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('requests', [AdminController::class, 'requests']);
         Route::post('requests/walk-in', [AdminController::class, 'storeWalkInRequest']);
         Route::patch('requests/{aidRequest}', [AdminController::class, 'updateRequest']);
+        Route::put('requests/{aidRequest}/content', [AdminController::class, 'editRequestContent']);
+
         Route::get('matches', [AdminController::class, 'matches']);
         Route::post('matches/run', [AdminController::class, 'run']);
         Route::patch('matches/{match}', [AdminController::class, 'updateMatch']);

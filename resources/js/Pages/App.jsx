@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Routes, Route, Navigate, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -6,6 +7,19 @@ import api from '../api/axios';
 import { Icon, Button, Badge, Error, Empty } from '../Components/UI';
 import InternationalPhoneInput, { COUNTRY_LIST } from '../Components/InternationalPhoneInput';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
+/**
+ * ModalBlurBackdrop
+ * Renders a full-viewport blur div directly on <body> via a React portal,
+ * so it escapes every stacking context (sticky sidebar, header z-indices, etc.)
+ * and genuinely covers the ENTIRE screen behind the modal.
+ */
+function ModalBlurBackdrop() {
+    return createPortal(
+        <div className="modal-blur-backdrop" aria-hidden="true" />,
+        document.body
+    );
+}
 
 const title = (s = '') =>
     String(s)
@@ -52,7 +66,7 @@ function NotificationsNavButton() {
     );
 }
 
-function Sidebar({ mobileOpen, setMobileOpen }) {
+function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
     const { user } = useAuth();
     const location = useLocation();
 
@@ -109,20 +123,56 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
 
     const modules = getModulesForRole(user.role);
 
-    const sidebarContent = (
-        <div className="flex h-full flex-col p-4">
-            <Link
-                to={getRoleDashboard(user.role)}
-                className="mb-6 flex items-center gap-3 border-b border-white/20 pb-4 text-xl font-extrabold text-white no-underline"
-            >
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/20 text-blue-600 shadow-sm">
-                    <Icon name="heart" size={22} />
+    const hamIcon = (size) => (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+    );
+
+    const makeSidebarContent = (isCollapsed) => (
+        <div className={`flex h-full flex-col ${isCollapsed ? 'px-2 py-3' : 'p-4'}`}>
+
+            {isCollapsed ? (
+                /* -- COLLAPSED header: hamburger only -- */
+                <div className="flex flex-col items-center border-b border-white/20 pb-3 mb-3">
+                    <button
+                        onClick={() => setCollapsed(false)}
+                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/20 text-white hover:bg-white/30 transition"
+                        title="Expand sidebar"
+                        aria-label="Expand sidebar"
+                    >
+                        {hamIcon(22)}
+                    </button>
                 </div>
-                <div className="flex flex-col">
-                    <span className="leading-tight">ReliefLink</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">Campus Exchange</span>
+            ) : (
+                /* -- EXPANDED header: logo+text left, hamburger right -- */
+                <div className="flex items-center justify-between border-b border-white/20 pb-4 mb-4 gap-2">
+                    <Link
+                        to={getRoleDashboard(user.role)}
+                        className="flex items-center gap-3 text-xl font-extrabold text-white no-underline flex-1 min-w-0 overflow-hidden"
+                    >
+                        <img
+                            src="/images/relieflink-logo.png"
+                            alt="ReliefLink logo"
+                            className="h-10 w-10 rounded-xl object-contain flex-shrink-0"
+                        />
+                        <div className="flex flex-col overflow-hidden">
+                            <span className="leading-tight truncate">ReliefLink</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">Campus Exchange</span>
+                        </div>
+                    </Link>
+                    <button
+                        onClick={() => setCollapsed(true)}
+                        className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-white/20 text-white hover:bg-white/30 transition"
+                        title="Collapse sidebar"
+                        aria-label="Collapse sidebar"
+                    >
+                        {hamIcon(20)}
+                    </button>
                 </div>
-            </Link>
+            )}
 
             <nav className="space-y-1 flex-1 overflow-y-auto">
                 {modules.map((m) => {
@@ -132,14 +182,15 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
                             key={m.name}
                             to={m.path}
                             onClick={() => setMobileOpen(false)}
-                            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold no-underline transition ${
+                            title={isCollapsed ? m.name : ''}
+                            className={`flex items-center gap-3 rounded-xl py-2.5 text-sm font-semibold no-underline transition-colors ${isCollapsed ? 'justify-center px-2' : 'px-3'} ${
                                 isActive
                                     ? 'bg-white text-blue-600 shadow-sm'
                                     : 'text-white/90 hover:bg-white/10 hover:text-white'
                             }`}
                         >
                             <Icon name={m.icon} size={20} />
-                            <span>{m.name}</span>
+                            {!isCollapsed && <span className="truncate">{m.name}</span>}
                         </NavLink>
                     );
                 })}
@@ -149,8 +200,8 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
 
     return (
         <>
-            <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-20">
-                {sidebarContent}
+            <aside className={`hidden lg:fixed lg:left-0 lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-30 overflow-hidden transition-[width] duration-300 ease-in-out ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
+                {makeSidebarContent(collapsed)}
             </aside>
 
             {mobileOpen && (
@@ -169,7 +220,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
                                 <Icon name="close" size={20} />
                             </button>
                         </div>
-                        {sidebarContent}
+                        {makeSidebarContent(false)}
                     </aside>
                 </div>
             )}
@@ -205,7 +256,7 @@ function UserDropdown() {
         <div className="relative">
             <button
                 onClick={() => setOpen(v => !v)}
-                className="btn btn-ghost flex items-center gap-2.5"
+                className="btn btn-ghost user-menu-btn flex items-center gap-2.5"
                 aria-label="User menu"
                 aria-expanded={open}
             >
@@ -221,7 +272,7 @@ function UserDropdown() {
                     </span>
                 )}
                 <span className="text-sm font-semibold hidden sm:block">{user.name}</span>
-                <Icon name="arrow" size={16} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+                <Icon name="chevronDown" size={16} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {open && (
@@ -280,7 +331,7 @@ function Header({ setMobileOpen }) {
 
     return (
         <header
-            className="sticky top-0 z-30 flex h-16 items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8"
+            className="sticky top-0 z-40 flex h-16 w-full items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8"
         >
             <div className="flex items-center gap-3">
                 {user && (
@@ -2744,7 +2795,7 @@ function DonorDonationForm() {
 
             {/* Confirmation & Review Modal */}
             {showReviewModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
@@ -3650,7 +3701,7 @@ function BeneficiaryRequestForm() {
 
             {/* Clear Form Confirmation Modal */}
             {showClearModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <h3 className="text-lg font-extrabold text-[#2563EB]">Clear Request Form?</h3>
                         <p className="mt-2 text-xs font-bold text-[#2563EB]">
@@ -3670,7 +3721,7 @@ function BeneficiaryRequestForm() {
 
             {/* Review Summary Modal */}
             {showConfirmModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Confirm Request Details</h3>
@@ -3878,7 +3929,7 @@ function EditModal({item, kind, admin, close, done}){
     };
 
     return (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
             <form className="panel no-hover w-full max-w-lg p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4" onSubmit={save}>
                 <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                     <h2 className="text-lg font-extrabold text-[#2563EB]">{item.id ? (isUserKind ? 'Edit Member Account' : 'Edit entry') : (isUserKind ? 'Add New Member' : 'Add entry')}</h2>
@@ -4556,7 +4607,7 @@ function PeopleManager(){
             )}
 
             {viewingUser && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Member Account Details</h2>
@@ -4665,7 +4716,7 @@ function PeopleManager(){
             )}
 
             {deletingUser && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Member</h2>
@@ -5030,7 +5081,7 @@ function DonationManager(){
             )}
 
             {viewingDonation && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Donation Details Inspection</h2>
@@ -5099,7 +5150,7 @@ function DonationManager(){
             )}
 
             {deletingDonation && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Donation</h2>
@@ -5128,6 +5179,228 @@ function DonationManager(){
 
             {editing && <EditModal item={editing} kind="donations" admin={user.role === 'admin'} close={() => setEditing(null)} done={load}/>}
         </main>
+    );
+}
+
+function RequestEditModal({ item, close, done }) {
+    const isFin = item.request_type === 'financial';
+    const [f, setF] = useState({
+        request_type:              item.request_type || 'physical',
+        category:                  item.category || '',
+        urgency:                   item.urgency || 'medium',
+        quantity_needed:           item.quantity_needed || '',
+        unit:                      item.unit || '',
+        item_details:              item.item_details || '',
+        amount_requested:          item.amount_requested || '',
+        currency:                  item.currency || 'PHP',
+        purpose_of_funds:          item.purpose_of_funds || '',
+        justification:             item.justification || '',
+        preferred_assistance_date: item.preferred_assistance_date || '',
+        additional_info:           item.additional_info || '',
+        pickup_location:           item.pickup_location || '',
+        availability_window:       item.availability_window || '',
+        staff_internal_notes:      item.staff_internal_notes || '',
+    });
+    const [saving, setSaving] = useState(false);
+    const [error, setError]   = useState('');
+
+    const isFinancial = f.request_type === 'financial';
+
+    const save = async e => {
+        e.preventDefault();
+        setError('');
+        if (!f.category.trim()) { setError('Category is required.'); return; }
+        if (!f.urgency)         { setError('Priority is required.'); return; }
+        if (isFinancial && !f.amount_requested) { setError('Amount requested is required.'); return; }
+        if (!isFinancial && !f.quantity_needed)  { setError('Quantity needed is required.'); return; }
+        setSaving(true);
+        try {
+            await api.put(`/admin/requests/${item.id}/content`, f);
+            await done();
+            close();
+        } catch (err) {
+            const msgs = err.response?.data?.errors
+                ? Object.values(err.response.data.errors).flat().join(' ')
+                : null;
+            setError(msgs || err.response?.data?.message || 'Could not save changes.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const lbl = txt => (
+        <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">{txt}</label>
+    );
+    const req = <span className="text-[#22C55E]"> *</span>;
+
+    return (
+        <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
+            <form className="panel no-hover w-full max-w-xl p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4" onSubmit={save}>
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
+                    <div>
+                        <span className="text-xs font-black text-[#2563EB]">
+                            #REQ-{String(item.id).padStart(3, '0')}
+                        </span>
+                        <h2 className="text-lg font-extrabold text-[#2563EB]">Edit Support Request</h2>
+                    </div>
+                    <button type="button" className="nav-link p-1" onClick={close} title="Close">
+                        <Icon name="close"/>
+                    </button>
+                </div>
+
+                {error && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">{error}</p>}
+
+                {/* Request Type */}
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        {lbl(<>Request Type{req}</>)}
+                        <select className="field w-full text-xs font-semibold" value={f.request_type}
+                            onChange={e => setF({...f, request_type: e.target.value})}>
+                            <option value="physical">Physical (Items)</option>
+                            <option value="financial">Financial (Monetary)</option>
+                        </select>
+                    </div>
+                    <div>
+                        {lbl(<>Priority / Urgency{req}</>)}
+                        <select className="field w-full text-xs font-semibold" value={f.urgency}
+                            onChange={e => setF({...f, urgency: e.target.value})}>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Category */}
+                <div>
+                    {lbl(<>Assistance Category{req}</>)}
+                    <input type="text" className="field w-full text-xs font-semibold"
+                        placeholder="e.g. Food, Medical, Tuition..."
+                        value={f.category}
+                        onChange={e => setF({...f, category: e.target.value})}/>
+                </div>
+
+                {/* Physical fields */}
+                {!isFinancial && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                            {lbl(<>Quantity Needed{req}</>)}
+                            <input type="number" min="1" className="field w-full text-xs font-semibold"
+                                placeholder="e.g. 5"
+                                value={f.quantity_needed}
+                                onChange={e => setF({...f, quantity_needed: e.target.value})}/>
+                        </div>
+                        <div>
+                            {lbl('Unit')}
+                            <input type="text" className="field w-full text-xs font-semibold"
+                                placeholder="e.g. kg, pieces, sets..."
+                                value={f.unit}
+                                onChange={e => setF({...f, unit: e.target.value})}/>
+                        </div>
+                    </div>
+                )}
+                {!isFinancial && (
+                    <div>
+                        {lbl('Item Details / Description')}
+                        <input type="text" className="field w-full text-xs font-semibold"
+                            placeholder="Describe the specific item(s) needed"
+                            value={f.item_details}
+                            onChange={e => setF({...f, item_details: e.target.value})}/>
+                    </div>
+                )}
+
+                {/* Financial fields */}
+                {isFinancial && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                            {lbl(<>Amount Requested{req}</>)}
+                            <input type="number" min="0" step="0.01" className="field w-full text-xs font-semibold"
+                                placeholder="e.g. 5000"
+                                value={f.amount_requested}
+                                onChange={e => setF({...f, amount_requested: e.target.value})}/>
+                        </div>
+                        <div>
+                            {lbl('Currency')}
+                            <select className="field w-full text-xs font-semibold" value={f.currency}
+                                onChange={e => setF({...f, currency: e.target.value})}>
+                                <option value="PHP">PHP</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
+                {isFinancial && (
+                    <div>
+                        {lbl('Purpose of Funds')}
+                        <textarea rows={2} className="field w-full text-xs font-semibold"
+                            placeholder="Explain how the funds will be used"
+                            value={f.purpose_of_funds}
+                            onChange={e => setF({...f, purpose_of_funds: e.target.value})}/>
+                    </div>
+                )}
+
+                {/* Shared fields */}
+                <div>
+                    {lbl('Justification / Reason for Request')}
+                    <textarea rows={2} className="field w-full text-xs font-semibold"
+                        placeholder="Why is this assistance needed?"
+                        value={f.justification}
+                        onChange={e => setF({...f, justification: e.target.value})}/>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        {lbl('Preferred Assistance Date')}
+                        <input type="text" className="field w-full text-xs font-semibold"
+                            placeholder="e.g. ASAP, End of month..."
+                            value={f.preferred_assistance_date}
+                            onChange={e => setF({...f, preferred_assistance_date: e.target.value})}/>
+                    </div>
+                    <div>
+                        {lbl('Pickup Location')}
+                        <input type="text" className="field w-full text-xs font-semibold"
+                            placeholder="Preferred pickup or delivery location"
+                            value={f.pickup_location}
+                            onChange={e => setF({...f, pickup_location: e.target.value})}/>
+                    </div>
+                </div>
+
+                <div>
+                    {lbl('Availability Window')}
+                    <input type="text" className="field w-full text-xs font-semibold"
+                        placeholder="e.g. Weekdays 8am-5pm"
+                        value={f.availability_window}
+                        onChange={e => setF({...f, availability_window: e.target.value})}/>
+                </div>
+
+                <div>
+                    {lbl('Additional Info')}
+                    <textarea rows={2} className="field w-full text-xs font-semibold"
+                        placeholder="Any additional notes or context"
+                        value={f.additional_info}
+                        onChange={e => setF({...f, additional_info: e.target.value})}/>
+                </div>
+
+                <div>
+                    {lbl('Internal Staff Notes (Admin Only)')}
+                    <textarea rows={2} className="field w-full text-xs font-semibold"
+                        placeholder="Private notes for admin/staff use only"
+                        value={f.staff_internal_notes}
+                        onChange={e => setF({...f, staff_internal_notes: e.target.value})}/>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end gap-3 pt-2 border-t border-[#2563EB]/20">
+                    <Button type="button" variant="secondary" onClick={close}>Cancel</Button>
+                    <Button type="submit" loading={saving}>
+                        <Icon name="check"/>
+                        <span className="ml-1">Save Changes</span>
+                    </Button>
+                </div>
+            </form>
+        </div>
     );
 }
 
@@ -5501,6 +5774,12 @@ function RequestManager(){
                                                         <Icon name="eye"/>
                                                         <span className="ml-1 text-xs">View</span>
                                                     </Button>
+                                                    {user.role === 'admin' && (
+                                                        <Button title="Edit Request" variant="secondary" onClick={() => setEditing(item)}>
+                                                            <Icon name="edit"/>
+                                                            <span className="ml-1 text-xs">Edit</span>
+                                                        </Button>
+                                                    )}
                                                     {user.role === 'admin' && ['pending_review', 'under_review'].includes(item.status) && (
                                                         <>
                                                             <Button title="Approve Request" loading={actionLoading} onClick={() => handleApproveDecline(item.id, 'approved')}>
@@ -5606,7 +5885,7 @@ function RequestManager(){
 
             {/* Request Details Inspection Modal */}
             {viewingRequest && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <div>
@@ -5745,7 +6024,7 @@ function RequestManager(){
 
             {/* Cancel Request Modal (Beneficiary) */}
             {cancellingRequest && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Cancel Support Request?</h3>
@@ -5783,7 +6062,7 @@ function RequestManager(){
 
             {/* Delete Request Modal (Admin) */}
             {deletingRequest && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Request</h2>
@@ -5810,7 +6089,7 @@ function RequestManager(){
                 </div>
             )}
 
-            {editing && <EditModal item={editing} kind="requests" admin={user.role === 'admin'} close={() => setEditing(null)} done={load}/>}
+            {editing && <RequestEditModal item={editing} close={() => setEditing(null)} done={load}/>}
         </main>
     );
 }
@@ -6233,7 +6512,7 @@ function Matches(){
             )}
 
             {viewingMatch && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-2xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Match Inspection Details</h2>
@@ -6320,7 +6599,7 @@ function Matches(){
             )}
 
             {confirmingMatch && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Match Pair</h2>
@@ -6352,7 +6631,7 @@ function Matches(){
             )}
 
             {decliningMatch && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Decline Proposed Match</h2>
@@ -6384,7 +6663,7 @@ function Matches(){
             )}
 
             {schedule && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <form className="panel w-full max-w-sm p-6 bg-white space-y-4" onSubmit={e => {
                         e.preventDefault();
                         const when = e.target.when.value;
@@ -7466,7 +7745,7 @@ function StaffVerificationDesk() {
 
             {/* Inspection & Verification Modal */}
             {inspecting && (
-                <div className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-xl p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Verification Desk Inspection</h3>
@@ -7837,11 +8116,11 @@ function StaffWarehouseInventory() {
                 </div>
             </div>
 
-            {viewingItem && <div className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/40 p-4 backdrop-blur-sm"><div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white p-6"><div className="flex items-start justify-between border-b border-[#2563EB]/20 pb-3"><div><p className="eyebrow">Inventory item record</p><h3 className="text-lg font-extrabold">{viewingItem.item_name}</h3></div><button className="nav-link p-1" onClick={() => setViewingItem(null)} aria-label="Close item details"><Icon name="close"/></button></div><div className="mt-5 grid gap-4 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#2563EB]/5 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Stock and location</p><p className="mt-2 text-xl font-black">{viewingItem.quantity} units</p><p className="mt-1 font-bold">{viewingItem.storage_location || viewingItem.pickup_location || 'Location not set'}</p><p className="mt-1 text-[#2563EB]/65">{viewingItem.category} · {stockSignal(viewingItem)}</p></div><div className="rounded-xl border border-[#2563EB]/20 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Condition and handling</p><p className="mt-2 font-extrabold capitalize">{(viewingItem.condition_grade || 'good').replace('_', ' ')}</p><p className="mt-1 text-[#2563EB]/70">{viewingItem.condition_notes || viewingItem.intake_notes || 'No inspection notes recorded.'}</p>{viewingItem.expiry_date && <p className="mt-2 font-bold text-[#22C55E]">Expiry: {new Date(viewingItem.expiry_date).toLocaleDateString()}</p>}</div></div><div className="mt-5"><div className="flex items-center justify-between"><div><h4 className="font-extrabold">Movement history</h4><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">Every recorded intake or stock adjustment.</p></div><span className="text-xs font-extrabold">{movements.filter((movement) => movement.donation_id === viewingItem.id).length} records</span></div><div className="mt-3 divide-y divide-[#2563EB]/10 rounded-xl border border-[#2563EB]/15">{movements.filter((movement) => movement.donation_id === viewingItem.id).length ? movements.filter((movement) => movement.donation_id === viewingItem.id).map((movement) => <div key={movement.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-xs font-extrabold capitalize">{movement.movement_type.replace('_', ' ')} <span className="font-semibold text-[#2563EB]/65">· {movement.staff?.name || 'Staff'}</span></p><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{movement.reason || 'No reason recorded'} · {new Date(movement.created_at).toLocaleString()}</p></div><span className="text-xs font-black text-[#22C55E]">{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</span></div>) : <div className="p-5 text-center text-xs font-semibold text-[#2563EB]/65">No movements have been recorded for this item yet.</div>}</div></div><div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>Adjust stock</Button><Button onClick={() => setViewingItem(null)}>Close</Button></div></div></div>}
+            {viewingItem && <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop /><div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white p-6"><div className="flex items-start justify-between border-b border-[#2563EB]/20 pb-3"><div><p className="eyebrow">Inventory item record</p><h3 className="text-lg font-extrabold">{viewingItem.item_name}</h3></div><button className="nav-link p-1" onClick={() => setViewingItem(null)} aria-label="Close item details"><Icon name="close"/></button></div><div className="mt-5 grid gap-4 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#2563EB]/5 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Stock and location</p><p className="mt-2 text-xl font-black">{viewingItem.quantity} units</p><p className="mt-1 font-bold">{viewingItem.storage_location || viewingItem.pickup_location || 'Location not set'}</p><p className="mt-1 text-[#2563EB]/65">{viewingItem.category} · {stockSignal(viewingItem)}</p></div><div className="rounded-xl border border-[#2563EB]/20 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Condition and handling</p><p className="mt-2 font-extrabold capitalize">{(viewingItem.condition_grade || 'good').replace('_', ' ')}</p><p className="mt-1 text-[#2563EB]/70">{viewingItem.condition_notes || viewingItem.intake_notes || 'No inspection notes recorded.'}</p>{viewingItem.expiry_date && <p className="mt-2 font-bold text-[#22C55E]">Expiry: {new Date(viewingItem.expiry_date).toLocaleDateString()}</p>}</div></div><div className="mt-5"><div className="flex items-center justify-between"><div><h4 className="font-extrabold">Movement history</h4><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">Every recorded intake or stock adjustment.</p></div><span className="text-xs font-extrabold">{movements.filter((movement) => movement.donation_id === viewingItem.id).length} records</span></div><div className="mt-3 divide-y divide-[#2563EB]/10 rounded-xl border border-[#2563EB]/15">{movements.filter((movement) => movement.donation_id === viewingItem.id).length ? movements.filter((movement) => movement.donation_id === viewingItem.id).map((movement) => <div key={movement.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-xs font-extrabold capitalize">{movement.movement_type.replace('_', ' ')} <span className="font-semibold text-[#2563EB]/65">· {movement.staff?.name || 'Staff'}</span></p><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{movement.reason || 'No reason recorded'} · {new Date(movement.created_at).toLocaleString()}</p></div><span className="text-xs font-black text-[#22C55E]">{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</span></div>) : <div className="p-5 text-center text-xs font-semibold text-[#2563EB]/65">No movements have been recorded for this item yet.</div>}</div></div><div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>Adjust stock</Button><Button onClick={() => setViewingItem(null)}>Close</Button></div></div></div>}
 
             {/* Modal: Physical Intake */}
             {showIntakeModal && (
-                <div className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <form onSubmit={handleCreateIntake} className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Physical Inventory Item Intake</h3>
@@ -7959,7 +8238,7 @@ function StaffWarehouseInventory() {
 
             {/* Modal: Edit Stock / Bin */}
             {editingStock && (
-                <div className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <form onSubmit={handleSaveStock} className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Update Stock & Storage Bin</h3>
@@ -8438,7 +8717,7 @@ function StaffHandoffDispatch() {
 
             {/* PIN Verification Modal */}
             {verifyingMatch && (
-                <div className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <form onSubmit={handleVerifyPin} className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">PIN Handoff Clearance</h3>
@@ -8912,7 +9191,7 @@ function DonorDashboard(){
 
             {/* Donation Details Inspection Modal */}
             {inspectingItem && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Donation Details</h2>
@@ -9505,7 +9784,7 @@ function BeneficiaryDashboard() {
 
             {/* Selected Request Details Modal */}
             {selectedRequestDetails && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
@@ -10130,7 +10409,7 @@ function DonorNeeds() {
 
             {/* Detail Modal */}
             {selectedDetailRequest && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
@@ -10276,7 +10555,7 @@ function DonorNeeds() {
 
             {/* Quick Donation Modal */}
             {donatingRequest && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
@@ -10984,7 +11263,7 @@ function FulfillmentPage({ role }) {
 
             {/* Schedule / Reschedule Modal */}
             {schedulingMatch && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
@@ -11060,7 +11339,7 @@ function FulfillmentPage({ role }) {
 
             {/* Cancel / Report Issue Modal */}
             {cancellingMatch && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
@@ -11115,7 +11394,7 @@ function FulfillmentPage({ role }) {
 
             {/* Handoff Details Modal */}
             {selectedMatchDetails && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
@@ -11715,7 +11994,7 @@ function HistoryPage({ role }) {
 
             {/* Donation Record Details Modal */}
             {selectedDonation && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6 text-[#2563EB] shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB] pb-3">
                             <div className="flex items-center gap-2">
@@ -11815,7 +12094,7 @@ function HistoryPage({ role }) {
 
             {/* Official Printable Donation Receipt Modal */}
             {receiptModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2563EB]/80 backdrop-blur-sm p-4 print:p-0 print:bg-white print:static print:inset-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 print:p-0 print:bg-white print:static print:inset-auto"><ModalBlurBackdrop />
                     <div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto p-8 text-[#2563EB] shadow-2xl bg-white print:border-none print:shadow-none print:max-w-none print:h-auto">
                         {/* Header Branding */}
                         <div className="flex items-center justify-between border-b-2 border-[#2563EB] pb-4 mb-6">
@@ -12304,7 +12583,7 @@ function AdminCategories(){
             )}
 
             {addingCategory && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <form className="panel w-full max-w-md p-6 bg-white space-y-4" onSubmit={handleAddCategory}>
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Add New Resource Category</h2>
@@ -12332,7 +12611,7 @@ function AdminCategories(){
             )}
 
             {editingCategory && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <form className="panel w-full max-w-md p-6 bg-white space-y-4" onSubmit={handleUpdateCategory}>
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Edit Category</h2>
@@ -12360,7 +12639,7 @@ function AdminCategories(){
             )}
 
             {inspectingCategory && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Category Listings Inspection</h2>
@@ -12408,7 +12687,7 @@ function AdminCategories(){
             )}
 
             {deletingCategory && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Category</h2>
@@ -12760,7 +13039,7 @@ function AdminApprovals(){
             )}
 
             {inspectingRequest && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Support Request Inspection</h2>
@@ -12834,7 +13113,7 @@ function AdminApprovals(){
             )}
 
             {approvingRequest && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Request Authorization</h2>
@@ -12862,7 +13141,7 @@ function AdminApprovals(){
             )}
 
             {decliningRequest && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Decline Support Request</h2>
@@ -13294,7 +13573,7 @@ function AdminAnnouncements(){
             </div>
 
             {previewingData && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Announcement Recipient Preview</h2>
@@ -13326,7 +13605,7 @@ function AdminAnnouncements(){
             )}
 
             {deletingAnnouncement && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Delete Announcement</h2>
@@ -13839,7 +14118,7 @@ function AdminSettings(){
             </div>
 
             {confirmSave&&(
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Save Settings</h2>
@@ -13872,7 +14151,7 @@ function AdminSettings(){
             )}
 
             {confirmReset&&(
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Reset to Defaults</h2>
@@ -14489,12 +14768,13 @@ function Profile(){
 
             {isPhotoViewerOpen&&profileImage&&(
                 <div
-                    className="fixed inset-0 z-50 grid place-items-center bg-[#2563EB]/45 p-4 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"
                     role="dialog"
                     aria-modal="true"
                     aria-label="Full-size profile photo"
                     onMouseDown={()=>setIsPhotoViewerOpen(false)}
                 >
+                    <ModalBlurBackdrop />
                     <div className="relative max-h-[90vh] max-w-[90vw]" onMouseDown={event=>event.stopPropagation()}>
                         <button
                             type="button"
@@ -15120,7 +15400,7 @@ function Activities(){
             )}
 
             {viewingLog && (
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Activity Audit Log Inspection</h2>
@@ -15505,7 +15785,7 @@ function NotificationsPage(){
             )}
 
             {inspecting&&(
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Notification Details</h2>
@@ -15587,7 +15867,7 @@ function NotificationsPage(){
             )}
 
             {deletingNotif&&(
-                <div className="fixed inset-0 z-40 grid place-items-center bg-[#2563EB]/40 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Delete Notification</h2>
@@ -15622,12 +15902,19 @@ function NotificationsPage(){
 
 export default function App() {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        try { return localStorage.getItem('rl_sidebar_collapsed') === 'true'; } catch { return false; }
+    });
+    const setCollapsed = (val) => {
+        setSidebarCollapsed(val);
+        try { localStorage.setItem('rl_sidebar_collapsed', String(val)); } catch {}
+    };
 
     return (
-        <div className="min-h-screen bg-white lg:flex">
-            <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-            <div className="flex flex-1 flex-col min-w-0 min-h-screen">
-                <Header setMobileOpen={setMobileOpen} />
+        <div className="min-h-screen bg-white">
+            <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} setCollapsed={setCollapsed} />
+            <Header setMobileOpen={setMobileOpen} />
+            <div className="lg:ml-16 min-h-[calc(100vh-4rem)]">
                 <main className="flex-1 min-w-0">
                     <Routes>
                         <Route path="/" element={<Home/>}/>

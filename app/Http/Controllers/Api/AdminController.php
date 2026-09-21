@@ -287,6 +287,36 @@ class AdminController extends Controller
         return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy']));
     }
 
+    /**
+     * Admin content-edit: update the request's field data (not status/verification).
+     * Route: PUT /api/admin/requests/{aidRequest}/content
+     */
+    public function editRequestContent(Request $r, AidRequest $aidRequest)
+    {
+        $validated = $r->validate([
+            'request_type'              => 'nullable|in:physical,financial',
+            'category'                  => 'required|string|max:80',
+            'urgency'                   => 'required|in:low,medium,high',
+            'quantity_needed'           => 'nullable|integer|min:1',
+            'unit'                      => 'nullable|string|max:50',
+            'item_details'              => 'nullable|string|max:255',
+            'amount_requested'          => 'nullable|numeric|min:0',
+            'currency'                  => 'nullable|string|max:10',
+            'purpose_of_funds'          => 'nullable|string|max:2000',
+            'justification'             => 'nullable|string|max:2000',
+            'preferred_assistance_date' => 'nullable|string|max:100',
+            'additional_info'           => 'nullable|string|max:2000',
+            'pickup_location'           => 'nullable|string|max:255',
+            'availability_window'       => 'nullable|string|max:255',
+            'staff_internal_notes'      => 'nullable|string|max:2000',
+        ]);
+
+        $aidRequest->update($validated);
+        ActivityService::log($r->user(), 'edited support request content', $aidRequest);
+
+        return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy']));
+    }
+
     public function storeWalkInRequest(Request $r, MatchingService $s)
     {
         $d = $r->validate([

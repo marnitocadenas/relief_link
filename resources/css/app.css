@@ -386,6 +386,36 @@ textarea.field {
   transform: translateY(1px);
   box-shadow: none;
 }
+/* == Profile / User-menu dropdown trigger ================================== */
+.user-menu-btn {
+  border: 1px solid #D1D5DB;
+  border-radius: 10px;
+  padding: 0.3125rem 0.75rem;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+  transition:
+    background   0.15s ease,
+    box-shadow   0.15s ease,
+    border-color 0.15s ease,
+    transform    0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .user-menu-btn:hover:not(:disabled) {
+    border-color: #93C5FD;
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.08),
+      0 4px 10px rgba(37, 99, 235, 0.10);
+    transform: translateY(-1px);
+  }
+}
+
+.user-menu-btn:active:not(:disabled) {
+  border-color: #BFDBFE;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transform: translateY(0);
+}
 
 .btn-danger {
   background: #EF4444;
@@ -622,6 +652,32 @@ textarea.field {
   background: rgba(239, 68, 68, 0.12);
 }
 
+.profile-dropdown-btn {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile-dropdown-btn:hover:not(:disabled) {
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+}
+
+.profile-dropdown-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 1px 4px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
 .icon-3d-success {
   color: var(--green);
 }
@@ -688,7 +744,7 @@ textarea.field {
 .table-wrap {
   background: var(--white);
   border-radius: 16px;
-  border: none;
+  border: 1px solid #E2E8F0;
   box-shadow:
     0 8px 24px rgba(37, 99, 235, 0.08),
     0 2px 6px rgba(37, 99, 235, 0.05);
@@ -717,6 +773,12 @@ textarea.field {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid #E2E8F0;
+  border-right: 1px solid #E2E8F0;
+}
+
+.table-container th:last-child,
+.data-table th:last-child {
+  border-right: none;
 }
 
 .table-container td,
@@ -725,6 +787,12 @@ textarea.field {
   vertical-align: middle;
   color: #1E293B;
   border-bottom: 1px solid #F1F5F9;
+  border-right: 1px solid #F1F5F9;
+}
+
+.table-container td:last-child,
+.data-table td:last-child {
+  border-right: none;
 }
 
 .table-container tbody tr,
@@ -739,6 +807,124 @@ textarea.field {
 
 .table-container tbody tr:hover,
 .data-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+/* Additional styling for tables using custom classes (border-collapse) */
+.table-container table[class*="border-collapse"],
+.data-table[class*="border-collapse"] {
+  border-collapse: collapse;
+}
+
+.table-container table[class*="border-collapse"] th,
+.table-container table[class*="border-collapse"] td,
+.data-table[class*="border-collapse"] th,
+.data-table[class*="border-collapse"] td {
+  border: 1px solid #E2E8F0;
+}
+
+.table-container table[class*="border-collapse"] thead,
+.data-table[class*="border-collapse"] thead {
+  background: #F8FAFC;
+}
+
+.table-container table[class*="border-collapse"] th,
+.data-table[class*="border-collapse"] th {
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #F8FAFC;
+}
+
+.table-container table[class*="border-collapse"] tbody tr:hover,
+.data-table[class*="border-collapse"] tbody tr:hover {
+  background: #F8FAFC;
+}
+
+/* For tables with divide-y class (Tailwind) inside overflow containers */
+.overflow-x-auto > table[class*="border-collapse"] {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.overflow-x-auto > table[class*="border-collapse"] thead {
+  background: #F8FAFC;
+}
+
+.overflow-x-auto > table[class*="border-collapse"] th {
+  border: 1px solid #E2E8F0;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #F8FAFC;
+  padding: 0.75rem 1rem;
+}
+
+.overflow-x-auto > table[class*="border-collapse"] td {
+  border: 1px solid #F1F5F9;
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  color: #1E293B;
+}
+
+.overflow-x-auto > table[class*="border-collapse"] tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.overflow-x-auto > table[class*="border-collapse"] tbody tr:last-child td {
+  border-bottom: 1px solid #F1F5F9;
+}
+
+/* Ensure consistent styling for tables with divide-y class */
+[class*="divide-y"] > * + * {
+  border-top: 1px solid #F1F5F9;
+}
+
+[class*="divide-y"] thead tr {
+  border-bottom: 1px solid #E2E8F0;
+}
+
+[class*="divide-y"] th,
+[class*="divide-y"] td {
+  border-right: 1px solid #E2E8F0;
+  padding: 0.75rem 1rem !important;
+}
+
+[class*="divide-y"] th:last-child,
+[class*="divide-y"] td:last-child {
+  border-right: none;
+}
+
+/* Receipt/table in modals - ensure borders */
+table[class*="border-collapse"]:not(.data-table) {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table[class*="border-collapse"]:not(.data-table) th,
+table[class*="border-collapse"]:not(.data-table) td {
+  border: 1px solid #E2E8F0;
+  padding: 0.75rem 1rem;
+}
+
+table[class*="border-collapse"]:not(.data-table) thead {
+  background: #F8FAFC;
+}
+
+table[class*="border-collapse"]:not(.data-table) th {
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+table[class*="border-collapse"]:not(.data-table) tbody tr:hover {
   background: #F8FAFC;
 }
 
@@ -783,6 +969,7 @@ textarea.field {
   background: transparent;
   border: none;
   text-align: left;
+  text-decoration: none;
   transition: all 0.1s ease;
 }
 
@@ -808,10 +995,24 @@ textarea.field {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 40;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
+  z-index: 9998;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
   animation: fade-in 0.2s ease;
+}
+
+/* Full-viewport blur backdrop rendered via React portal directly on <body>.
+   Targets the real compositing layers (sidebar, header, main) individually.
+   z-index 9997 = behind modal (9998) but above all page content.            */
+.modal-blur-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.15); /* very light tint to help compositing */
 }
 
 @keyframes fade-in {
@@ -1028,3 +1229,4 @@ textarea.field {
     padding: 0.75rem 1rem;
   }
 }
+
