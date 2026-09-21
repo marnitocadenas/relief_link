@@ -200,7 +200,7 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
 
     return (
         <>
-            <aside className={`hidden lg:fixed lg:left-0 lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-30 overflow-hidden transition-[width] duration-300 ease-in-out ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
+            <aside className={`hidden lg:fixed lg:left-0 lg:top-0 lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-30 overflow-hidden transition-[width] duration-300 ease-in-out ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
                 {makeSidebarContent(collapsed)}
             </aside>
 
@@ -320,7 +320,7 @@ const publicNavigation = [
     { label: 'About', href: '#about', icon: 'info' },
 ];
 
-function Header({ setMobileOpen }) {
+function Header({ setMobileOpen, collapsed }) {
     const { user } = useAuth();
     const location = useLocation();
     const [publicMenuOpen, setPublicMenuOpen] = useState(false);
@@ -331,7 +331,9 @@ function Header({ setMobileOpen }) {
 
     return (
         <header
-            className="sticky top-0 z-40 flex h-16 w-full items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8"
+            className={`sticky top-0 z-40 flex h-16 items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8 transition-all duration-300 ease-in-out ${
+                collapsed ? 'lg:ml-16 lg:w-[calc(100%-4rem)]' : 'lg:ml-64 lg:w-[calc(100%-16rem)]'
+            }`}
         >
             <div className="flex items-center gap-3">
                 {user && (
@@ -15913,8 +15915,8 @@ export default function App() {
     return (
         <div className="min-h-screen bg-white">
             <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} setCollapsed={setCollapsed} />
-            <Header setMobileOpen={setMobileOpen} />
-            <div className="lg:ml-16 min-h-[calc(100vh-4rem)]">
+            <Header setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} />
+            <div className="lg:min-h-screen lg:ml-16">
                 <main className="flex-1 min-w-0">
                     <Routes>
                         <Route path="/" element={<Home/>}/>
