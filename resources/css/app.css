@@ -84,7 +84,8 @@ textarea:focus-visible {
   line-height: 1.65;
 }
 
-.card {
+.card,
+.panel {
   background: var(--white);
   border-radius: 16px;
   border: none;
@@ -94,11 +95,32 @@ textarea:focus-visible {
   transition: all 0.2s ease;
 }
 
-.card:hover {
+.card:hover,
+.panel:hover {
   transform: translateY(-2px);
   box-shadow:
     0 12px 30px rgba(37, 99, 235, 0.12),
     0 4px 10px rgba(37, 99, 235, 0.06);
+}
+
+.panel.no-hover:hover,
+.card.no-hover:hover {
+  transform: none;
+  box-shadow:
+    0 8px 24px rgba(37, 99, 235, 0.08),
+    0 2px 6px rgba(37, 99, 235, 0.05);
+}
+
+.panel-sm {
+  padding: 1rem 1.25rem;
+}
+
+.panel-md {
+  padding: 1.5rem;
+}
+
+.panel-lg {
+  padding: 2rem;
 }
 
 .card-sm {
@@ -377,7 +399,8 @@ textarea.field {
   border: 1px solid #E2E8F0;
 }
 
-.table-container {
+.table-container,
+.table-wrap {
   background: var(--white);
   border-radius: 16px;
   border: none;
@@ -387,17 +410,20 @@ textarea.field {
   overflow: hidden;
 }
 
-.table-container table {
+.table-container table,
+.data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
 }
 
-.table-container thead {
+.table-container thead,
+.data-table thead {
   background: #F8FAFC;
 }
 
-.table-container th {
+.table-container th,
+.data-table th {
   padding: 1rem 1.25rem;
   text-align: left;
   font-weight: 600;
@@ -408,22 +434,26 @@ textarea.field {
   border-bottom: 1px solid #E2E8F0;
 }
 
-.table-container td {
+.table-container td,
+.data-table td {
   padding: 1rem 1.25rem;
   vertical-align: middle;
   color: #1E293B;
   border-bottom: 1px solid #F1F5F9;
 }
 
-.table-container tbody tr {
+.table-container tbody tr,
+.data-table tbody tr {
   transition: background 0.1s ease;
 }
 
-.table-container tbody tr:last-child td {
+.table-container tbody tr:last-child td,
+.data-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.table-container tbody tr:hover {
+.table-container tbody tr:hover,
+.data-table tbody tr:hover {
   background: #F8FAFC;
 }
 
@@ -671,7 +701,8 @@ textarea.field {
 }
 
 @media (max-width: 640px) {
-  .card {
+  .card,
+  .panel {
     border-radius: 12px;
   }
   
@@ -683,12 +714,15 @@ textarea.field {
     font-size: 1.75rem;
   }
   
-  .table-container {
+  .table-container,
+  .table-wrap {
     border-radius: 12px;
   }
   
   .table-container th,
-  .table-container td {
+  .table-container td,
+  .data-table th,
+  .data-table td {
     padding: 0.75rem 1rem;
   }
 }

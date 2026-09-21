@@ -34,18 +34,18 @@ function RouteGuard({ children, roles }) {
     return children;
 }
 
-function NotificationsNavButton(){
+function NotificationsNavButton() {
     const { unreadCount } = useNotifications();
     return (
         <NavLink
             to="/notifications"
-            className="relative inline-flex items-center justify-center rounded-none bg-transparent p-1 text-[#2563EB] no-underline shadow-none transition-none hover:bg-transparent hover:text-[#2563EB] hover:shadow-none focus:bg-transparent focus:text-[#2563EB] focus:shadow-none active:scale-90 active:bg-transparent active:text-[#2563EB]"
+            className="relative inline-flex items-center justify-center p-2 rounded-xl text-[#2563EB] no-underline transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             aria-label="View notifications page"
         >
-            <Icon name="bell"/>
-            {unreadCount>0&&(
-                <span className="absolute -right-2 -top-2 grid h-5 min-w-5 place-items-center rounded-full bg-[#22C55E] px-1 text-xs font-bold text-white">
-                    {unreadCount}
+            <Icon name="bell" size={20} />
+            {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-green-500 px-1.5 text-[10px] font-bold text-white">
+                    {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
             )}
         </NavLink>
@@ -113,13 +113,11 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
         <div className="flex h-full flex-col p-4">
             <Link
                 to={getRoleDashboard(user.role)}
-                className="mb-6 flex items-center gap-3 border-b border-white/30 pb-4 text-xl font-extrabold text-white no-underline"
+                className="mb-6 flex items-center gap-3 border-b border-white/20 pb-4 text-xl font-extrabold text-white no-underline"
             >
-                <img
-                    src="/images/relieflink-logo.png"
-                    className="h-10 w-10 rounded-lg border border-white/50 object-cover shadow-sm"
-                    alt="ReliefLink"
-                />
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/20 text-blue-600 shadow-sm">
+                    <Icon name="heart" size={22} />
+                </div>
                 <div className="flex flex-col">
                     <span className="leading-tight">ReliefLink</span>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">Campus Exchange</span>
@@ -136,11 +134,11 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
                             onClick={() => setMobileOpen(false)}
                             className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold no-underline transition ${
                                 isActive
-                                    ? 'bg-white text-[#2563EB]'
+                                    ? 'bg-white text-blue-600 shadow-sm'
                                     : 'text-white/90 hover:bg-white/10 hover:text-white'
                             }`}
                         >
-                            <Icon name={m.icon} />
+                            <Icon name={m.icon} size={20} />
                             <span>{m.name}</span>
                         </NavLink>
                     );
@@ -151,7 +149,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
 
     return (
         <>
-            <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:border-r lg:border-white lg:bg-[#2563EB] z-20">
+            <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-20">
                 {sidebarContent}
             </aside>
 
@@ -161,14 +159,14 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm"
                         onClick={() => setMobileOpen(false)}
                     />
-                    <aside className="relative z-10 flex h-full w-72 flex-col bg-[#2563EB] border-r border-white shadow-2xl">
+                    <aside className="relative z-10 flex h-full w-72 flex-col bg-blue-600 border-r border-blue-100 shadow-2xl">
                         <div className="absolute right-3 top-3">
                             <button
-                                className="p-2 text-white hover:bg-white/10 rounded-lg transition"
+                                className="p-2 text-white hover:bg-white/10 rounded-xl transition"
                                 onClick={() => setMobileOpen(false)}
                                 aria-label="Close menu"
                             >
-                                <Icon name="close" />
+                                <Icon name="close" size={20} />
                             </button>
                         </div>
                         {sidebarContent}
@@ -179,7 +177,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
     );
 }
 
-function UserDropdown(){
+function UserDropdown() {
     const { user, logout } = useAuth();
     const [open, setOpen] = useState(false);
     const location = useLocation();
@@ -189,7 +187,7 @@ function UserDropdown(){
         setOpen(false);
     }, [location.pathname]);
 
-    if(!user) return null;
+    if (!user) return null;
 
     const handleLogout = async () => {
         setOpen(false);
@@ -207,8 +205,9 @@ function UserDropdown(){
         <div className="relative">
             <button
                 onClick={() => setOpen(v => !v)}
-                className="flex items-center gap-2.5 rounded-xl border border-[#2563EB] bg-white px-3 py-1.5 font-bold text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition group"
+                className="flex items-center gap-2.5 rounded-xl border border-blue-200 bg-white px-3 py-1.5 font-semibold text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition group"
                 aria-label="User menu"
+                aria-expanded={open}
             >
                 {user.profile_photo_url ? (
                     <img
@@ -217,11 +216,11 @@ function UserDropdown(){
                         className="h-7 w-7 rounded-full object-cover border border-current"
                     />
                 ) : (
-                    <span className="grid h-7 w-7 place-items-center rounded-full bg-[#2563EB] text-xs font-extrabold text-white group-hover:bg-white group-hover:text-[#2563EB] transition">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-blue-100 text-sm font-bold text-blue-600 group-hover:bg-blue-200 transition">
                         {initial}
                     </span>
                 )}
-                <span className="text-sm font-extrabold">{user.name}</span>
+                <span className="text-sm font-semibold hidden sm:block">{user.name}</span>
                 <svg
                     className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
                     xmlns="http://www.w3.org/2000/svg"
@@ -237,15 +236,15 @@ function UserDropdown(){
             </button>
 
             {open && (
-                <div className="panel absolute right-0 top-12 z-50 w-48 p-1.5 shadow-xl bg-white space-y-1">
+                <div className="dropdown absolute right-0 top-full z-50 w-48 p-1">
                     <NavLink
                         to="/profile"
                         onClick={() => setOpen(false)}
                         className={({ isActive }) =>
-                            `nav-link w-full justify-start ${isActive ? 'nav-link-active' : ''}`
+                            `dropdown-item ${isActive ? 'bg-blue-50 text-blue-600' : ''}`
                         }
                     >
-                        <Icon name="profile" />
+                        <Icon name="profile" size={16} />
                         <span>Profile</span>
                     </NavLink>
                     {user.role === 'admin' && (
@@ -253,18 +252,19 @@ function UserDropdown(){
                             to="/admin/settings"
                             onClick={() => setOpen(false)}
                             className={({ isActive }) =>
-                                `nav-link w-full justify-start ${isActive ? 'nav-link-active' : ''}`
+                                `dropdown-item ${isActive ? 'bg-blue-50 text-blue-600' : ''}`
                             }
                         >
-                            <Icon name="settings" />
+                            <Icon name="settings" size={16} />
                             <span>Settings</span>
                         </NavLink>
                     )}
+                    <div className="dropdown-divider" />
                     <button
                         onClick={handleLogout}
-                        className="nav-link w-full justify-start border-0 bg-transparent"
+                        className="dropdown-item danger"
                     >
-                        <Icon name="decline" />
+                        <Icon name="decline" size={16} />
                         <span>Sign Out</span>
                     </button>
                 </div>
@@ -291,24 +291,25 @@ function Header({ setMobileOpen }) {
 
     return (
         <header
-            className="sticky top-0 z-30 flex min-h-16 items-center justify-between bg-white px-4 py-2 lg:px-8"
-            style={{ borderBottom: '3px solid #2563EB' }}
+            className="sticky top-0 z-30 flex h-16 items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8"
         >
             <div className="flex items-center gap-3">
                 {user && (
                     <button
                         type="button"
-                        className="nav-link p-2 lg:hidden"
+                        className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden transition"
                         onClick={() => setMobileOpen(true)}
                         aria-label="Open navigation menu"
                     >
-                        <Icon name="menu" size={20} />
+                        <Icon name="menu" size={22} />
                     </button>
                 )}
                 {!user && (
                     <NavLink to="/" className="flex items-center gap-2.5 no-underline" aria-label="ReliefLink home">
-                        <img src="/images/relieflink-logo.png" alt="ReliefLink logo" className="h-10 w-10 object-contain" />
-                        <span className="text-lg font-extrabold tracking-tight text-[#2563EB]">ReliefLink</span>
+                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-100 text-blue-600">
+                            <Icon name="heart" size={22} />
+                        </div>
+                        <span className="text-lg font-extrabold tracking-tight text-gray-900 hidden sm:block">ReliefLink</span>
                     </NavLink>
                 )}
             </div>
@@ -316,15 +317,15 @@ function Header({ setMobileOpen }) {
             {!user && (
                 <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-5 lg:flex xl:gap-7" aria-label="Public navigation">
                     {publicNavigation.map(({ label, href, icon }) => (
-                        <a key={label} href={href} className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-extrabold text-[#2563EB] no-underline transition hover:bg-[#2563EB] hover:text-white">
-                            <Icon name={icon} size={15}/>
+                        <a key={label} href={href} className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-blue-600 no-underline transition hover:bg-blue-50 hover:text-blue-700">
+                            <Icon name={icon} size={15} />
                             <span>{label}</span>
                         </a>
                     ))}
                 </nav>
             )}
 
-            <div className={`flex items-center ms-auto ${user ? 'gap-5 sm:gap-6' : 'gap-3'}`}>
+            <div className={`flex items-center ${user ? 'gap-4 sm:gap-5' : 'gap-3'}`}>
                 {user ? (
                     <>
                         <NotificationsNavButton />
@@ -332,20 +333,61 @@ function Header({ setMobileOpen }) {
                     </>
                 ) : (
                     <>
-                    <div className="hidden items-center gap-2.5 sm:flex">
-                        <NavLink to="/login" className="nav-link text-xs font-extrabold px-3 py-2">
-                            <Icon name="profile" />
-                            <span>Sign in</span>
-                        </NavLink>
-                        <NavLink
-                            to="/register"
-                            className="rounded-xl border border-[#2563EB] bg-[#2563EB] px-4 py-2 text-xs font-extrabold text-white no-underline hover:bg-white hover:text-[#2563EB] transition shadow-sm"
+                        <div className="hidden items-center gap-2 sm:flex">
+                            <NavLink to="/login" className="btn btn-ghost btn-sm">
+                                <Icon name="profile" size={16} />
+                                <span>Sign in</span>
+                            </NavLink>
+                            <NavLink
+                                to="/register"
+                                className="btn btn-primary btn-sm"
+                            >
+                                Get started
+                            </NavLink>
+                        </div>
+                        <button
+                            type="button"
+                            className="p-2 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 lg:hidden transition"
+                            onClick={() => setPublicMenuOpen((open) => !open)}
+                            aria-label="Toggle navigation menu"
+                            aria-expanded={publicMenuOpen}
                         >
-                            Get started
-                        </NavLink>
-                    </div>
-                    <button type="button" className="nav-link p-2 lg:hidden" onClick={() => setPublicMenuOpen((open) => !open)} aria-label="Toggle navigation menu" aria-expanded={publicMenuOpen}><Icon name={publicMenuOpen ? 'close' : 'menu'}/></button>
-                    {publicMenuOpen && <div className="panel absolute left-4 right-4 top-[4.5rem] z-50 space-y-1 p-2 shadow-lg lg:hidden"><nav className="grid" aria-label="Mobile public navigation">{publicNavigation.map(({label,href,icon}) => <a key={label} href={href} onClick={() => setPublicMenuOpen(false)} className="nav-link"><Icon name={icon} size={16}/>{label}</a>)}</nav><div className="grid grid-cols-2 gap-2 border-t border-[#2563EB]/15 pt-2"><NavLink to="/login" onClick={() => setPublicMenuOpen(false)} className="nav-link justify-center border border-[#2563EB]">Sign in</NavLink><NavLink to="/register" onClick={() => setPublicMenuOpen(false)} className="rounded-xl border border-[#2563EB] bg-[#2563EB] px-3 py-2 text-center text-sm font-extrabold text-white no-underline">Get started</NavLink></div></div>}
+                            <Icon name={publicMenuOpen ? 'close' : 'menu'} size={22} />
+                        </button>
+                        {publicMenuOpen && (
+                            <div className="dropdown absolute left-4 right-4 top-full z-50 p-2 lg:hidden">
+                                <nav className="space-y-1" aria-label="Mobile public navigation">
+                                    {publicNavigation.map(({ label, href, icon }) => (
+                                        <a
+                                            key={label}
+                                            href={href}
+                                            onClick={() => setPublicMenuOpen(false)}
+                                            className="dropdown-item"
+                                        >
+                                            <Icon name={icon} size={16} />
+                                            {label}
+                                        </a>
+                                    ))}
+                                </nav>
+                                <div className="dropdown-divider" />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <NavLink
+                                        to="/login"
+                                        onClick={() => setPublicMenuOpen(false)}
+                                        className="dropdown-item justify-center"
+                                    >
+                                        Sign in
+                                    </NavLink>
+                                    <NavLink
+                                        to="/register"
+                                        onClick={() => setPublicMenuOpen(false)}
+                                        className="btn btn-primary btn-sm justify-center"
+                                    >
+                                        Get started
+                                    </NavLink>
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
@@ -6429,15 +6471,6 @@ function Dashboard(){
         }
     };
 
-    const handleQuickApprove = async (id, status) => {
-        try {
-            await api.patch(`/admin/requests/${id}`, { status });
-            loadData();
-        } catch(e) {
-            setError(e.response?.data?.message || 'Action failed.');
-        }
-    };
-
     const getRoleTotal = (roleName) => {
         if (!s?.role_counts) return 0;
         const found = s.role_counts.find(r => r.role === roleName);
@@ -6490,7 +6523,7 @@ function Dashboard(){
                 </div>
             )}
 
-            <section className="panel p-4 sm:p-5">
+            <section className="panel no-hover p-4 sm:p-5">
                 <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70 mb-3">Quick Actions</p>
                 <div className="flex flex-wrap items-center gap-3">
                     <Button loading={runningMatch} onClick={handleRunMatches}>
@@ -6599,7 +6632,7 @@ function Dashboard(){
                     </div>
 
                     <section className="grid gap-6 xl:grid-cols-2">
-                        <article className="panel p-5 sm:p-6 min-h-[320px]">
+                        <article className="panel no-hover p-5 sm:p-6 min-h-[320px]">
                             <div className="flex items-start justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                                 <div>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Donation Trends</p>
@@ -6620,7 +6653,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel p-5 sm:p-6 min-h-[320px]">
+                        <article className="panel no-hover p-5 sm:p-6 min-h-[320px]">
                             <div className="flex items-start justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                                 <div>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Support Requests</p>
@@ -6643,7 +6676,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel p-5 sm:p-6 min-h-[320px]">
+                        <article className="panel no-hover p-5 sm:p-6 min-h-[320px]">
                             <div className="flex items-start justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                                 <div>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Community Distribution</p>
@@ -6668,7 +6701,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel p-5 sm:p-6 min-h-[320px]">
+                        <article className="panel no-hover p-5 sm:p-6 min-h-[320px]">
                             <div className="flex items-start justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                                 <div>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Matching & Fulfillment</p>
@@ -6693,7 +6726,7 @@ function Dashboard(){
                         </article>
                     </section>
 
-                    <div className="panel p-5 sm:p-6">
+                    <div className="panel no-hover p-5 sm:p-6">
                         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                             <div>
                                 <h3 className="text-base font-extrabold text-[#2563EB]">Community Directory Overview</h3>
@@ -6728,7 +6761,7 @@ function Dashboard(){
 
                     <div className="grid gap-6 lg:grid-cols-2">
                         <div className="space-y-6">
-                            <section className="panel p-5 sm:p-6">
+                            <section className="panel no-hover p-5 sm:p-6">
                                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2563EB]/20 pb-4">
                                     <div>
                                         <h2 className="text-base font-extrabold text-[#2563EB]">Pending Support Requests</h2>
@@ -6754,23 +6787,13 @@ function Dashboard(){
                                                         <p className="mt-1 text-xs text-[#2563EB]/70 italic line-clamp-2">"{req.justification}"</p>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <Button onClick={() => handleQuickApprove(req.id, 'approved')}>
-                                                        <Icon name="check"/>
-                                                        <span className="ml-1 text-xs">Approve</span>
-                                                    </Button>
-                                                    <Button variant="secondary" onClick={() => handleQuickApprove(req.id, 'rejected')}>
-                                                        <Icon name="decline"/>
-                                                        <span className="ml-1 text-xs">Decline</span>
-                                                    </Button>
-                                                </div>
                                             </div>
                                         ))
                                     )}
                                 </div>
                             </section>
 
-                            <section className="panel p-5 sm:p-6">
+                            <section className="panel no-hover p-5 sm:p-6">
                                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2563EB]/20 pb-4">
                                     <div>
                                         <h2 className="text-base font-extrabold text-[#2563EB]">Priority Matching Queue</h2>
@@ -6802,7 +6825,7 @@ function Dashboard(){
                         </div>
 
                         <div className="space-y-6">
-                            <section className="panel p-5 sm:p-6 flex flex-col h-full">
+                            <section className="panel no-hover p-5 sm:p-6 flex flex-col h-full">
                                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2563EB]/20 pb-4">
                                     <div>
                                         <h2 className="text-base font-extrabold text-[#2563EB]">Recent System Activity</h2>
