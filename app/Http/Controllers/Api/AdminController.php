@@ -99,6 +99,7 @@ class AdminController extends Controller
             'country' => 'nullable|string|max:100',
             'campus_id' => $isAdminOrStaff ? 'required|string|max:50|unique:users,campus_id' : 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
+            'valid_id_number' => $role === 'donor' ? 'required|string|max:50|unique:users,valid_id_number' : 'nullable|string|max:50',
             'student_id_number' => $role === 'beneficiary' ? 'required|string|max:50|unique:users,student_id_number' : 'nullable|string|max:50',
             'school_email' => $role === 'beneficiary' ? 'required|email|max:255' : 'nullable|email|max:255',
             'department' => $role === 'beneficiary' ? 'required|string|max:255' : 'nullable|string|max:255',
@@ -106,11 +107,13 @@ class AdminController extends Controller
             'year_level' => $role === 'beneficiary' ? 'required|string|max:50' : 'nullable|string|max:50',
         ], [
             'campus_id.required' => 'Campus ID Number is required for ' . ($role === 'admin' ? 'Administrator' : 'Staff') . ' accounts.',
+            'valid_id_number.required' => 'Valid ID Number is required for Donor accounts.',
         ]);
 
         if ($role === 'beneficiary') {
             $d['campus_id'] = null;
             $d['address'] = null;
+            $d['valid_id_number'] = null;
         } elseif ($role === 'donor') {
             $d['campus_id'] = null;
             $d['student_id_number'] = null;
@@ -120,6 +123,7 @@ class AdminController extends Controller
             $d['year_level'] = null;
         } elseif ($isAdminOrStaff) {
             $d['address'] = null;
+            $d['valid_id_number'] = null;
             $d['student_id_number'] = null;
             $d['school_email'] = null;
             $d['department'] = null;
@@ -147,6 +151,7 @@ class AdminController extends Controller
             'country' => 'nullable|string|max:100',
             'campus_id' => $isAdminOrStaff ? 'required|string|max:50|unique:users,campus_id,' . $user->id : 'nullable|string|max:50|unique:users,campus_id,' . $user->id,
             'address' => 'nullable|string|max:255',
+            'valid_id_number' => 'nullable|string|max:50|unique:users,valid_id_number,' . $user->id,
             'student_id_number' => 'nullable|string|max:50|unique:users,student_id_number,' . $user->id,
             'school_email' => 'nullable|email|max:255',
             'department' => 'nullable|string|max:255',
@@ -160,6 +165,7 @@ class AdminController extends Controller
             if ($d['role'] === 'beneficiary') {
                 $d['campus_id'] = null;
                 $d['address'] = null;
+                $d['valid_id_number'] = null;
             } elseif ($d['role'] === 'donor') {
                 $d['campus_id'] = null;
                 $d['student_id_number'] = null;
@@ -169,6 +175,7 @@ class AdminController extends Controller
                 $d['year_level'] = null;
             } elseif (in_array($d['role'], ['admin', 'staff'], true)) {
                 $d['address'] = null;
+                $d['valid_id_number'] = null;
                 $d['student_id_number'] = null;
                 $d['school_email'] = null;
                 $d['department'] = null;

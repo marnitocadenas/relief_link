@@ -27,6 +27,7 @@ class User extends Authenticatable
         'contact_number',
         'campus_id',
         'address',
+        'valid_id_number',
         'student_id_number',
         'school_email',
         'department',
