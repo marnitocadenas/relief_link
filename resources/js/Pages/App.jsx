@@ -48,6 +48,55 @@ function RouteGuard({ children, roles }) {
     return children;
 }
 
+const getModulesForRole = (role) => {
+    if (role === 'admin') {
+        return [
+            { name: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
+            { name: 'User Management', path: '/users', icon: 'users' },
+            { name: 'Donation Management', path: '/donations', icon: 'donation' },
+            { name: 'Request Management', path: '/requests', icon: 'request' },
+            { name: 'Matching Management', path: '/matches', icon: 'match' },
+            { name: 'Category Management', path: '/admin/categories', icon: 'categories' },
+            { name: 'Approval Management', path: '/admin/approvals', icon: 'approvals' },
+            { name: 'Announcements', path: '/admin/announcements', icon: 'announcements' },
+            { name: 'Activity Logs', path: '/activities', icon: 'activity' },
+            { name: 'Reports & Analytics', path: '/reports', icon: 'report' },
+        ];
+    }
+    if (role === 'staff') {
+        return [
+            { name: 'Dashboard', path: '/staff/dashboard', icon: 'dashboard' },
+            { name: 'Request Verifications', path: '/staff/verifications', icon: 'approvals' },
+            { name: 'Warehouse & Inventory', path: '/staff/inventory', icon: 'donation' },
+            { name: 'Walk-In Relief Desk', path: '/staff/desk', icon: 'request' },
+            { name: 'Support & Fulfillment', path: '/staff/handoffs', icon: 'fulfillment' },
+            { name: 'Activity & Reports', path: '/staff/activity', icon: 'activity' },
+        ];
+    }
+    if (role === 'donor') {
+        return [
+            { name: 'Dashboard', path: '/donor/dashboard', icon: 'dashboard' },
+            { name: 'Make a Donation', path: '/donate', icon: 'donation' },
+            { name: 'Browse Requests', path: '/donor/needs', icon: 'request' },
+            { name: 'My Donations', path: '/donations', icon: 'donation' },
+            { name: 'My Matches', path: '/matches', icon: 'match' },
+            { name: 'Fulfillment Status', path: '/donor/fulfillment', icon: 'fulfillment' },
+            { name: 'Donation History', path: '/donor/history', icon: 'history' },
+        ];
+    }
+    if (role === 'beneficiary') {
+        return [
+            { name: 'Dashboard', path: '/beneficiary/dashboard', icon: 'dashboard' },
+            { name: 'Create Request', path: '/request-help', icon: 'request' },
+            { name: 'My Requests', path: '/requests', icon: 'request' },
+            { name: 'My Matches', path: '/matches', icon: 'match' },
+            { name: 'Support / Fulfillment', path: '/beneficiary/fulfillment', icon: 'fulfillment' },
+            { name: 'Request History', path: '/beneficiary/history', icon: 'history' },
+        ];
+    }
+    return [];
+};
+
 function NotificationsNavButton() {
     const { unreadCount } = useNotifications();
     return (
@@ -72,55 +121,6 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
 
     if (!user) return null;
 
-    const getModulesForRole = (role) => {
-        if (role === 'admin') {
-            return [
-                { name: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
-                { name: 'User Management', path: '/users', icon: 'users' },
-                { name: 'Donation Management', path: '/donations', icon: 'donation' },
-                { name: 'Request Management', path: '/requests', icon: 'request' },
-                { name: 'Matching Management', path: '/matches', icon: 'match' },
-                { name: 'Category Management', path: '/admin/categories', icon: 'categories' },
-                { name: 'Approval Management', path: '/admin/approvals', icon: 'approvals' },
-                { name: 'Announcements', path: '/admin/announcements', icon: 'announcements' },
-                { name: 'Activity Logs', path: '/activities', icon: 'activity' },
-                { name: 'Reports & Analytics', path: '/reports', icon: 'report' },
-            ];
-        }
-        if (role === 'staff') {
-            return [
-                { name: 'Dashboard', path: '/staff/dashboard', icon: 'dashboard' },
-                { name: 'Request Verifications', path: '/staff/verifications', icon: 'approvals' },
-                { name: 'Warehouse & Inventory', path: '/staff/inventory', icon: 'donation' },
-                { name: 'Walk-In Relief Desk', path: '/staff/desk', icon: 'request' },
-                { name: 'Support & Fulfillment', path: '/staff/handoffs', icon: 'fulfillment' },
-                { name: 'Activity & Reports', path: '/staff/activity', icon: 'activity' },
-            ];
-        }
-        if (role === 'donor') {
-            return [
-                { name: 'Dashboard', path: '/donor/dashboard', icon: 'dashboard' },
-                { name: 'Make a Donation', path: '/donate', icon: 'donation' },
-                { name: 'Browse Requests', path: '/donor/needs', icon: 'request' },
-                { name: 'My Donations', path: '/donations', icon: 'donation' },
-                { name: 'My Matches', path: '/matches', icon: 'match' },
-                { name: 'Fulfillment Status', path: '/donor/fulfillment', icon: 'fulfillment' },
-                { name: 'Donation History', path: '/donor/history', icon: 'history' },
-            ];
-        }
-        if (role === 'beneficiary') {
-            return [
-                { name: 'Dashboard', path: '/beneficiary/dashboard', icon: 'dashboard' },
-                { name: 'Create Request', path: '/request-help', icon: 'request' },
-                { name: 'My Requests', path: '/requests', icon: 'request' },
-                { name: 'My Matches', path: '/matches', icon: 'match' },
-                { name: 'Support / Fulfillment', path: '/beneficiary/fulfillment', icon: 'fulfillment' },
-                { name: 'Request History', path: '/beneficiary/history', icon: 'history' },
-            ];
-        }
-        return [];
-    };
-
     const modules = getModulesForRole(user.role);
 
     const hamIcon = (size) => (
@@ -131,11 +131,70 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
         </svg>
     );
 
-    const makeSidebarContent = (isCollapsed) => (
-        <div className={`flex h-full flex-col ${isCollapsed ? 'px-2 py-3' : 'p-4'}`}>
+    const activeModule = modules.find((m) => location.pathname === m.path);
 
+    return (
+        <>
+            <aside className={`hidden lg:fixed lg:left-0 lg:top-0 lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-30 overflow-hidden transition-[width] duration-300 ease-in-out ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
+                <SidebarContent 
+                    isCollapsed={collapsed} 
+                    modules={modules} 
+                    activeModule={activeModule} 
+                    user={user}
+                    location={location}
+                    hamIcon={hamIcon}
+                    setCollapsed={setCollapsed}
+                    setMobileOpen={setMobileOpen}
+                    mobileOpen={mobileOpen}
+                />
+            </aside>
+
+            {mobileOpen && (
+                <div className="fixed inset-0 z-50 flex lg:hidden">
+                    <div
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={() => setMobileOpen(false)}
+                    />
+                    <aside className="relative z-10 flex h-full w-72 flex-col bg-blue-600 border-r border-blue-100 shadow-2xl">
+                        <div className="absolute right-3 top-3">
+                            <button
+                                className="p-2 text-white hover:bg-white/10 rounded-xl transition"
+                                onClick={() => setMobileOpen(false)}
+                                aria-label="Close menu"
+                            >
+                                <Icon name="close" size={20} />
+                            </button>
+                        </div>
+                        <SidebarContent 
+                            isCollapsed={false} 
+                            modules={modules} 
+                            activeModule={activeModule} 
+                            user={user}
+                            location={location}
+                            hamIcon={hamIcon}
+                            setCollapsed={setCollapsed}
+                            setMobileOpen={setMobileOpen}
+                            mobileOpen={mobileOpen}
+                        />
+                    </aside>
+                </div>
+            )}
+        </>
+    );
+}
+
+function SidebarContent({ isCollapsed, modules, activeModule, user, location, hamIcon, setCollapsed, setMobileOpen, mobileOpen }) {
+    const getRoleDashboard = (role) => {
+        if (role === 'admin') return '/dashboard';
+        if (role === 'staff') return '/staff/dashboard';
+        if (role === 'donor') return '/donor/dashboard';
+        if (role === 'beneficiary') return '/beneficiary/dashboard';
+        return '/login';
+    };
+
+    return (
+        <div className={`flex h-full flex-col ${isCollapsed ? 'px-2 py-3' : 'p-4'}`}>
             {isCollapsed ? (
-                /* -- COLLAPSED header: hamburger only -- */
                 <div className="flex flex-col items-center border-b border-white/20 pb-3 mb-3">
                     <button
                         onClick={() => setCollapsed(false)}
@@ -147,7 +206,6 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
                     </button>
                 </div>
             ) : (
-                /* -- EXPANDED header: logo+text left, hamburger right -- */
                 <div className="flex items-center justify-between border-b border-white/20 pb-4 mb-4 gap-2">
                     <Link
                         to={getRoleDashboard(user.role)}
@@ -174,7 +232,7 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
                 </div>
             )}
 
-            <nav className="space-y-1 flex-1 overflow-y-auto">
+            <nav className="space-y-0.5 flex-1 overflow-y-auto">
                 {modules.map((m) => {
                     const isActive = location.pathname === m.path;
                     return (
@@ -183,7 +241,7 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
                             to={m.path}
                             onClick={() => setMobileOpen(false)}
                             title={isCollapsed ? m.name : ''}
-                            className={`flex items-center gap-3 rounded-xl py-2.5 text-sm font-semibold no-underline transition-colors ${isCollapsed ? 'justify-center px-2' : 'px-3'} ${
+                            className={`flex items-center gap-3 rounded-xl py-2 text-base font-medium no-underline transition-colors ${isCollapsed ? 'justify-center px-2' : 'px-3'} ${
                                 isActive
                                     ? 'bg-white text-blue-600 shadow-sm'
                                     : 'text-white/90 hover:bg-white/10 hover:text-white'
@@ -196,35 +254,6 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
                 })}
             </nav>
         </div>
-    );
-
-    return (
-        <>
-            <aside className={`hidden lg:fixed lg:left-0 lg:top-0 lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-30 overflow-hidden transition-[width] duration-300 ease-in-out ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
-                {makeSidebarContent(collapsed)}
-            </aside>
-
-            {mobileOpen && (
-                <div className="fixed inset-0 z-50 flex lg:hidden">
-                    <div
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-                        onClick={() => setMobileOpen(false)}
-                    />
-                    <aside className="relative z-10 flex h-full w-72 flex-col bg-blue-600 border-r border-blue-100 shadow-2xl">
-                        <div className="absolute right-3 top-3">
-                            <button
-                                className="p-2 text-white hover:bg-white/10 rounded-xl transition"
-                                onClick={() => setMobileOpen(false)}
-                                aria-label="Close menu"
-                            >
-                                <Icon name="close" size={20} />
-                            </button>
-                        </div>
-                        {makeSidebarContent(false)}
-                    </aside>
-                </div>
-            )}
-        </>
     );
 }
 
@@ -320,7 +349,7 @@ const publicNavigation = [
     { label: 'About', href: '#about', icon: 'info' },
 ];
 
-function Header({ setMobileOpen, collapsed }) {
+function Header({ setMobileOpen, collapsed, activeModuleName }) {
     const { user } = useAuth();
     const location = useLocation();
     const [publicMenuOpen, setPublicMenuOpen] = useState(false);
@@ -353,6 +382,11 @@ function Header({ setMobileOpen, collapsed }) {
                         </div>
                         <span className="text-lg font-extrabold tracking-tight text-gray-900 hidden sm:block">ReliefLink</span>
                     </NavLink>
+                )}
+                {user && activeModuleName && collapsed && (
+                    <span className="hidden lg:block text-lg font-semibold text-gray-700 truncate max-w-xs ml-2">
+                        {activeModuleName}
+                    </span>
                 )}
             </div>
 
@@ -15912,10 +15946,19 @@ export default function App() {
         try { localStorage.setItem('rl_sidebar_collapsed', String(val)); } catch {}
     };
 
+    const { user, loading } = useAuth();
+    const location = useLocation();
+
+    const activeModuleName = user ? (() => {
+        const modules = getModulesForRole(user.role);
+        const activeModule = modules.find((m) => location.pathname === m.path);
+        return activeModule ? activeModule.name : null;
+    })() : null;
+
     return (
         <div className="min-h-screen bg-white">
             <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} setCollapsed={setCollapsed} />
-            <Header setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} />
+            <Header setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} activeModuleName={activeModuleName} />
             <div className="lg:min-h-screen lg:ml-16">
                 <main className="flex-1 min-w-0">
                     <Routes>
