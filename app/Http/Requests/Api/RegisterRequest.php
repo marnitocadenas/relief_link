@@ -160,6 +160,7 @@ class RegisterRequest extends FormRequest
                 'unique:users,campus_id',
             ],
             'address' => ['nullable', 'string', 'max:255'],
+            'valid_id_number' => ['nullable', 'string', 'max:50', 'unique:users,valid_id_number'],
             'student_id_number' => ['nullable', 'string', 'max:50', 'unique:users,student_id_number'],
             'school_email' => ['nullable', 'email', 'max:255'],
             'department' => ['nullable', 'string', 'max:255'],
