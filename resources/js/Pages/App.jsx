@@ -3853,12 +3853,14 @@ function EditModal({item, kind, admin, close, done}){
         role: item.role || 'donor',
         contact_number: item.contact_number || '',
         address: item.address || '',
+        valid_id_number: item.valid_id_number || '',
         student_id_number: item.student_id_number || '',
         school_email: item.school_email || '',
         department: item.department || '',
         course: item.course || '',
         year_level: item.year_level || '',
         country: item.country || '',
+        country_code: item.country_code || '',
         password: '',
         password_confirmation: '',
     });
@@ -3913,6 +3915,12 @@ function EditModal({item, kind, admin, close, done}){
                 }
                 if (!f.year_level?.trim()) {
                     setError('Year Level is required for Beneficiary.');
+                    return;
+                }
+            }
+            if (f.role === 'donor') {
+                if (!f.valid_id_number?.trim()) {
+                    setError('Valid ID Number is required for Donor.');
                     return;
                 }
             }
@@ -4149,6 +4157,31 @@ function EditModal({item, kind, admin, close, done}){
                                         onChange={e => setF({...f, country: e.target.value})}
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                        Valid ID Number <span className="text-[#22C55E]">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="field w-full text-xs font-semibold"
+                                        placeholder="Enter valid ID number"
+                                        value={f.valid_id_number || ''}
+                                        onChange={e => setF({...f, valid_id_number: e.target.value})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                                        Country Code
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="field w-full text-xs font-semibold"
+                                        placeholder="e.g. PH"
+                                        value={f.country_code || ''}
+                                        onChange={e => setF({...f, country_code: e.target.value})}
+                                    />
+                                </div>
                             </div>
                         )}
 
@@ -4338,7 +4371,7 @@ function PeopleManager(){
                         Manage user roles, inspect account profiles, and authorize campus accounts.
                     </p>
                 </div>
-                <Button onClick={() => setEditing({name: '', email: '', role: 'donor', contact_number: '', address: '', student_id_number: '', school_email: '', department: '', course: '', year_level: '', country: '', password: '', password_confirmation: ''})}>
+                <Button onClick={() => setEditing({name: '', email: '', role: 'donor', contact_number: '', address: '', valid_id_number: '', student_id_number: '', school_email: '', department: '', course: '', year_level: '', country: '', country_code: '', password: '', password_confirmation: ''})}>
                     <Icon name="plus"/><span className="ml-2">Add Member</span>
                 </Button>
             </div>
@@ -4510,7 +4543,7 @@ function PeopleManager(){
                                             <td>
                                                 <span className="text-xs font-mono font-bold text-[#2563EB]">
                                                     {userItem.role === 'donor'
-                                                        ? (userItem.campus_id || '—')
+                                                        ? (userItem.valid_id_number || '—')
                                                         : userItem.role === 'beneficiary'
                                                             ? (userItem.student_id_number || '—')
                                                             : '—'}
@@ -4583,7 +4616,7 @@ function PeopleManager(){
                                             <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">ID Number</span>
                                             <span className="font-mono">
                                                 {userItem.role === 'donor'
-                                                    ? (userItem.campus_id || '—')
+                                                    ? (userItem.valid_id_number || '—')
                                                     : userItem.role === 'beneficiary'
                                                         ? (userItem.student_id_number || '—')
                                                         : '—'}
@@ -4700,7 +4733,7 @@ function PeopleManager(){
                                 </div>
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                     <span className="font-bold text-[#2563EB]/70">Valid ID Number:</span>
-                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.campus_id || 'N/A'}</span>
+                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.valid_id_number || 'N/A'}</span>
                                 </div>
                             </>)}
                             {viewingUser.role === 'beneficiary' && (<>

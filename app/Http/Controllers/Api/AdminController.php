@@ -151,7 +151,7 @@ class AdminController extends Controller
             'country' => 'nullable|string|max:100',
             'campus_id' => $isAdminOrStaff ? 'required|string|max:50|unique:users,campus_id,' . $user->id : 'nullable|string|max:50|unique:users,campus_id,' . $user->id,
             'address' => 'nullable|string|max:255',
-            'valid_id_number' => 'nullable|string|max:50|unique:users,valid_id_number,' . $user->id,
+            'valid_id_number' => $role === 'donor' ? 'required|string|max:50|unique:users,valid_id_number,' . $user->id : 'nullable|string|max:50|unique:users,valid_id_number,' . $user->id,
             'student_id_number' => 'nullable|string|max:50|unique:users,student_id_number,' . $user->id,
             'school_email' => 'nullable|email|max:255',
             'department' => 'nullable|string|max:255',
@@ -159,6 +159,7 @@ class AdminController extends Controller
             'year_level' => 'nullable|string|max:50',
         ], [
             'campus_id.required' => 'Campus ID Number is required for ' . ($role === 'admin' ? 'Administrator' : 'Staff') . ' accounts.',
+            'valid_id_number.required' => 'Valid ID Number is required for Donor accounts.',
         ]);
 
         if (array_key_exists('role', $d)) {
