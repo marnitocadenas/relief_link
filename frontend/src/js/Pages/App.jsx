@@ -135,7 +135,7 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
 
     return (
         <>
-            <aside className={`hidden lg:fixed lg:left-0 lg:top-0 lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-30 overflow-hidden transition-[width] duration-300 ease-in-out ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
+            <aside className={`hidden lg:fixed lg:left-0 lg:top-0 lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-30 overflow-hidden transition-[width] duration-300 ease-in-out ${user.role === 'admin' ? 'admin-sidebar' : ''} ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
                 <SidebarContent 
                     isCollapsed={collapsed} 
                     modules={modules} 
@@ -155,7 +155,7 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm"
                         onClick={() => setMobileOpen(false)}
                     />
-                    <aside className="relative z-10 flex h-full w-72 flex-col bg-blue-600 border-r border-blue-100 shadow-2xl">
+                    <aside className={`relative z-10 flex h-full w-72 flex-col bg-blue-600 border-r border-blue-100 shadow-2xl ${user.role === 'admin' ? 'admin-sidebar' : ''}`}>
                         <div className="absolute right-3 top-3">
                             <button
                                 className="p-2 text-white hover:bg-white/10 rounded-xl transition"
@@ -241,7 +241,7 @@ function SidebarContent({ isCollapsed, modules, activeModule, user, location, ha
                             to={m.path}
                             onClick={() => setMobileOpen(false)}
                             title={isCollapsed ? m.name : ''}
-                            className={`flex items-center gap-3 rounded-xl py-2 text-base font-medium no-underline transition-colors ${isCollapsed ? 'justify-center px-2' : 'px-3'} ${
+                            className={`flex items-center gap-3 rounded-xl py-2 text-base font-medium no-underline transition-colors ${user.role === 'admin' ? 'admin-sidebar-link' : ''} ${isCollapsed ? 'justify-center px-2' : 'px-3'} ${
                                 isActive
                                     ? 'bg-white text-blue-600 shadow-sm'
                                     : 'text-white/90 hover:bg-white/10 hover:text-white'
@@ -360,8 +360,8 @@ function Header({ setMobileOpen, collapsed, activeModuleName }) {
 
     return (
         <header
-            className={`sticky top-0 z-40 flex h-16 items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8 transition-all duration-300 ease-in-out ${
-                collapsed ? 'lg:ml-16 lg:w-[calc(100%-4rem)]' : 'lg:ml-64 lg:w-[calc(100%-16rem)]'
+            className={`sticky top-0 z-40 flex h-16 items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8 transition-all duration-300 ease-in-out ${user?.role === 'admin' ? 'admin-header' : ''} ${
+                user ? (collapsed ? 'lg:ml-16 lg:w-[calc(100%-4rem)]' : 'lg:ml-64 lg:w-[calc(100%-16rem)]') : 'public-header w-full'
             }`}
         >
             <div className="flex items-center gap-3">
@@ -377,9 +377,7 @@ function Header({ setMobileOpen, collapsed, activeModuleName }) {
                 )}
                 {!user && (
                     <NavLink to="/" className="flex items-center gap-2.5 no-underline" aria-label="ReliefLink home">
-                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-100 text-blue-600">
-                            <Icon name="heart" size={22} />
-                        </div>
+                        <img src="/images/relieflink-logo.png" alt="" className="h-10 w-10 shrink-0 object-contain" />
                         <span className="text-lg font-extrabold tracking-tight text-gray-900 hidden sm:block">ReliefLink</span>
                     </NavLink>
                 )}
@@ -410,13 +408,13 @@ function Header({ setMobileOpen, collapsed, activeModuleName }) {
                 ) : (
                     <>
                         <div className="hidden items-center gap-2 sm:flex">
-                            <NavLink to="/login" className="btn btn-ghost btn-sm">
+                            <NavLink to="/login" className="btn btn-ghost btn-sm no-underline">
                                 <Icon name="profile" size={16} />
                                 <span>Sign in</span>
                             </NavLink>
                             <NavLink
                                 to="/register"
-                                className="btn btn-primary btn-sm"
+                                className="btn btn-primary btn-sm no-underline"
                             >
                                 Get started
                             </NavLink>
@@ -489,9 +487,9 @@ function Home() {
     ];
 
     return (
-        <main id="top" className="min-h-screen bg-white scroll-smooth">
+        <main id="top" className="landing-page min-h-screen bg-white scroll-smooth">
             {/* HERO BANNER SECTION */}
-            <section className="bg-[#2563EB] text-white">
+            <section className="landing-hero bg-[#2563EB] text-white">
                 <div className="shell grid gap-10 py-14 sm:py-20 lg:grid-cols-12 lg:items-center">
                     {/* Left Hero Content */}
                     <div className="lg:col-span-7 space-y-6">
@@ -499,12 +497,12 @@ function Home() {
                             CAMPUS RESOURCE EXCHANGE
                         </span>
 
-                        <h1 className="text-4xl font-extrabold leading-tight sm:text-6xl tracking-tight">
+                        <h1 className="hero-title">
                             Useful things.<br />
                             Real impact.
                         </h1>
 
-                        <p className="max-w-xl text-base sm:text-lg leading-relaxed opacity-95">
+                        <p className="hero-copy max-w-xl opacity-95">
                             A practical, secure platform for campus donors and beneficiaries to turn available resources into meaningful, direct support.
                         </p>
 
@@ -528,7 +526,7 @@ function Home() {
                     </div>
 
                     {/* Right How It Works Container */}
-                    <div id="how-it-works" className="lg:col-span-5 rounded-2xl border-2 border-white bg-white/10 p-6 sm:p-8 backdrop-blur-sm shadow-xl">
+                    <div id="how-it-works" className="how-card lg:col-span-5 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
                         <div className="flex items-center justify-between border-b border-white/30 pb-3 mb-6">
                             <p className="text-xs font-extrabold tracking-[.15em] uppercase">HOW IT WORKS</p>
                             <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-[#2563EB] uppercase">
@@ -559,23 +557,23 @@ function Home() {
             </section>
 
             {/* LIVE IMPACT STATISTICS STRIP */}
-            <section className="border-b border-[#2563EB] bg-white py-8">
+            <section className="landing-stats border-b border-[#2563EB]/10 bg-white py-8">
                 <div className="shell grid gap-6 sm:grid-cols-3 text-center">
-                    <div className="p-4 rounded-2xl border border-[#2563EB] bg-white">
+                    <div className="stat-highlight p-4 rounded-2xl bg-white">
                         <span className="text-2xl font-extrabold text-[#22C55E] block">100% Verified</span>
                         <span className="text-xs font-extrabold text-[#2563EB] uppercase tracking-wider mt-1 block">
                             Campus Identity & Admin Approval
                         </span>
                     </div>
 
-                    <div className="p-4 rounded-2xl border border-[#2563EB] bg-white">
+                    <div className="stat-highlight p-4 rounded-2xl bg-white">
                         <span className="text-2xl font-extrabold text-[#2563EB] block">Instant Matching</span>
                         <span className="text-xs font-extrabold text-[#2563EB] uppercase tracking-wider mt-1 block">
                             Urgency & Category Guided
                         </span>
                     </div>
 
-                    <div className="p-4 rounded-2xl border border-[#2563EB] bg-white">
+                    <div className="stat-highlight p-4 rounded-2xl bg-white">
                         <span className="text-2xl font-extrabold text-[#22C55E] block">Safe Handoffs</span>
                         <span className="text-xs font-extrabold text-[#2563EB] uppercase tracking-wider mt-1 block">
                             Scheduled Meeting Locations
@@ -585,7 +583,7 @@ function Home() {
             </section>
 
             {/* KEY FEATURE CARDS SECTION */}
-            <section id="about" className="shell py-14">
+            <section id="about" className="landing-values shell py-14">
                 <div className="text-center max-w-2xl mx-auto mb-10">
                     <p className="eyebrow">KEY PLATFORM VALUES</p>
                     <h2 className="page-title text-3xl">Designed for trust, transparency, and ease</h2>
@@ -594,26 +592,26 @@ function Home() {
                     </p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {[
                         ['Trusted requests', 'Administrators and verified systems review every request to ensure genuine campus need and safety.', 'check'],
                         ['Smarter matching', 'Availability windows, pickup locations, and urgency levels guide intelligent resource matching.', 'heart'],
                         ['Visible outcomes', 'Follow every resource donation through scheduling, two-party confirmation, and fulfillment.', 'fulfillment'],
                     ].map(([heading, copy, iconName]) => (
-                        <article className="panel no-hover p-7 transition hover:border-[#22C55E] flex flex-col justify-between" key={heading}>
+                        <article className="landing-card panel no-hover p-7 transition hover:border-[#22C55E] flex flex-col justify-between" key={heading}>
                             <div>
                                 <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#22C55E] bg-[#22C55E] text-white">
                                     <Icon name={iconName} size={24} />
                                 </div>
-                                <h3 className="mt-5 text-xl font-extrabold text-[#2563EB]">{heading}</h3>
-                                <p className="mt-3 text-xs leading-relaxed font-semibold text-[#2563EB] opacity-90">{copy}</p>
+                                <h3 className="landing-card-title mt-5 text-xl text-[#2563EB]">{heading}</h3>
+                                <p className="landing-card-copy mt-3 leading-relaxed text-[#2563EB] opacity-90">{copy}</p>
                             </div>
                         </article>
                     ))}
                 </div>
             </section>
 
-            <section className="border-t border-[#2563EB]/20 bg-[#2563EB]/5 py-14">
+            <section className="impact-section border-t border-[#2563EB]/10 bg-[#2563EB]/5 py-14">
                 <div className="shell">
                     <div className="mx-auto max-w-2xl text-center"><p className="eyebrow">PLATFORM IMPACT</p><h2 className="mt-2 text-3xl font-extrabold text-[#2563EB]">Verified impact, visible as it happens</h2><p className="mt-3 text-sm font-semibold leading-relaxed text-[#2563EB]/80">ReliefLink will publish live platform impact here as verified activity becomes available.</p></div>
                     <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -622,13 +620,13 @@ function Home() {
                 </div>
             </section>
 
-            <section className="shell py-14">
+            <section className="flow-section shell py-14">
                 <div className="text-center"><p className="eyebrow">THE RELIEFLINK FLOW</p><h2 className="mt-2 text-3xl font-extrabold text-[#2563EB]">From generous offer to real support</h2></div>
-                <div className="mt-8 grid gap-3 sm:grid-cols-5">{[['Donate', 'donation'], ['Verify', 'approvals'], ['Match', 'match'], ['Handoff', 'fulfillment'], ['Impact', 'check']].map(([label, icon], index) => <div key={label} className="relative text-center"><div className="panel no-hover min-h-32 place-items-center p-4 transition hover:-translate-y-1 hover:border-[#22C55E]"><div><span className={`mx-auto grid h-10 w-10 place-items-center rounded-full ${index === 4 ? 'bg-[#22C55E] text-white' : 'bg-[#2563EB] text-white'}`}><Icon name={icon}/></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">{['Share a resource', 'Confirm eligibility', 'Connect the right need', 'Coordinate safely', 'See the outcome'][index]}</p></div></div>{index < 4 && <span className="hidden sm:block absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-xl font-extrabold text-[#22C55E]">→</span>}</div>)}</div>
+                <div className="flow-grid mt-8 grid gap-3">{[['Donate', 'donation'], ['Verify', 'approvals'], ['Match', 'match'], ['Handoff', 'fulfillment'], ['Impact', 'check']].map(([label, icon], index) => <div key={label} className="flow-item relative text-center"><div className="panel no-hover min-h-32 place-items-center p-4 transition hover:-translate-y-1 hover:border-[#22C55E]"><div><span className={`mx-auto grid h-10 w-10 place-items-center rounded-full ${index === 4 ? 'bg-[#22C55E] text-white' : 'bg-[#2563EB] text-white'}`}><Icon name={icon}/></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">{['Share a resource', 'Confirm eligibility', 'Connect the right need', 'Coordinate safely', 'See the outcome'][index]}</p></div></div>{index < 4 && <span className="flow-arrow hidden sm:block absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-xl font-extrabold text-[#22C55E]">→</span>}</div>)}</div>
             </section>
 
             {/* RESOURCE CATEGORIES SHOWCASE */}
-            <section id="categories" className="border-t border-[#2563EB] bg-white py-14">
+            <section id="categories" className="category-section border-t border-[#2563EB]/10 bg-white py-14">
                 <div className="shell">
                     <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB] pb-4 mb-8">
                         <div>
@@ -640,11 +638,11 @@ function Home() {
                         </NavLink>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <div className="category-grid grid gap-4">
                         {categories.map((cat) => (
                             <div
                                 key={cat.name}
-                                className="panel no-hover p-4 flex items-center gap-3 text-xs font-extrabold text-[#2563EB] hover:border-[#22C55E] transition cursor-pointer"
+                                className="category-card panel no-hover p-4 flex items-center gap-3 text-xs font-extrabold text-[#2563EB] hover:border-[#22C55E] transition cursor-pointer"
                             >
                                 <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#2563EB] bg-white text-[#2563EB]">
                                     <Icon name={cat.icon} size={16} />
@@ -1626,9 +1624,9 @@ function Auth({ register = false }) {
     };
 
     return (
-        <main className="grid min-h-screen lg:grid-cols-2 text-[#2563EB]">
+        <main className="auth-page grid min-h-screen lg:grid-cols-2 text-[#2563EB]">
             {/* Left Hero Side Banner */}
-            <aside className="hidden bg-[#2563EB] p-12 text-white lg:flex lg:flex-col lg:justify-between">
+            <aside className="auth-brand-panel bg-[#2563EB] p-12 text-white lg:flex lg:flex-col lg:justify-between">
                 <div>
                     <div className="flex items-center gap-3">
                         <img
@@ -1644,14 +1642,14 @@ function Auth({ register = false }) {
                         </div>
                     </div>
 
-                    <div className="mt-16 space-y-4 max-w-md">
+                    <div className="auth-brand-copy mt-16 space-y-4 max-w-md">
                         <span className="inline-block rounded-full border border-white bg-[#2563EB] px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-white">
                             VERIFIED COMMUNITY EXCHANGE
                         </span>
-                        <h1 className="text-4xl font-extrabold leading-tight text-white">
+                        <h1 className="auth-brand-title text-white">
                             Small acts create a stronger campus.
                         </h1>
-                        <p className="text-sm font-semibold leading-relaxed text-white">
+                        <p className="auth-brand-description text-white">
                             Connecting students, faculty, and campus donors to share resources, fulfill essential aid requests, and coordinate safe handoffs.
                         </p>
                     </div>
@@ -1664,8 +1662,8 @@ function Auth({ register = false }) {
             </aside>
 
             {/* Right Auth Form Section */}
-            <section className="flex items-center justify-center p-6 sm:p-12 bg-white">
-                <div className="w-full max-w-md space-y-6">
+            <section className="auth-form-area flex items-center justify-center p-6 sm:p-12 bg-white">
+                <div className="auth-content w-full max-w-md space-y-6">
                     {/* Success Banner */}
                     {successMessage && (
                         <div className="rounded-xl border border-[#22C55E] bg-white p-3.5 text-xs font-extrabold text-[#22C55E] flex items-center gap-2">
@@ -1676,20 +1674,20 @@ function Auth({ register = false }) {
 
                     {/* Mode 1: LOGIN */}
                     {mode === 'login' && (
-                        <form className="panel no-hover space-y-5 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleAuthSubmit} autoComplete="off">
+                        <form className="auth-form-card panel no-hover space-y-5 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleAuthSubmit} autoComplete="off">
                             <div className="text-center">
                                 <p className="eyebrow">WELCOME BACK</p>
-                                <h1 className="page-title text-2xl font-extrabold text-[#2563EB]">
+                                <h1 className="auth-login-title text-[#2563EB]">
                                     Sign in to ReliefLink
                                 </h1>
-                                <p className="page-copy text-xs font-semibold text-[#2563EB] mt-1 max-w-xs mx-auto">
+                                <p className="auth-login-description text-[#2563EB] mt-2 max-w-xs mx-auto">
                                     Enter your registered email and password to access your dashboard.
                                 </p>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label htmlFor="auth_email" className="block text-xs font-bold text-[#2563EB]">
+                                    <label htmlFor="auth_email" className="auth-form-label block text-xs font-bold text-[#2563EB]">
                                         Email address <span className="text-[#22C55E]">*</span>
                                     </label>
                                     <input
@@ -1698,14 +1696,14 @@ function Auth({ register = false }) {
                                         type="email"
                                         autoComplete="off"
                                         placeholder="Enter your email address"
-                                        className="field mt-1 text-xs font-semibold"
+                                        className="field auth-input mt-1 text-xs font-semibold"
                                         value={f.email}
                                         onChange={(e) => setF({ ...f, email: e.target.value })}
                                     />
                                 </div>
 
                                 <div>
-                                    <label htmlFor="auth_password" className="block text-xs font-bold text-[#2563EB]">
+                                    <label htmlFor="auth_password" className="auth-form-label block text-xs font-bold text-[#2563EB]">
                                         Password <span className="text-[#22C55E]">*</span>
                                     </label>
                                     <div className="mt-1">
@@ -1715,12 +1713,12 @@ function Auth({ register = false }) {
                                             type="password"
                                             autoComplete="new-password"
                                             placeholder="Enter your password"
-                                            className="field text-xs font-semibold"
+                                            className="field auth-input text-xs font-semibold"
                                             value={f.password}
                                             onChange={(e) => setF({ ...f, password: e.target.value })}
                                         />
                                     </div>
-                                    <div className="mt-2 flex items-center justify-between text-xs">
+                                    <div className="auth-options mt-3 flex items-center justify-between text-xs">
                                         <label className="flex items-center gap-1.5 cursor-pointer font-bold text-[#2563EB] select-none">
                                             <input
                                                 type="checkbox"
@@ -1747,12 +1745,12 @@ function Auth({ register = false }) {
 
                                 {error && <Error>{error}</Error>}
 
-                                <Button type="submit" loading={loading} className="w-full py-3 text-xs font-extrabold">
+                                <Button type="submit" loading={loading} className="auth-submit w-full py-3 text-xs font-extrabold">
                                     Sign In
                                 </Button>
                             </div>
 
-                            <div className="pt-4 border-t border-[#2563EB] text-center text-xs font-bold text-[#2563EB]">
+                            <div className="auth-create-account pt-4 border-t border-[#2563EB] text-center text-xs font-bold text-[#2563EB]">
                                 Don't have an account yet?{' '}
                                 <button
                                     type="button"
@@ -8450,17 +8448,17 @@ function Dashboard(){
     }));
 
     return (
-        <main className="page space-y-8">
+        <main className="admin-dashboard page space-y-8">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <p className="eyebrow">ADMINISTRATOR WORKSPACE</p>
-                    <h1 className="page-title">Campus Impact & Overview</h1>
+                    <h1 className="page-title admin-dashboard-title">Campus Impact & Overview</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Real-time monitoring, priority queues, pending approvals, and administrative controls.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[#22C55E] bg-white px-3 py-1 text-xs font-extrabold text-[#22C55E]">
+                    <span className="admin-status inline-flex items-center gap-1.5 rounded-full border border-[#22C55E] bg-white px-3 py-1 text-xs font-extrabold text-[#22C55E]">
                         <span className="h-2 w-2 rounded-full bg-[#22C55E]"></span>
                         System Active
                     </span>
@@ -8475,30 +8473,30 @@ function Dashboard(){
                 </div>
             )}
 
-            <section className="panel no-hover p-4 sm:p-5">
+            <section className="admin-quick-actions panel no-hover p-4 sm:p-5">
                 <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70 mb-3">Quick Actions</p>
                 <div className="flex flex-wrap items-center gap-3">
-                    <Button loading={runningMatch} onClick={handleRunMatches}>
+                    <Button className="admin-action-primary" loading={runningMatch} onClick={handleRunMatches}>
                         <Icon name="match"/>
                         <span className="ml-2">Run Match Engine</span>
                     </Button>
-                    <NavLink to="/requests" className="nav-link border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
+                    <NavLink to="/requests" className="nav-link admin-action-secondary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
                         <Icon name="request"/>
                         <span>Review Requests</span>
                     </NavLink>
-                    <NavLink to="/matches" className="nav-link border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
+                    <NavLink to="/matches" className="nav-link admin-action-secondary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
                         <Icon name="match"/>
                         <span>Manage Matches</span>
                     </NavLink>
-                    <NavLink to="/users" className="nav-link border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
+                    <NavLink to="/users" className="nav-link admin-action-secondary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
                         <Icon name="users"/>
                         <span>Manage People</span>
                     </NavLink>
-                    <NavLink to="/reports" className="nav-link border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
+                    <NavLink to="/reports" className="nav-link admin-action-secondary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
                         <Icon name="report"/>
                         <span>View Reports</span>
                     </NavLink>
-                    <NavLink to="/admin/announcements" className="nav-link border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
+                    <NavLink to="/admin/announcements" className="nav-link admin-action-primary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
                         <Icon name="announcements"/>
                         <span>Post Announcement</span>
                     </NavLink>
@@ -8510,7 +8508,7 @@ function Dashboard(){
             ) : s && (
                 <>
                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-                        <article className="panel p-5 flex flex-col justify-between">
+                        <article className="admin-stat-card panel p-5 flex flex-col justify-between">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-[#2563EB]/70 uppercase tracking-wide">Donations</span>
                                 <span className="grid h-8 w-8 place-items-center rounded-lg border border-[#2563EB] text-[#2563EB]">
@@ -8523,7 +8521,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel p-5 flex flex-col justify-between">
+                        <article className="admin-stat-card panel p-5 flex flex-col justify-between">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-[#2563EB]/70 uppercase tracking-wide">Requests</span>
                                 <span className="grid h-8 w-8 place-items-center rounded-lg border border-[#2563EB] text-[#2563EB]">
@@ -8536,7 +8534,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel p-5 flex flex-col justify-between">
+                        <article className="admin-stat-card panel p-5 flex flex-col justify-between">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-[#2563EB]/70 uppercase tracking-wide">Pending Review</span>
                                 <span className="grid h-8 w-8 place-items-center rounded-lg border border-[#2563EB] text-[#2563EB]">
@@ -8554,7 +8552,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel p-5 flex flex-col justify-between">
+                        <article className="admin-stat-card panel p-5 flex flex-col justify-between">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-[#2563EB]/70 uppercase tracking-wide">Proposed Matches</span>
                                 <span className="grid h-8 w-8 place-items-center rounded-lg border border-[#2563EB] text-[#2563EB]">
@@ -8567,7 +8565,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel p-5 flex flex-col justify-between">
+                        <article className="admin-stat-card admin-stat-fulfillment panel p-5 flex flex-col justify-between">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-[#22C55E] uppercase tracking-wide">Fulfillment</span>
                                 <span className="grid h-8 w-8 place-items-center rounded-lg border border-[#22C55E] bg-[#22C55E] text-white">
@@ -8583,8 +8581,8 @@ function Dashboard(){
                         </article>
                     </div>
 
-                    <section className="grid gap-6 xl:grid-cols-2">
-                        <article className="panel no-hover p-5 sm:p-6 min-h-[320px]">
+                    <section className="admin-chart-grid grid gap-6 md:grid-cols-2">
+                        <article className="admin-chart-card panel no-hover p-5 sm:p-6 min-h-[320px]">
                             <div className="flex items-start justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                                 <div>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Donation Trends</p>
@@ -8605,7 +8603,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel no-hover p-5 sm:p-6 min-h-[320px]">
+                        <article className="admin-chart-card panel no-hover p-5 sm:p-6 min-h-[320px]">
                             <div className="flex items-start justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                                 <div>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Support Requests</p>
@@ -8628,7 +8626,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel no-hover p-5 sm:p-6 min-h-[320px]">
+                        <article className="admin-chart-card panel no-hover p-5 sm:p-6 min-h-[320px]">
                             <div className="flex items-start justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                                 <div>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Community Distribution</p>
@@ -8636,7 +8634,7 @@ function Dashboard(){
                                 </div>
                                 <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#2563EB] text-[#2563EB]"><Icon name="users"/></span>
                             </div>
-                            <div className="mt-4 grid items-center gap-3 sm:grid-cols-[1fr_auto]">
+                            <div className="admin-community-chart mt-4 grid items-center gap-3 sm:grid-cols-[1fr_auto]">
                                 <div className="h-[210px]" role="img" aria-label="Pie chart showing distribution of donors, beneficiaries, staff, and administrators">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
@@ -8653,7 +8651,7 @@ function Dashboard(){
                             </div>
                         </article>
 
-                        <article className="panel no-hover p-5 sm:p-6 min-h-[320px]">
+                        <article className="admin-chart-card panel no-hover p-5 sm:p-6 min-h-[320px]">
                             <div className="flex items-start justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                                 <div>
                                     <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Matching & Fulfillment</p>
@@ -8678,7 +8676,7 @@ function Dashboard(){
                         </article>
                     </section>
 
-                    <div className="panel no-hover p-5 sm:p-6">
+                    <div className="admin-directory-panel panel no-hover p-5 sm:p-6">
                         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                             <div>
                                 <h3 className="text-base font-extrabold text-[#2563EB]">Community Directory Overview</h3>
@@ -8686,22 +8684,22 @@ function Dashboard(){
                             </div>
                             <NavLink to="/users" className="text-xs font-extrabold text-[#2563EB] hover:underline">Manage All Members &rarr;</NavLink>
                         </div>
-                        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                            <div className="rounded-xl border border-[#2563EB] p-4 flex items-center justify-between bg-white" style={{ border: '1px solid #2563EB' }}>
+                        <div className="admin-directory-grid mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="admin-directory-card rounded-xl p-4 flex items-center justify-between bg-white">
                                 <div>
                                     <p className="text-xs font-bold text-[#2563EB]/70 uppercase">Registered Donors</p>
                                     <strong className="text-2xl font-extrabold text-[#2563EB] mt-1 block">{getRoleTotal('donor')}</strong>
                                 </div>
                                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2563EB] text-white"><Icon name="donation"/></span>
                             </div>
-                            <div className="rounded-xl border border-[#2563EB] p-4 flex items-center justify-between bg-white" style={{ border: '1px solid #2563EB' }}>
+                            <div className="admin-directory-card rounded-xl p-4 flex items-center justify-between bg-white">
                                 <div>
                                     <p className="text-xs font-bold text-[#2563EB]/70 uppercase">Beneficiaries</p>
                                     <strong className="text-2xl font-extrabold text-[#2563EB] mt-1 block">{getRoleTotal('beneficiary')}</strong>
                                 </div>
                                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2563EB] text-white"><Icon name="users"/></span>
                             </div>
-                            <div className="rounded-xl border border-[#2563EB] p-4 flex items-center justify-between bg-white" style={{ border: '1px solid #2563EB' }}>
+                            <div className="admin-directory-card rounded-xl p-4 flex items-center justify-between bg-white">
                                 <div>
                                     <p className="text-xs font-bold text-[#2563EB]/70 uppercase">Administrators</p>
                                     <strong className="text-2xl font-extrabold text-[#2563EB] mt-1 block">{getRoleTotal('admin')}</strong>
@@ -8711,7 +8709,7 @@ function Dashboard(){
                         </div>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-2">
+                    <div className="admin-bottom-grid grid gap-6 lg:grid-cols-2">
                         <div className="space-y-6">
                             <section className="panel no-hover p-5 sm:p-6">
                                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2563EB]/20 pb-4">
@@ -8723,10 +8721,10 @@ function Dashboard(){
                                 </div>
                                 <div className="mt-4 space-y-3">
                                     {!pendingRequests.length ? (
-                                        <p className="py-4 text-center text-sm font-bold text-[#22C55E]">✓ All submitted requests have been reviewed!</p>
+                                        <p className="admin-empty-state admin-empty-success py-4 text-center text-sm font-bold text-[#22C55E]">✓ All submitted requests have been reviewed!</p>
                                     ) : (
                                         pendingRequests.map(req => (
-                                            <div key={req.id} className="rounded-xl border border-[#2563EB] p-4 flex flex-wrap items-center justify-between gap-3 bg-white">
+                                            <div key={req.id} className="admin-request-row rounded-xl border border-[#2563EB] p-4 flex flex-wrap items-center justify-between gap-3 bg-white">
                                                 <div>
                                                     <div className="flex items-center gap-2">
                                                         <Badge status={req.urgency}/>
@@ -8755,10 +8753,10 @@ function Dashboard(){
                                 </div>
                                 <div className="mt-4 space-y-3">
                                     {!s.priority_queue?.length ? (
-                                        <p className="py-4 text-center text-sm font-semibold text-[#2563EB]">No approved requests waiting for a match.</p>
+                                        <p className="admin-empty-state py-4 text-center text-sm font-semibold text-[#2563EB]">No approved requests waiting for a match.</p>
                                     ) : (
                                         s.priority_queue.map(x => (
-                                            <div key={x.id} className="flex items-center justify-between rounded-xl border border-[#2563EB] p-3.5 bg-white">
+                                            <div key={x.id} className="admin-request-row flex items-center justify-between rounded-xl border border-[#2563EB] p-3.5 bg-white">
                                                 <div className="flex items-center gap-3">
                                                     <Badge status={x.urgency}/>
                                                     <div>
@@ -8791,7 +8789,7 @@ function Dashboard(){
                                         <p className="py-6 text-center text-sm font-semibold text-[#2563EB]">No recent activity logs recorded.</p>
                                     ) : (
                                         activities.map(act => (
-                                            <div key={act.id} className="flex items-start gap-3 rounded-xl border border-[#2563EB] p-3.5 bg-white">
+                                            <div key={act.id} className="admin-activity-row flex items-start gap-3 rounded-xl border border-[#2563EB] p-3.5 bg-white">
                                                 <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#2563EB] text-white">
                                                     <Icon name="activity"/>
                                                 </span>
@@ -17807,7 +17805,7 @@ export default function App() {
         <div className="min-h-screen bg-white">
             <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} setCollapsed={setCollapsed} />
             <Header setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} activeModuleName={activeModuleName} />
-            <div className="lg:min-h-screen lg:ml-16">
+            <div className={`lg:min-h-screen ${user ? (sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64') : 'w-full'}`}>
                 <main className="flex-1 min-w-0">
                     <Routes>
                         <Route path="/" element={<Home/>}/>
