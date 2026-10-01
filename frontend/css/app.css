@@ -2208,3 +2208,287 @@ body,
   }
 }
 
+/* Shared administrator module surfaces */
+.admin-app {
+  min-height: 100vh;
+  background: #F8FAFC;
+  color: #1E293B;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.admin-app main.page:not(.admin-dashboard) {
+  width: min(100%, 1600px);
+  max-width: 1600px;
+  padding: clamp(1.25rem, 2.2vw, 2rem) clamp(1rem, 2.5vw, 2.5rem);
+  color: #1E293B;
+  font-family: inherit;
+}
+
+.admin-app main.page:not(.admin-dashboard) .page-title {
+  max-width: 100%;
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+.admin-app main.page:not(.admin-dashboard) .eyebrow {
+  font-size: clamp(0.65rem, 0.2vw + 0.6rem, 0.78rem);
+  font-weight: 600;
+  letter-spacing: 0.11em;
+}
+
+.admin-app main.page:not(.admin-dashboard) .panel,
+.admin-app main.page:not(.admin-dashboard) .card {
+  min-width: 0;
+  border: 1px solid rgba(37, 99, 235, 0.075);
+  border-radius: 16px;
+  background-color: #fff;
+  box-shadow: 0 7px 24px rgba(30, 80, 180, 0.065);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.admin-app main.page:not(.admin-dashboard) .panel:not(.no-hover):hover,
+.admin-app main.page:not(.admin-dashboard) .card:not(.no-hover):hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.12);
+  box-shadow: 0 10px 28px rgba(30, 80, 180, 0.09);
+}
+
+.admin-app main.page:not(.admin-dashboard) .panel.no-hover:hover,
+.admin-app main.page:not(.admin-dashboard) .card.no-hover:hover {
+  transform: none;
+  box-shadow: 0 7px 24px rgba(30, 80, 180, 0.065);
+}
+
+.admin-app main.page:not(.admin-dashboard) .field {
+  min-height: 2.75rem;
+  border-color: #DBE3F0;
+  border-radius: 11px;
+  background-color: #fff;
+  font-family: inherit;
+  font-size: clamp(0.8125rem, 0.2vw + 0.72rem, 0.9375rem);
+}
+
+.admin-app main.page:not(.admin-dashboard) .field:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.11);
+}
+
+.admin-app main.page:not(.admin-dashboard) .btn,
+.admin-app main.page:not(.admin-dashboard) .nav-link {
+  border-radius: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.admin-app main.page:not(.admin-dashboard) .btn:not(:disabled):hover,
+.admin-app main.page:not(.admin-dashboard) .nav-link:hover {
+  transform: translateY(-1px);
+}
+
+.admin-app main.page:not(.admin-dashboard) .table-wrap,
+.admin-app main.page:not(.admin-dashboard) .table-container {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
+}
+
+.admin-app main.page:not(.admin-dashboard) .data-table,
+.admin-app main.page:not(.admin-dashboard) .table-container table {
+  min-width: 42rem;
+  font-family: inherit;
+}
+
+.admin-app main.page:not(.admin-dashboard) .data-table th,
+.admin-app main.page:not(.admin-dashboard) .table-container th {
+  color: #475569;
+  font-weight: 600;
+  background: #F8FAFC;
+}
+
+.admin-app main.page:not(.admin-dashboard) .data-table tbody tr:hover,
+.admin-app main.page:not(.admin-dashboard) .table-container tbody tr:hover {
+  background: rgba(37, 99, 235, 0.035);
+}
+
+.admin-app main.page:not(.admin-dashboard) :focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .admin-app main.page:not(.admin-dashboard) {
+    padding: 1.25rem 1rem;
+  }
+
+  .admin-app main.page:not(.admin-dashboard).space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.25rem;
+  }
+
+  .admin-app main.page:not(.admin-dashboard) .page-title {
+    font-size: clamp(1.75rem, 8vw, 2.35rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-app main.page:not(.admin-dashboard) *,
+  .admin-app main.page:not(.admin-dashboard) *::before,
+  .admin-app main.page:not(.admin-dashboard) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Shared donor, beneficiary, and staff workspace presentation */
+.member-app {
+  min-height: 100vh;
+  background: #F8FAFC;
+  color: #1E293B;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.member-app main.page {
+  width: min(100%, 1600px);
+  max-width: 1600px;
+  padding: clamp(1.25rem, 2.2vw, 2rem) clamp(1rem, 2.5vw, 2.5rem);
+  color: #1E293B;
+  font-family: inherit;
+}
+
+.member-app main.staff-workspace {
+  width: min(100%, 1600px);
+  padding: clamp(1.25rem, 2.2vw, 2rem) clamp(1rem, 2.5vw, 2.5rem);
+  color: #1E293B;
+  font-family: inherit;
+}
+
+.member-app main.page .page-title,
+.member-app main.staff-workspace h1 {
+  max-width: 100%;
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.page .eyebrow,
+.member-app main.staff-workspace .eyebrow {
+  font-size: clamp(0.65rem, 0.2vw + 0.6rem, 0.78rem);
+  font-weight: 600;
+  letter-spacing: 0.11em;
+}
+
+.member-app main.page .panel,
+.member-app main.page .card,
+.member-app main.staff-workspace .panel,
+.member-app main.staff-workspace .card {
+  min-width: 0;
+  border-radius: 16px;
+  box-shadow: 0 7px 24px rgba(30, 80, 180, 0.065);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.member-app main.page .panel:not(.no-hover):hover,
+.member-app main.page .card:not(.no-hover):hover,
+.member-app main.staff-workspace .panel:not(.no-hover):hover,
+.member-app main.staff-workspace .card:not(.no-hover):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(30, 80, 180, 0.09);
+}
+
+.member-app main.page .field,
+.member-app main.staff-workspace .field,
+.member-app main.staff-workspace .input {
+  min-height: 2.75rem;
+  border-color: #DBE3F0;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: clamp(0.8125rem, 0.2vw + 0.72rem, 0.9375rem);
+}
+
+.member-app main.page .field:focus,
+.member-app main.staff-workspace .field:focus,
+.member-app main.staff-workspace .input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.11);
+}
+
+.member-app main.page .btn,
+.member-app main.page .nav-link,
+.member-app main.staff-workspace .btn,
+.member-app main.staff-workspace .nav-link {
+  border-radius: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+
+.member-app main.page .btn:not(:disabled):hover,
+.member-app main.page .nav-link:hover,
+.member-app main.staff-workspace .btn:not(:disabled):hover,
+.member-app main.staff-workspace .nav-link:hover {
+  transform: translateY(-1px);
+}
+
+.member-app main.page .table-wrap,
+.member-app main.page .table-container,
+.member-app main.staff-workspace .table-wrap,
+.member-app main.staff-workspace .table-container {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
+}
+
+.member-app main.page :focus-visible,
+.member-app main.staff-workspace :focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .member-app main.page,
+  .member-app main.staff-workspace {
+    padding: 1.25rem 1rem;
+  }
+
+  .member-app main.page .page-title,
+  .member-app main.staff-workspace h1 {
+    font-size: clamp(1.75rem, 8vw, 2.35rem);
+  }
+
+  .member-app main.page.space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .member-app main.page *,
+  .member-app main.page *::before,
+  .member-app main.page *::after,
+  .member-app main.staff-workspace *,
+  .member-app main.staff-workspace *::before,
+  .member-app main.staff-workspace *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

@@ -17802,7 +17802,7 @@ export default function App() {
     })() : null;
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className={`min-h-screen bg-white ${user?.role === 'admin' ? 'admin-app' : user ? 'member-app' : ''}`}>
             <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} setCollapsed={setCollapsed} />
             <Header setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} activeModuleName={activeModuleName} />
             <div className={`lg:min-h-screen ${user ? (sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64') : 'w-full'}`}>
