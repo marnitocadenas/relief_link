@@ -164,7 +164,7 @@ class AuthController extends Controller
             'remember' => 'nullable|boolean',
         ]);
         $u = User::where('email', $d['email'])->first();
-        abort_unless($u && Hash::check($d['password'], $u->password), 422, 'Invalid credentials.');
+        abort_unless($u && $u->is_active && Hash::check($d['password'], $u->password), 422, 'Invalid credentials.');
 
         // Ensure email_verified_at and remember_token are populated
         if (is_null($u->email_verified_at)) {

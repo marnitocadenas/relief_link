@@ -391,6 +391,7 @@ textarea.field {
   border: 1px solid #D1D5DB;
   border-radius: 10px;
   padding: 0.3125rem 0.75rem;
+  transform: none;
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.06),
     0 2px 6px rgba(0, 0, 0, 0.04);
@@ -404,6 +405,7 @@ textarea.field {
 @media (hover: hover) and (pointer: fine) {
   .user-menu-btn:hover:not(:disabled) {
     border-color: #93C5FD;
+    transform: none;
     box-shadow:
       0 1px 3px rgba(0, 0, 0, 0.08),
       0 4px 10px rgba(37, 99, 235, 0.10);
@@ -413,8 +415,36 @@ textarea.field {
 
 .user-menu-btn:active:not(:disabled) {
   border-color: #BFDBFE;
+  transform: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   transform: translateY(0);
+}
+
+.profile-photo-remove-button {
+  appearance: none;
+  border: 1px solid rgba(37, 99, 235, 0.28);
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0.375rem 0.75rem;
+  color: #2563EB;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-decoration: none !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.profile-photo-remove-button:hover {
+  border-color: #2563EB;
+  background: #EFF6FF;
+}
+
+.profile-photo-remove-button:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
 }
 
 .btn-danger {
@@ -1258,6 +1288,20 @@ body,
   font-weight: 500;
 }
 
+/* Keep the public header navigation readable while preserving its compact layout. */
+.public-header .public-nav-link {
+  min-height: 2.5rem;
+  white-space: nowrap;
+  font-size: clamp(0.875rem, 0.2vw + 0.82rem, 0.95rem);
+  line-height: 1.25;
+}
+
+.public-header .public-header-action {
+  min-height: 2.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25;
+}
+
 .landing-page .shell {
   width: min(100%, 1600px);
   padding-inline: clamp(1rem, 4vw, 4rem);
@@ -1290,6 +1334,11 @@ body,
   line-height: 1.6;
 }
 
+.landing-page .landing-hero > .shell > div:first-child > span {
+  font-size: clamp(0.75rem, 0.2vw + 0.7rem, 0.875rem);
+  line-height: 1.4;
+}
+
 .landing-page .how-card {
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 18px;
@@ -1309,6 +1358,32 @@ body,
   line-height: 1.35;
 }
 
+.landing-page .how-card > div:first-child p,
+.landing-page .how-card > div:first-child span {
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.landing-page .how-card > div:first-child span {
+  padding: 0.2rem 0.65rem;
+}
+
+.landing-page .how-card > div.relative p {
+  font-size: clamp(0.875rem, 0.2vw + 0.82rem, 0.95rem);
+  line-height: 1.55;
+}
+
+.landing-page .how-card > div.relative h3 {
+  font-size: clamp(1rem, 0.35vw + 0.9rem, 1.125rem);
+  line-height: 1.4;
+}
+
+.landing-page .how-card > div:last-child {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  row-gap: 0.5rem;
+}
+
 .landing-page .how-card p:not(:first-child) {
   line-height: 1.55;
 }
@@ -1322,9 +1397,16 @@ body,
   box-shadow: 0 5px 18px rgba(30, 80, 180, 0.045);
 }
 
+.landing-page .stat-highlight > span:last-child {
+  font-size: clamp(0.75rem, 0.15vw + 0.72rem, 0.8125rem);
+  line-height: 1.5;
+}
+
 .landing-page .eyebrow {
-  font-size: clamp(0.625rem, 0.2vw + 0.6rem, 0.8rem);
-  font-weight: 600;
+  font-size: clamp(0.75rem, 0.15vw + 0.72rem, 0.8125rem);
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
 }
 
 .landing-page .page-title,
@@ -1340,7 +1422,7 @@ body,
 }
 
 .landing-page .page-copy {
-  font-size: clamp(0.875rem, 0.3vw + 0.75rem, 1rem);
+  font-size: clamp(0.9375rem, 0.3vw + 0.82rem, 1rem);
   font-weight: 400;
   line-height: 1.6;
 }
@@ -1361,8 +1443,26 @@ body,
 }
 
 .landing-page .landing-card-copy {
-  font-size: clamp(0.875rem, 0.25vw + 0.8rem, 0.95rem);
+  font-size: clamp(0.9375rem, 0.2vw + 0.88rem, 1rem);
   font-weight: 400;
+  line-height: 1.6;
+}
+
+.landing-page .impact-section .shell > div:first-child > p:last-child {
+  font-size: clamp(0.9375rem, 0.2vw + 0.88rem, 1rem);
+  line-height: 1.6;
+  color: #1d4ed8;
+}
+
+.landing-page .impact-section .panel p:first-of-type {
+  font-size: clamp(0.9375rem, 0.15vw + 0.9rem, 1rem);
+  line-height: 1.45;
+}
+
+.landing-page .impact-section .panel p:last-of-type {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #475569;
 }
 
 .landing-page .impact-section {
@@ -1377,6 +1477,17 @@ body,
   min-width: 0;
 }
 
+.landing-page .flow-item .panel p:first-of-type {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.landing-page .flow-item .panel p:last-of-type {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
 .landing-page .flow-arrow {
   right: -0.65rem;
 }
@@ -1387,8 +1498,35 @@ body,
 
 .landing-page .category-card {
   min-height: 3.75rem;
-  font-size: clamp(0.8125rem, 0.2vw + 0.75rem, 0.95rem);
+  font-size: clamp(0.875rem, 0.2vw + 0.82rem, 0.9375rem);
   font-weight: 500;
+  line-height: 1.45;
+}
+
+.landing-page .category-section > .shell > div:first-child > a {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.landing-page footer .shell > div:first-child > p {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.landing-page footer .shell > div:not(:first-child) > p {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #dbeafe;
+}
+
+.landing-page footer .shell > div:not(:first-child) > div a {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.landing-page footer > div:last-child .shell {
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 
 .landing-page footer a,
@@ -2321,6 +2459,48 @@ body,
   background: rgba(37, 99, 235, 0.035);
 }
 
+.user-management-table th,
+.user-management-table td {
+  text-align: center;
+}
+
+.user-management-table th:first-child,
+.user-management-table td:first-child {
+  width: 15%;
+}
+
+.user-management-table th:nth-child(2),
+.user-management-table td:nth-child(2) {
+  width: 18%;
+}
+
+.user-management-table td:nth-child(2) > span {
+  display: block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-management-table td:last-child > div {
+  flex-wrap: nowrap;
+  gap: 0.375rem;
+}
+
+.user-management-table td:first-child > div,
+.user-management-table td:last-child > div {
+  justify-content: center;
+}
+
+.user-management-table td:first-child,
+.user-management-table td:nth-child(2) {
+  text-align: left;
+}
+
+.user-management-table td:first-child > div {
+  justify-content: flex-start;
+}
+
 .admin-app main.page:not(.admin-dashboard) :focus-visible {
   outline: 2px solid var(--green);
   outline-offset: 2px;
@@ -2490,5 +2670,25 @@ body,
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Use one consistent border for form controls across every app surface. */
+input:not([type='checkbox']):not([type='radio']),
+select,
+textarea {
+  border-color: #DBE3F0;
+}
+
+input:not([type='checkbox']):not([type='radio']):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--blue) !important;
+  box-shadow: none !important;
+}
+
+input:not([type='checkbox']):not([type='radio']):focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none !important;
 }
 

@@ -67,6 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('users', [AdminController::class, 'users']);
             Route::post('users', [AdminController::class, 'storeUser']);
             Route::patch('users/{user}', [AdminController::class, 'updateUser']);
+            Route::patch('users/{user}/status', [AdminController::class, 'updateUserStatus']);
             Route::delete('users/{user}', [AdminController::class, 'destroyUser']);
             Route::delete('donations/{donation}', [AdminController::class, 'destroyDonation']);
             Route::delete('requests/{aidRequest}', [AdminController::class, 'destroyRequest']);

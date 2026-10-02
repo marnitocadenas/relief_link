@@ -115,7 +115,7 @@ function NotificationsNavButton() {
     );
 }
 
-function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
+function Sidebar() {
     const { user } = useAuth();
     const location = useLocation();
 
@@ -123,67 +123,18 @@ function Sidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }) {
 
     const modules = getModulesForRole(user.role);
 
-    const hamIcon = (size) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-    );
-
-    const activeModule = modules.find((m) => location.pathname === m.path);
-
     return (
-        <>
-            <aside className={`hidden lg:fixed lg:left-0 lg:top-0 lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:border-r lg:border-blue-100 lg:bg-blue-600 z-30 overflow-hidden transition-[width] duration-300 ease-in-out ${user.role === 'admin' ? 'admin-sidebar' : ''} ${collapsed ? 'lg:w-16' : 'lg:w-64'}`}>
-                <SidebarContent 
-                    isCollapsed={collapsed} 
-                    modules={modules} 
-                    activeModule={activeModule} 
-                    user={user}
-                    location={location}
-                    hamIcon={hamIcon}
-                    setCollapsed={setCollapsed}
-                    setMobileOpen={setMobileOpen}
-                    mobileOpen={mobileOpen}
-                />
-            </aside>
-
-            {mobileOpen && (
-                <div className="fixed inset-0 z-50 flex lg:hidden">
-                    <div
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-                        onClick={() => setMobileOpen(false)}
-                    />
-                    <aside className={`relative z-10 flex h-full w-72 flex-col bg-blue-600 border-r border-blue-100 shadow-2xl ${user.role === 'admin' ? 'admin-sidebar' : ''}`}>
-                        <div className="absolute right-3 top-3">
-                            <button
-                                className="p-2 text-white hover:bg-white/10 rounded-xl transition"
-                                onClick={() => setMobileOpen(false)}
-                                aria-label="Close menu"
-                            >
-                                <Icon name="close" size={20} />
-                            </button>
-                        </div>
-                        <SidebarContent 
-                            isCollapsed={false} 
-                            modules={modules} 
-                            activeModule={activeModule} 
-                            user={user}
-                            location={location}
-                            hamIcon={hamIcon}
-                            setCollapsed={setCollapsed}
-                            setMobileOpen={setMobileOpen}
-                            mobileOpen={mobileOpen}
-                        />
-                    </aside>
-                </div>
-            )}
-        </>
+        <aside className={`fixed left-0 top-0 flex h-screen w-64 shrink-0 flex-col border-r border-blue-100 bg-blue-600 z-30 overflow-hidden ${['admin', 'staff'].includes(user.role) ? 'admin-sidebar' : ''}`}>
+            <SidebarContent
+                modules={modules}
+                user={user}
+                location={location}
+            />
+        </aside>
     );
 }
 
-function SidebarContent({ isCollapsed, modules, activeModule, user, location, hamIcon, setCollapsed, setMobileOpen, mobileOpen }) {
+function SidebarContent({ modules, user, location }) {
     const getRoleDashboard = (role) => {
         if (role === 'admin') return '/dashboard';
         if (role === 'staff') return '/staff/dashboard';
@@ -193,23 +144,11 @@ function SidebarContent({ isCollapsed, modules, activeModule, user, location, ha
     };
 
     return (
-        <div className={`flex h-full flex-col ${isCollapsed ? 'px-2 py-3' : 'p-4'}`}>
-            {isCollapsed ? (
-                <div className="flex flex-col items-center border-b border-white/20 pb-3 mb-3">
-                    <button
-                        onClick={() => setCollapsed(false)}
-                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/20 text-white hover:bg-white/30 transition"
-                        title="Expand sidebar"
-                        aria-label="Expand sidebar"
-                    >
-                        {hamIcon(22)}
-                    </button>
-                </div>
-            ) : (
-                <div className="flex items-center justify-between border-b border-white/20 pb-4 mb-4 gap-2">
+        <div className="flex h-full flex-col p-4">
+                <div className="flex items-center justify-between border-b border-white/20 pb-4 mb-4">
                     <Link
                         to={getRoleDashboard(user.role)}
-                        className="flex items-center gap-3 text-xl font-extrabold text-white no-underline flex-1 min-w-0 overflow-hidden"
+                        className="flex-initial min-w-0 overflow-hidden flex items-center gap-3 text-xl font-extrabold text-white no-underline"
                     >
                         <img
                             src="/images/relieflink-logo.png"
@@ -221,16 +160,7 @@ function SidebarContent({ isCollapsed, modules, activeModule, user, location, ha
                             <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">Campus Exchange</span>
                         </div>
                     </Link>
-                    <button
-                        onClick={() => setCollapsed(true)}
-                        className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-white/20 text-white hover:bg-white/30 transition"
-                        title="Collapse sidebar"
-                        aria-label="Collapse sidebar"
-                    >
-                        {hamIcon(20)}
-                    </button>
                 </div>
-            )}
 
             <nav className="space-y-0.5 flex-1 overflow-y-auto">
                 {modules.map((m) => {
@@ -239,16 +169,14 @@ function SidebarContent({ isCollapsed, modules, activeModule, user, location, ha
                         <NavLink
                             key={m.name}
                             to={m.path}
-                            onClick={() => setMobileOpen(false)}
-                            title={isCollapsed ? m.name : ''}
-                            className={`flex items-center gap-3 rounded-xl py-2 text-base font-medium no-underline transition-colors ${user.role === 'admin' ? 'admin-sidebar-link' : ''} ${isCollapsed ? 'justify-center px-2' : 'px-3'} ${
+                            className={`flex items-center gap-2 rounded-xl py-2 text-base font-medium no-underline transition-colors ${['admin', 'staff'].includes(user.role) ? 'admin-sidebar-link' : ''} px-2 ${
                                 isActive
                                     ? 'bg-white text-blue-600 shadow-sm'
                                     : 'text-white/90 hover:bg-white/10 hover:text-white'
                             }`}
                         >
                             <Icon name={m.icon} size={20} />
-                            {!isCollapsed && <span className="truncate">{m.name}</span>}
+                            <span className="min-w-0 flex-1 whitespace-nowrap text-[16px] leading-tight tracking-tight">{m.name}</span>
                         </NavLink>
                     );
                 })}
@@ -349,7 +277,7 @@ const publicNavigation = [
     { label: 'About', href: '#about', icon: 'info' },
 ];
 
-function Header({ setMobileOpen, collapsed, activeModuleName }) {
+function Header() {
     const { user } = useAuth();
     const location = useLocation();
     const [publicMenuOpen, setPublicMenuOpen] = useState(false);
@@ -361,38 +289,23 @@ function Header({ setMobileOpen, collapsed, activeModuleName }) {
     return (
         <header
             className={`sticky top-0 z-40 flex h-16 items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8 transition-all duration-300 ease-in-out ${user?.role === 'admin' ? 'admin-header' : ''} ${
-                user ? (collapsed ? 'lg:ml-16 lg:w-[calc(100%-4rem)]' : 'lg:ml-64 lg:w-[calc(100%-16rem)]') : 'public-header w-full'
+                user ? 'ml-64 w-[calc(100%-16rem)]' : 'public-header w-full'
             }`}
         >
             <div className="flex items-center gap-3">
-                {user && (
-                    <button
-                        type="button"
-                        className="btn btn-ghost btn-icon lg:hidden"
-                        onClick={() => setMobileOpen(true)}
-                        aria-label="Open navigation menu"
-                    >
-                        <Icon name="menu" size={22} />
-                    </button>
-                )}
                 {!user && (
                     <NavLink to="/" className="flex items-center gap-2.5 no-underline" aria-label="ReliefLink home">
                         <img src="/images/relieflink-logo.png" alt="" className="h-10 w-10 shrink-0 object-contain" />
                         <span className="text-lg font-extrabold tracking-tight text-gray-900 hidden sm:block">ReliefLink</span>
                     </NavLink>
                 )}
-                {user && activeModuleName && collapsed && (
-                    <span className="hidden lg:block text-lg font-semibold text-gray-700 truncate max-w-xs ml-2">
-                        {activeModuleName}
-                    </span>
-                )}
             </div>
 
             {!user && (
-                <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-5 lg:flex xl:gap-7" aria-label="Public navigation">
+                <nav className="public-nav absolute left-1/2 hidden -translate-x-1/2 items-center gap-3 lg:flex xl:gap-5" aria-label="Public navigation">
                     {publicNavigation.map(({ label, href, icon }) => (
-                        <a key={label} href={href} className="inline-flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold text-blue-600 no-underline transition hover:bg-blue-50 hover:text-blue-700">
-                            <Icon name={icon} size={15} />
+                        <a key={label} href={href} className="public-nav-link inline-flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-semibold text-blue-600 no-underline transition hover:bg-blue-50 hover:text-blue-700">
+                            <Icon name={icon} size={16} />
                             <span>{label}</span>
                         </a>
                     ))}
@@ -408,13 +321,13 @@ function Header({ setMobileOpen, collapsed, activeModuleName }) {
                 ) : (
                     <>
                         <div className="hidden items-center gap-2 sm:flex">
-                            <NavLink to="/login" className="btn btn-ghost btn-sm no-underline">
+                            <NavLink to="/login" className="public-header-action btn btn-ghost btn-sm no-underline">
                                 <Icon name="profile" size={16} />
                                 <span>Sign in</span>
                             </NavLink>
                             <NavLink
                                 to="/register"
-                                className="btn btn-primary btn-sm no-underline"
+                                className="public-header-action btn btn-primary btn-sm no-underline"
                             >
                                 Get started
                             </NavLink>
@@ -551,7 +464,7 @@ function Home() {
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-white/30 pt-4 text-[10px] font-extrabold uppercase tracking-wide text-white"><span>Donate</span><span className="text-[#22C55E]">→</span><span>Verify</span><span className="text-[#22C55E]">→</span><span>Smart match</span><span className="text-[#22C55E]">→</span><span>Safe handoff</span><span className="text-[#22C55E]">→</span><span>Impact</span></div>
+                        <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-white/30 pt-4 text-[10px] font-extrabold uppercase tracking-wide text-white"><span>Donate</span><span className="text-[#22C55E]">â†’</span><span>Verify</span><span className="text-[#22C55E]">â†’</span><span>Smart match</span><span className="text-[#22C55E]">â†’</span><span>Safe handoff</span><span className="text-[#22C55E]">â†’</span><span>Impact</span></div>
                     </div>
                 </div>
             </section>
@@ -622,7 +535,7 @@ function Home() {
 
             <section className="flow-section shell py-14">
                 <div className="text-center"><p className="eyebrow">THE RELIEFLINK FLOW</p><h2 className="mt-2 text-3xl font-extrabold text-[#2563EB]">From generous offer to real support</h2></div>
-                <div className="flow-grid mt-8 grid gap-3">{[['Donate', 'donation'], ['Verify', 'approvals'], ['Match', 'match'], ['Handoff', 'fulfillment'], ['Impact', 'check']].map(([label, icon], index) => <div key={label} className="flow-item relative text-center"><div className="panel no-hover min-h-32 place-items-center p-4 transition hover:-translate-y-1 hover:border-[#22C55E]"><div><span className={`mx-auto grid h-10 w-10 place-items-center rounded-full ${index === 4 ? 'bg-[#22C55E] text-white' : 'bg-[#2563EB] text-white'}`}><Icon name={icon}/></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">{['Share a resource', 'Confirm eligibility', 'Connect the right need', 'Coordinate safely', 'See the outcome'][index]}</p></div></div>{index < 4 && <span className="flow-arrow hidden sm:block absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-xl font-extrabold text-[#22C55E]">→</span>}</div>)}</div>
+                <div className="flow-grid mt-8 grid gap-3">{[['Donate', 'donation'], ['Verify', 'approvals'], ['Match', 'match'], ['Handoff', 'fulfillment'], ['Impact', 'check']].map(([label, icon], index) => <div key={label} className="flow-item relative text-center"><div className="panel no-hover min-h-32 place-items-center p-4 transition hover:-translate-y-1 hover:border-[#22C55E]"><div><span className={`mx-auto grid h-10 w-10 place-items-center rounded-full ${index === 4 ? 'bg-[#22C55E] text-white' : 'bg-[#2563EB] text-white'}`}><Icon name={icon}/></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">{['Share a resource', 'Confirm eligibility', 'Connect the right need', 'Coordinate safely', 'See the outcome'][index]}</p></div></div>{index < 4 && <span className="flow-arrow hidden sm:block absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-xl font-extrabold text-[#22C55E]">â†’</span>}</div>)}</div>
             </section>
 
             {/* RESOURCE CATEGORIES SHOWCASE */}
@@ -633,7 +546,7 @@ function Home() {
                             <p className="eyebrow">SUPPORT CATEGORIES</p>
                             <h2 className="text-2xl font-extrabold text-[#2563EB]">What you can donate or request</h2>
                         </div>
-                        <NavLink to="/register" className="text-xs font-extrabold text-[#22C55E] underline hover:text-[#2563EB]">
+                        <NavLink to="/register" className="text-xs font-extrabold text-[#22C55E] hover:text-[#2563EB]">
                             Get Started Now &rarr;
                         </NavLink>
                     </div>
@@ -683,7 +596,7 @@ function Home() {
                     <div><p className="text-xs font-extrabold uppercase tracking-wider text-white/75">Navigation</p><div className="mt-3 grid gap-2 text-sm font-bold">{[['Home', '#top'], ['How It Works', '#how-it-works'], ['Categories', '#categories'], ['About', '#about']].map(([label, href]) => <a key={label} href={href} className="text-white no-underline hover:text-[#22C55E]">{label}</a>)}</div></div>
                     <div><p className="text-xs font-extrabold uppercase tracking-wider text-white/75">Support</p><div className="mt-3 grid gap-2 text-sm font-bold"><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Help</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Contact</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Privacy Policy</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Terms of Service</NavLink></div></div>
                 </div>
-                <div className="border-t border-white/30"><div className="shell flex flex-wrap justify-between gap-2 py-4 text-xs font-semibold text-white/80"><span>© {new Date().getFullYear()} ReliefLink</span><span>Campus Exchange</span></div></div>
+                <div className="border-t border-white/30"><div className="shell flex flex-wrap justify-between gap-2 py-4 text-xs font-semibold text-white/80"><span>Â© {new Date().getFullYear()} ReliefLink</span><span>Campus Exchange</span></div></div>
             </footer>
         </main>
     );
@@ -1073,7 +986,7 @@ function Auth({ register = false }) {
         const state = uniqueness[field];
         if (!state || state.status === 'idle' || state.status === 'available') return null;
         if (state.status === 'checking') {
-            return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availability…</p>;
+            return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availabilityâ€¦</p>;
         }
         return <p className="mt-1 text-[11px] font-semibold text-red-600">{state.message}</p>;
     };
@@ -1656,7 +1569,7 @@ function Auth({ register = false }) {
                 </div>
 
                 <div className="border-t border-white pt-6 text-xs font-extrabold text-white flex items-center justify-between">
-                    <span>© {new Date().getFullYear()} ReliefLink System</span>
+                    <span>Â© {new Date().getFullYear()} ReliefLink System</span>
                     <span>100% Campus Verified</span>
                 </div>
             </aside>
@@ -1833,7 +1746,7 @@ function Auth({ register = false }) {
                                     )}
                                 </div>
 
-                                {/* CASE 1: INITIAL FORM — BEFORE ACCOUNT TYPE IS SELECTED */}
+                                {/* CASE 1: INITIAL FORM â€” BEFORE ACCOUNT TYPE IS SELECTED */}
                                 {f.account_type === '' && (
                                     <>
                                         {/* Rank #2: First Name */}
@@ -1854,7 +1767,7 @@ function Auth({ register = false }) {
                                             />
                                         </div>
 
-                                        {/* Rank #3: Middle Name — Optional */}
+                                        {/* Rank #3: Middle Name â€” Optional */}
                                         <div>
                                             <label htmlFor="reg_middle_name_init" className="block text-xs font-bold text-[#2563EB]">
                                                 Middle Name <span className="text-xs font-normal text-[#2563EB]/60">(Optional)</span>
@@ -1951,15 +1864,15 @@ function Auth({ register = false }) {
                                                     Password Security Requirements:
                                                 </p>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${regHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{regHasLength ? '✓' : '•'}</span>
+                                                    <span className="font-black">{regHasLength ? 'âœ“' : 'â€¢'}</span>
                                                     <span>8 to 64 characters in length</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasUpper && regHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasUpper && regHasLower) ? '✓' : '•'}</span>
+                                                    <span className="font-black">{(regHasUpper && regHasLower) ? 'âœ“' : 'â€¢'}</span>
                                                     <span>Contains uppercase (A-Z) & lowercase (a-z) letters</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasNumber && regHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? '✓' : '•'}</span>
+                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? 'âœ“' : 'â€¢'}</span>
                                                     <span>Contains numbers (0-9) & special characters (!@#$...)</span>
                                                 </div>
                                             </div>
@@ -2006,7 +1919,7 @@ function Auth({ register = false }) {
                                             </div>
                                             {f.password_confirmation && (
                                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
-                                                    <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '✕ Passwords do not match.'}</span>
+                                                    <span className="font-black">{regMatchesConfirm ? 'âœ“ Passwords match' : 'âœ• Passwords do not match.'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -2033,7 +1946,7 @@ function Auth({ register = false }) {
                                             />
                                         </div>
 
-                                        {/* Rank #3: Middle Name — Optional */}
+                                        {/* Rank #3: Middle Name â€” Optional */}
                                         <div>
                                             <label htmlFor="reg_middle_name_ben" className="block text-xs font-bold text-[#2563EB]">
                                                 Middle Name <span className="text-xs font-normal text-[#2563EB]/60">(Optional)</span>
@@ -2263,19 +2176,19 @@ function Auth({ register = false }) {
                                                     Password Security Requirements:
                                                 </p>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${regHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{regHasLength ? '✓' : '•'}</span>
+                                                    <span className="font-black">{regHasLength ? 'âœ“' : 'â€¢'}</span>
                                                     <span>8 to 64 characters in length</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasUpper && regHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasUpper && regHasLower) ? '✓' : '•'}</span>
+                                                    <span className="font-black">{(regHasUpper && regHasLower) ? 'âœ“' : 'â€¢'}</span>
                                                     <span>Contains uppercase (A-Z) & lowercase (a-z) letters</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasNumber && regHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? '✓' : '•'}</span>
+                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? 'âœ“' : 'â€¢'}</span>
                                                     <span>Contains numbers (0-9) & special characters (!@#$...)</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regNoSpaces && regNotWeak && regNoPersonal) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? '✓' : '•'}</span>
+                                                    <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? 'âœ“' : 'â€¢'}</span>
                                                     <span>No personal info (name/email), spaces, or common passwords</span>
                                                 </div>
                                             </div>
@@ -2322,7 +2235,7 @@ function Auth({ register = false }) {
                                             </div>
                                             {f.password_confirmation && (
                                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
-                                                    <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '✕ Passwords do not match.'}</span>
+                                                    <span className="font-black">{regMatchesConfirm ? 'âœ“ Passwords match' : 'âœ• Passwords do not match.'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -2354,7 +2267,7 @@ function Auth({ register = false }) {
                                             )}
                                         </div>
 
-                                        {/* Rank #3: Middle Name — Optional */}
+                                        {/* Rank #3: Middle Name â€” Optional */}
                                         <div>
                                             <label htmlFor="reg_middle_name_donor" className="block text-xs font-bold text-[#2563EB]">
                                                 Middle Name <span className="text-xs font-normal text-[#2563EB]/60">(Optional)</span>
@@ -2431,7 +2344,7 @@ function Auth({ register = false }) {
                                                 </p>
                                             )}
                                             {canEnterDonorEmail && isDonorEmailFormatValid && uniqueness.email?.status === 'checking' && (
-                                                <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availability…</p>
+                                                <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availabilityâ€¦</p>
                                             )}
                                             {canEnterDonorEmail && isDonorEmailFormatValid && uniqueness.email?.status === 'taken' && (
                                                 <p className="mt-1 text-[11px] font-semibold text-red-600">
@@ -2440,7 +2353,7 @@ function Auth({ register = false }) {
                                             )}
                                             {canEnterDonorEmail && isDonorEmailFormatValid && uniqueness.email?.status === 'available' && (
                                                 <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1">
-                                                    <span>✓ Email address is available.</span>
+                                                    <span>âœ“ Email address is available.</span>
                                                 </p>
                                             )}
                                             {canEnterDonorEmail && isDonorEmailFormatValid && uniqueness.email?.status === 'error' && (
@@ -2483,7 +2396,7 @@ function Auth({ register = false }) {
                                             />
                                             {canEnterDonorContact && isPhoneValid && uniqueness.contact_number?.status === 'available' && (
                                                 <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1">
-                                                    <span>✓ Contact Number is available.</span>
+                                                    <span>âœ“ Contact Number is available.</span>
                                                 </p>
                                             )}
                                             {renderDuplicateStatus('contact_number')}
@@ -2679,19 +2592,19 @@ function Auth({ register = false }) {
                                                     Password Security Requirements:
                                                 </p>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${regHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{regHasLength ? '✓' : '•'}</span>
+                                                    <span className="font-black">{regHasLength ? 'âœ“' : 'â€¢'}</span>
                                                     <span>8 to 64 characters in length</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasUpper && regHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasUpper && regHasLower) ? '✓' : '•'}</span>
+                                                    <span className="font-black">{(regHasUpper && regHasLower) ? 'âœ“' : 'â€¢'}</span>
                                                     <span>Contains uppercase (A-Z) & lowercase (a-z) letters</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasNumber && regHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? '✓' : '•'}</span>
+                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? 'âœ“' : 'â€¢'}</span>
                                                     <span>Contains numbers (0-9) & special characters (!@#$...)</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regNoSpaces && regNotWeak && regNoPersonal) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? '✓' : '•'}</span>
+                                                    <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? 'âœ“' : 'â€¢'}</span>
                                                     <span>No personal info (name/email), spaces, or common passwords</span>
                                                 </div>
                                             </div>
@@ -2738,7 +2651,7 @@ function Auth({ register = false }) {
                                             </div>
                                             {f.password_confirmation && (
                                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
-                                                    <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '✕ Passwords do not match.'}</span>
+                                                    <span className="font-black">{regMatchesConfirm ? 'âœ“ Passwords match' : 'âœ• Passwords do not match.'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -2975,22 +2888,22 @@ function Auth({ register = false }) {
                                         </p>
 
                                         <div className={`flex items-center gap-1.5 text-[11px] font-bold ${regHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{regHasLength ? '✓' : '•'}</span>
+                                            <span className="font-black">{regHasLength ? 'âœ“' : 'â€¢'}</span>
                                             <span>8 to 64 characters in length</span>
                                         </div>
 
                                         <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasUpper && regHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{(regHasUpper && regHasLower) ? '✓' : '•'}</span>
+                                            <span className="font-black">{(regHasUpper && regHasLower) ? 'âœ“' : 'â€¢'}</span>
                                             <span>Contains uppercase (A-Z) & lowercase (a-z) letters</span>
                                         </div>
 
                                         <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasNumber && regHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{(regHasNumber && regHasSpecial) ? '✓' : '•'}</span>
+                                            <span className="font-black">{(regHasNumber && regHasSpecial) ? 'âœ“' : 'â€¢'}</span>
                                             <span>Contains numbers (0-9) & special characters (!@#$...)</span>
                                         </div>
 
                                         <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regNoSpaces && regNotWeak && regNoPersonal) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? '✓' : '•'}</span>
+                                            <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? 'âœ“' : 'â€¢'}</span>
                                             <span>No personal info (email), spaces, or common passwords</span>
                                         </div>
                                     </div>
@@ -3016,7 +2929,7 @@ function Auth({ register = false }) {
                                     </div>
                                     {f.password_confirmation && (
                                         <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '• Passwords do not match'}</span>
+                                            <span className="font-black">{regMatchesConfirm ? 'âœ“ Passwords match' : 'â€¢ Passwords do not match'}</span>
                                         </div>
                                     )}
                                 </div>
@@ -3628,7 +3541,7 @@ function DonorDonationForm() {
                                             }`}
                                             onClick={() => toggleTimeSlot(slot)}
                                         >
-                                            {active ? '✓ ' : '+ '} {slot}
+                                            {active ? 'âœ“ ' : '+ '} {slot}
                                         </button>
                                     );
                                 })}
@@ -4472,7 +4385,7 @@ function BeneficiaryRequestForm() {
                                             value={f.currency}
                                             onChange={(e) => setF({ ...f, currency: e.target.value })}
                                         >
-                                            <option value="PHP">PHP (₱ - Philippine Peso)</option>
+                                            <option value="PHP">PHP (â‚± - Philippine Peso)</option>
                                             <option value="USD">USD ($ - US Dollar)</option>
                                         </select>
                                     </div>
@@ -4589,7 +4502,7 @@ function BeneficiaryRequestForm() {
                                     </div>
                                 ) : f.image ? (
                                     <div className="space-y-2 text-xs font-bold text-[#2563EB]">
-                                        <p>📄 Document Attached: {f.image.name}</p>
+                                        <p>ðŸ“„ Document Attached: {f.image.name}</p>
                                         <Button type="button" variant="secondary" className="py-1 px-3 text-xs" onClick={removeFile}>
                                             Remove File
                                         </Button>
@@ -4937,8 +4850,8 @@ function EditModal({item, kind, admin, close, done}){
     const renderAdminDuplicateStatus = (field) => {
         const state = adminUniqueness[field];
         if (!state || state.status === 'idle') return null;
-        if (state.status === 'available') return <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1"><span>✓ Available.</span></p>;
-        if (state.status === 'checking') return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availability…</p>;
+        if (state.status === 'available') return <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1"><span>âœ“ Available.</span></p>;
+        if (state.status === 'checking') return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availabilityâ€¦</p>;
         return <p className="mt-1 text-[11px] font-semibold text-red-600">{state.message}</p>;
     };
 
@@ -5126,7 +5039,7 @@ function EditModal({item, kind, admin, close, done}){
                 // Block submission if real-time uniqueness checks are still pending or have failed
                 if (!item.id) {
                     if (adminUniqueness.student_id_number.status === 'checking') {
-                        setError('Please wait — verifying Student ID Number availability.');
+                        setError('Please wait â€” verifying Student ID Number availability.');
                         return;
                     }
                     if (adminUniqueness.student_id_number.status === 'taken') {
@@ -5134,7 +5047,7 @@ function EditModal({item, kind, admin, close, done}){
                         return;
                     }
                     if (adminUniqueness.email.status === 'checking') {
-                        setError('Please wait — verifying email address availability.');
+                        setError('Please wait â€” verifying email address availability.');
                         return;
                     }
                     if (adminUniqueness.email.status === 'taken') {
@@ -5142,7 +5055,7 @@ function EditModal({item, kind, admin, close, done}){
                         return;
                     }
                     if (adminUniqueness.contact_number.status === 'checking') {
-                        setError('Please wait — verifying Contact Number availability.');
+                        setError('Please wait â€” verifying Contact Number availability.');
                         return;
                     }
                     if (adminUniqueness.contact_number.status === 'taken') {
@@ -5768,7 +5681,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </button>
                             </div>
 
-                            {/* Password Strength Meter + Requirements — only for Beneficiary and Donor */}
+                            {/* Password Strength Meter + Requirements â€” only for Beneficiary and Donor */}
                             {(f.role === 'beneficiary' || f.role === 'donor') && adminPwd && (
                                 <div className="mt-2 space-y-1">
                                     <div className="flex justify-between text-[11px] font-bold text-[#2563EB]">
@@ -5791,19 +5704,19 @@ function EditModal({item, kind, admin, close, done}){
                                         Password Security Requirements:
                                     </p>
                                     <div className={`flex items-center gap-1.5 text-[11px] font-bold ${adminHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                        <span className="font-black">{adminHasLength ? '✓' : '•'}</span>
+                                        <span className="font-black">{adminHasLength ? 'âœ“' : 'â€¢'}</span>
                                         <span>8 to 64 characters in length</span>
                                     </div>
                                     <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(adminHasUpper && adminHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                        <span className="font-black">{(adminHasUpper && adminHasLower) ? '✓' : '•'}</span>
+                                        <span className="font-black">{(adminHasUpper && adminHasLower) ? 'âœ“' : 'â€¢'}</span>
                                         <span>Contains uppercase (A-Z) &amp; lowercase (a-z) letters</span>
                                     </div>
                                     <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(adminHasNumber && adminHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                        <span className="font-black">{(adminHasNumber && adminHasSpecial) ? '✓' : '•'}</span>
+                                        <span className="font-black">{(adminHasNumber && adminHasSpecial) ? 'âœ“' : 'â€¢'}</span>
                                         <span>Contains numbers (0-9) &amp; special characters (!@#$...)</span>
                                     </div>
                                     <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(adminNoSpaces && adminNotWeak && adminNoPersonal) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                        <span className="font-black">{(adminNoSpaces && adminNotWeak && adminNoPersonal) ? '✓' : '•'}</span>
+                                        <span className="font-black">{(adminNoSpaces && adminNotWeak && adminNoPersonal) ? 'âœ“' : 'â€¢'}</span>
                                         <span>No personal info (name/email), spaces, or common passwords</span>
                                     </div>
                                 </div>
@@ -5848,7 +5761,7 @@ function EditModal({item, kind, admin, close, done}){
                             </div>
                             {f.password_confirmation && (
                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${adminMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
-                                    <span className="font-black">{adminMatchesConfirm ? '✓ Passwords match' : '✕ Passwords do not match.'}</span>
+                                    <span className="font-black">{adminMatchesConfirm ? 'âœ“ Passwords match' : 'âœ• Passwords do not match.'}</span>
                                 </div>
                             )}
                         </div>
@@ -5892,6 +5805,11 @@ function PeopleManager(){
     const [viewingUser, setViewingUser] = useState(null);
     const [deletingUser, setDeletingUser] = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [updatingStatus, setUpdatingStatus] = useState(null);
+    const truncateTableText = (value, maxLength) => {
+        const text = value || '';
+        return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+    };
     const [successMessage, setSuccessMessage] = useState('');
     const [page, setPage] = useState(1);
     const pageSize = 10;
@@ -5958,6 +5876,26 @@ function PeopleManager(){
             setState(s => ({...s, error: e.response?.data?.message || 'Could not delete user account.'}));
         } finally {
             setDeleting(false);
+        }
+    };
+
+    const toggleUserStatus = async (userItem) => {
+        const isActive = Boolean(userItem.is_active);
+        setUpdatingStatus(userItem.id);
+        setState(s => ({ ...s, error: '' }));
+        try {
+            const response = await api.patch(`/admin/users/${userItem.id}/status`, { is_active: !isActive });
+            const updated = response.data?.data || response.data;
+            setState(s => ({
+                ...s,
+                data: s.data.map(member => member.id === userItem.id ? { ...member, ...updated } : member),
+            }));
+            setSuccessMessage(`Member account "${userItem.name}" was ${isActive ? 'deactivated' : 'reactivated'}.`);
+            setTimeout(() => setSuccessMessage(''), 5000);
+        } catch (e) {
+            setState(s => ({ ...s, error: e.response?.data?.message || 'Could not update account status.' }));
+        } finally {
+            setUpdatingStatus(null);
         }
     };
 
@@ -6081,14 +6019,12 @@ function PeopleManager(){
             ) : (
                 <div className="space-y-4">
                     <div className="hidden sm:block table-wrap no-hover">
-                        <table className="data-table">
+                        <table className="data-table user-management-table">
                             <thead>
                                 <tr>
                                     <th>Member</th>
                                     <th>Email Address</th>
-                                    <th>Contact Number</th>
                                     <th>Account Type</th>
-                                    <th>ID Number</th>
                                     <th>Status</th>
                                     <th>Joined</th>
                                     <th>Actions</th>
@@ -6114,49 +6050,20 @@ function PeopleManager(){
                                                     )}
                                                     <div className="min-w-0">
                                                         <strong className="block text-xs font-bold text-[#2563EB] truncate max-w-[150px]" title={userItem.name}>
-                                                            {userItem.name}
+                                                            {truncateTableText(userItem.name, 15)}
                                                         </strong>
-                                                        {(userItem.role === 'admin' || userItem.role === 'staff') && userItem.campus_id && (
-                                                            <span className="text-[10px] font-semibold text-[#2563EB]/70 block truncate max-w-[150px]">
-                                                                ID: {userItem.campus_id}
-                                                            </span>
-                                                        )}
-                                                        {userItem.role === 'donor' && userItem.valid_id_number && (
-                                                            <span className="text-[10px] font-semibold text-[#2563EB]/70 block truncate max-w-[150px]">
-                                                                ID: {userItem.valid_id_number}
-                                                            </span>
-                                                        )}
-                                                        {userItem.role === 'beneficiary' && userItem.student_id_number && (
-                                                            <span className="text-[10px] font-semibold text-[#2563EB]/70 block truncate max-w-[150px]">
-                                                                SID: {userItem.student_id_number}
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="max-w-[200px] truncate" title={userItem.email}>
-                                                <span className="text-xs font-medium text-[#2563EB]">{userItem.email}</span>
-                                            </td>
-                                            <td>
-                                                <span className="text-xs font-semibold text-[#2563EB]/80">
-                                                    {userItem.contact_number || '—'}
-                                                </span>
+                                                <span className="text-xs font-medium text-[#2563EB]">{truncateTableText(userItem.email, 23)}</span>
                                             </td>
                                             <td>
                                                 <Badge status={userItem.role}/>
                                             </td>
                                             <td>
-                                                <span className="text-xs font-mono font-bold text-[#2563EB]">
-                                                    {userItem.role === 'donor'
-                                                        ? (userItem.valid_id_number || '—')
-                                                        : userItem.role === 'beneficiary'
-                                                            ? (userItem.student_id_number || '—')
-                                                            : (userItem.campus_id || '—')}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span className="rounded bg-[#22C55E] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider">
-                                                    Active
+                                                <span className={`rounded px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider ${userItem.is_active ? 'bg-[#22C55E]' : 'bg-gray-500'}`}>
+                                                    {userItem.is_active ? 'Active' : 'Inactive'}
                                                 </span>
                                             </td>
                                             <td>
@@ -6177,6 +6084,14 @@ function PeopleManager(){
                                                     <Button title="Delete Member" variant="secondary" onClick={() => setDeletingUser(userItem)}>
                                                         <Icon name="delete"/>
                                                         <span className="ml-1 text-xs">Delete</span>
+                                                    </Button>
+                                                    <Button
+                                                        title={userItem.is_active ? 'Deactivate Member' : 'Reactivate Member'}
+                                                        variant="secondary"
+                                                        loading={updatingStatus === userItem.id}
+                                                        onClick={() => toggleUserStatus(userItem)}
+                                                    >
+                                                        <span className="text-xs">{userItem.is_active ? 'Deactivate' : 'Reactivate'}</span>
                                                     </Button>
                                                 </div>
                                             </td>
@@ -6213,20 +6128,6 @@ function PeopleManager(){
                                         <Badge status={userItem.role}/>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-[#2563EB]/80 border-t border-[#2563EB]/15 pt-2">
-                                        <div>
-                                            <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">Contact</span>
-                                            <span>{userItem.contact_number || '—'}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">ID Number</span>
-                                            <span className="font-mono">
-                                                {userItem.role === 'donor'
-                                                    ? (userItem.valid_id_number || '—')
-                                                    : userItem.role === 'beneficiary'
-                                                        ? (userItem.student_id_number || '—')
-                                                        : '—'}
-                                            </span>
-                                        </div>
                                         <div>
                                             <span className="text-[10px] uppercase tracking-wider text-[#2563EB]/60 block">Joined</span>
                                             <span>{userItem.created_at ? new Date(userItem.created_at).toLocaleDateString() : 'N/A'}</span>
@@ -6703,7 +6604,7 @@ function DonationManager(){
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
                                         <strong className="text-base text-[#2563EB] block">{item.item_name || title(item.category)}</strong>
-                                        <span className="text-xs font-semibold text-[#2563EB]/80">{title(item.category)} • {item.quantity || 1} units</span>
+                                        <span className="text-xs font-semibold text-[#2563EB]/80">{title(item.category)} â€¢ {item.quantity || 1} units</span>
                                     </div>
                                     <Badge status={item.status}/>
                                 </div>
@@ -7822,7 +7723,7 @@ function List({kind}){
             <Error>{state.error}</Error>
             <div className="mt-8">
                 {state.loading ? (
-                    <p className="font-bold text-[#2563EB]">Loading workspace data…</p>
+                    <p className="font-bold text-[#2563EB]">Loading workspace dataâ€¦</p>
                 ) : !state.data.length ? (
                     <Empty/>
                 ) : (
@@ -8504,7 +8405,7 @@ function Dashboard(){
             </section>
 
             {loading && !s ? (
-                <p className="mt-8 font-bold text-[#2563EB]">Loading dashboard statistics…</p>
+                <p className="mt-8 font-bold text-[#2563EB]">Loading dashboard statisticsâ€¦</p>
             ) : s && (
                 <>
                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
@@ -8682,7 +8583,7 @@ function Dashboard(){
                                 <h3 className="text-base font-extrabold text-[#2563EB]">Community Directory Overview</h3>
                                 <p className="text-xs text-[#2563EB]/70 font-semibold mt-0.5">Active user distribution across roles</p>
                             </div>
-                            <NavLink to="/users" className="text-xs font-extrabold text-[#2563EB] hover:underline">Manage All Members &rarr;</NavLink>
+                            <NavLink to="/users" className="text-xs font-extrabold text-[#2563EB] no-underline">Manage All Members &rarr;</NavLink>
                         </div>
                         <div className="admin-directory-grid mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             <div className="admin-directory-card rounded-xl p-4 flex items-center justify-between bg-white">
@@ -8717,11 +8618,11 @@ function Dashboard(){
                                         <h2 className="text-base font-extrabold text-[#2563EB]">Pending Support Requests</h2>
                                         <p className="text-xs text-[#2563EB]/70 font-semibold">Requests needing admin review & authorization</p>
                                     </div>
-                                    <NavLink className="text-xs font-extrabold text-[#2563EB] hover:underline" to="/requests">View All &rarr;</NavLink>
+                                    <NavLink className="text-xs font-extrabold text-[#2563EB] no-underline" to="/requests">View All &rarr;</NavLink>
                                 </div>
                                 <div className="mt-4 space-y-3">
                                     {!pendingRequests.length ? (
-                                        <p className="admin-empty-state admin-empty-success py-4 text-center text-sm font-bold text-[#22C55E]">✓ All submitted requests have been reviewed!</p>
+                                        <p className="admin-empty-state admin-empty-success py-4 text-center text-sm font-bold text-[#22C55E]">âœ“ All submitted requests have been reviewed!</p>
                                     ) : (
                                         pendingRequests.map(req => (
                                             <div key={req.id} className="admin-request-row rounded-xl border border-[#2563EB] p-4 flex flex-wrap items-center justify-between gap-3 bg-white">
@@ -8731,7 +8632,7 @@ function Dashboard(){
                                                         <strong className="text-sm text-[#2563EB]">{title(req.category)}</strong>
                                                     </div>
                                                     <p className="mt-1 text-xs text-[#2563EB]/80 font-medium">
-                                                        Beneficiary: <strong>{req.beneficiary?.name || 'Student'}</strong> • Quantity: {req.quantity_needed}
+                                                        Beneficiary: <strong>{req.beneficiary?.name || 'Student'}</strong> â€¢ Quantity: {req.quantity_needed}
                                                     </p>
                                                     {req.justification && (
                                                         <p className="mt-1 text-xs text-[#2563EB]/70 italic line-clamp-2">"{req.justification}"</p>
@@ -8749,7 +8650,7 @@ function Dashboard(){
                                         <h2 className="text-base font-extrabold text-[#2563EB]">Priority Matching Queue</h2>
                                         <p className="text-xs text-[#2563EB]/70 font-semibold">Approved requests waiting for available donor items</p>
                                     </div>
-                                    <NavLink className="text-xs font-extrabold text-[#2563EB] hover:underline" to="/matches">Run Match Engine &rarr;</NavLink>
+                                    <NavLink className="text-xs font-extrabold text-[#2563EB] no-underline" to="/matches">Run Match Engine &rarr;</NavLink>
                                 </div>
                                 <div className="mt-4 space-y-3">
                                     {!s.priority_queue?.length ? (
@@ -8781,7 +8682,7 @@ function Dashboard(){
                                         <h2 className="text-base font-extrabold text-[#2563EB]">Recent System Activity</h2>
                                         <p className="text-xs text-[#2563EB]/70 font-semibold">Audit logs & administrative operations</p>
                                     </div>
-                                    <NavLink className="text-xs font-extrabold text-[#2563EB] hover:underline" to="/activities">View Log &rarr;</NavLink>
+                                    <NavLink className="text-xs font-extrabold text-[#2563EB] no-underline" to="/activities">View Log &rarr;</NavLink>
                                 </div>
 
                                 <div className="mt-4 space-y-3 flex-1 overflow-y-auto max-h-[500px] pr-1">
@@ -8992,9 +8893,9 @@ function StaffDashboard() {
                     {lowStockItems.length > 0 && (
                         <div className="p-4 rounded-xl border border-[#22C55E]/40 bg-[#22C55E]/10 text-[#2563EB] flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm">⚠️ LOW WAREHOUSE STOCK WARNING:</span>
+                                <span className="font-bold text-sm">âš ï¸ LOW WAREHOUSE STOCK WARNING:</span>
                                 <span className="text-xs font-semibold">
-                                    {lowStockItems.length} category item(s) running low (quantity ≤ 2).
+                                    {lowStockItems.length} category item(s) running low (quantity â‰¤ 2).
                                 </span>
                             </div>
                             <Button size="sm" onClick={() => navigate('/staff/inventory')}>
@@ -9005,7 +8906,7 @@ function StaffDashboard() {
                     {pendingRequests.length > 5 && (
                         <div className="p-4 rounded-xl border border-[#2563EB]/35 bg-[#2563EB]/5 text-[#2563EB] flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm">⏳ VERIFICATION BOTTLENECK:</span>
+                                <span className="font-bold text-sm">â³ VERIFICATION BOTTLENECK:</span>
                                 <span className="text-xs font-semibold">
                                     {pendingRequests.length} student aid requests awaiting review.
                                 </span>
@@ -9047,7 +8948,7 @@ function StaffDashboard() {
                             {priorityRequests.map((request) => (
                                 <button key={request.id} onClick={() => navigate('/staff/verifications')} className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-[#2563EB]/5">
                                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${['high', 'critical'].includes(request.urgency) ? 'bg-[#22C55E]' : 'bg-[#2563EB]'}`}/>
-                                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-extrabold">{request.beneficiary?.name || 'Student request'} <span className="font-semibold text-[#2563EB]/55">· {request.category}</span></span><span className="mt-0.5 block text-xs font-semibold text-[#2563EB]/65">{request.quantity_needed} unit{request.quantity_needed === 1 ? '' : 's'} requested · {formatTime(request.created_at)}</span></span>
+                                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-extrabold">{request.beneficiary?.name || 'Student request'} <span className="font-semibold text-[#2563EB]/55">Â· {request.category}</span></span><span className="mt-0.5 block text-xs font-semibold text-[#2563EB]/65">{request.quantity_needed} unit{request.quantity_needed === 1 ? '' : 's'} requested Â· {formatTime(request.created_at)}</span></span>
                                     <span className="hidden rounded-full border border-[#2563EB]/20 px-2 py-1 text-[10px] font-extrabold capitalize sm:inline">{request.urgency || 'standard'}</span><Icon name="arrow" size={16}/>
                                 </button>
                             ))}
@@ -9061,8 +8962,8 @@ function StaffDashboard() {
             </section>
 
             <section className="grid gap-4 lg:grid-cols-3" aria-label="Operational status">
-                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Manage inventory →</button></div>
-                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Open dispatch hub →</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? 'â€”' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? 'â€”' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Manage inventory â†’</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? 'â€”' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Open dispatch hub â†’</button></div>
                 <div className="rounded-2xl bg-[#2563EB] p-5 text-white"><div className="flex items-start justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-white/70">Walk-in relief desk</p><h2 className="mt-1 font-extrabold">Ready to serve</h2></div><span className="grid h-9 w-9 place-items-center rounded-lg bg-white text-[#22C55E]"><Icon name="check"/></span></div><p className="mt-4 text-sm font-semibold leading-relaxed text-white/85">Log verified in-person needs and make an immediate allocation when stock is available.</p><button onClick={() => navigate('/staff/desk')} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-extrabold text-[#2563EB]">Launch desk <Icon name="arrow" size={15}/></button></div>
             </section>
 
@@ -9294,7 +9195,7 @@ function StaffVerificationDesk() {
                         ['Approved', summary.approved, 'Eligible for matching', 'check', 'green'],
                         ['Rejected', summary.rejected, 'Decision recorded', 'decline', 'blue'],
                         ['Needs attention', summary.attention, 'Urgent or revision needed', 'alert', 'green'],
-                    ].map(([label, count, detail, icon, tone]) => <button key={label} onClick={() => label === 'Approved' ? setStatusFilter('approved') : label === 'Rejected' ? setStatusFilter('rejected') : label === 'Pending' ? setStatusFilter('pending_review') : setStatusFilter('all')} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : count}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
+                    ].map(([label, count, detail, icon, tone]) => <button key={label} onClick={() => label === 'Approved' ? setStatusFilter('approved') : label === 'Rejected' ? setStatusFilter('rejected') : label === 'Pending' ? setStatusFilter('pending_review') : setStatusFilter('all')} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? 'â€”' : count}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
                 </section>
 
                 {/* Filters Bar */}
@@ -9400,7 +9301,7 @@ function StaffVerificationDesk() {
                                                 </span>
                                             </td>
                                             <td className="p-3 text-[11px] text-[#2563EB]/80">
-                                                {req.verified_by?.name || '—'}
+                                                {req.verified_by?.name || 'â€”'}
                                             </td>
                                             <td className="p-3">
                                                 <Badge status={req.status} />
@@ -9461,7 +9362,7 @@ function StaffVerificationDesk() {
 
                         <div className="space-y-3 pt-2 border-t border-[#2563EB]/20">
                             <h4 className="font-extrabold text-xs uppercase tracking-wider text-[#2563EB]">Staff Verification Protocol</h4>
-                            
+
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student ID Number</label>
@@ -9509,7 +9410,7 @@ function StaffVerificationDesk() {
                                 <textarea rows="2" placeholder="Explain what is missing, why the request is ineligible, or record the decision basis..." value={form.verification_decision_reason} onChange={(e) => setForm({ ...form, verification_decision_reason: e.target.value })} className="input text-xs w-full mt-1"/>
                             </div>
 
-                            <div className="rounded-lg border border-[#2563EB]/15 p-3 text-[11px] font-semibold text-[#2563EB]/75"><span className="font-extrabold text-[#2563EB]">Request history: </span>submitted {new Date(inspecting.created_at).toLocaleString()}{inspecting.verified_by?.name ? ` · last reviewed by ${inspecting.verified_by.name}` : ' · no earlier verification recorded'}{inspecting.verification_decided_at ? ` · decision updated ${new Date(inspecting.verification_decided_at).toLocaleString()}` : ''}.</div>
+                            <div className="rounded-lg border border-[#2563EB]/15 p-3 text-[11px] font-semibold text-[#2563EB]/75"><span className="font-extrabold text-[#2563EB]">Request history: </span>submitted {new Date(inspecting.created_at).toLocaleString()}{inspecting.verified_by?.name ? ` Â· last reviewed by ${inspecting.verified_by.name}` : ' Â· no earlier verification recorded'}{inspecting.verification_decided_at ? ` Â· decision updated ${new Date(inspecting.verification_decided_at).toLocaleString()}` : ''}.</div>
                         </div>
 
                         <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-[#2563EB]/20">
@@ -9692,7 +9593,7 @@ function StaffWarehouseInventory() {
                         ['Low stock', stockSummary.low, 'Two units or fewer', 'alert', 'low'],
                         ['Expiring soon', stockSummary.expiring, 'Within 30 days', 'clock', 'expiring'],
                         ['Needs attention', stockSummary.attention, 'Damaged or expired', 'alert', 'damaged'],
-                    ].map(([label, value, detail, icon, filter]) => <button key={label} onClick={() => setStockFilter(filter)} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={filter !== 'all' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${filter !== 'all' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
+                    ].map(([label, value, detail, icon, filter]) => <button key={label} onClick={() => setStockFilter(filter)} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={filter !== 'all' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${filter !== 'all' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? 'â€”' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
                 </section>
 
                 {/* Filters */}
@@ -9780,7 +9681,7 @@ function StaffWarehouseInventory() {
                                                 {item.storage_location || item.pickup_location || 'Warehouse Depot 1'}
                                             </span>
                                         </td>
-                                        <td className="p-3"><p className="font-black text-sm">{item.quantity} <span className="text-[10px] font-bold text-[#2563EB]/60">on hand</span></p><p className="mt-1 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? ` · ${item.reserved_quantity} reserved` : ''}</p></td>
+                                        <td className="p-3"><p className="font-black text-sm">{item.quantity} <span className="text-[10px] font-bold text-[#2563EB]/60">on hand</span></p><p className="mt-1 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? ` Â· ${item.reserved_quantity} reserved` : ''}</p></td>
                                         <td className="p-3">
                                             <span className="uppercase text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
                                                 {(item.condition_grade || 'good').replace('_', ' ')}
@@ -9798,7 +9699,7 @@ function StaffWarehouseInventory() {
                 </div>
             </div>
 
-            {viewingItem && <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop /><div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white p-6"><div className="flex items-start justify-between border-b border-[#2563EB]/20 pb-3"><div><p className="eyebrow">Inventory item record</p><h3 className="text-lg font-extrabold">{viewingItem.item_name}</h3></div><button className="nav-link p-1" onClick={() => setViewingItem(null)} aria-label="Close item details"><Icon name="close"/></button></div><div className="mt-5 grid gap-4 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#2563EB]/5 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Stock and location</p><p className="mt-2 text-xl font-black">{viewingItem.quantity} units</p><p className="mt-1 font-bold">{viewingItem.storage_location || viewingItem.pickup_location || 'Location not set'}</p><p className="mt-1 text-[#2563EB]/65">{viewingItem.category} · {stockSignal(viewingItem)}</p></div><div className="rounded-xl border border-[#2563EB]/20 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Condition and handling</p><p className="mt-2 font-extrabold capitalize">{(viewingItem.condition_grade || 'good').replace('_', ' ')}</p><p className="mt-1 text-[#2563EB]/70">{viewingItem.condition_notes || viewingItem.intake_notes || 'No inspection notes recorded.'}</p>{viewingItem.expiry_date && <p className="mt-2 font-bold text-[#22C55E]">Expiry: {new Date(viewingItem.expiry_date).toLocaleDateString()}</p>}</div></div><div className="mt-5"><div className="flex items-center justify-between"><div><h4 className="font-extrabold">Movement history</h4><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">Every recorded intake or stock adjustment.</p></div><span className="text-xs font-extrabold">{movements.filter((movement) => movement.donation_id === viewingItem.id).length} records</span></div><div className="mt-3 divide-y divide-[#2563EB]/10 rounded-xl border border-[#2563EB]/15">{movements.filter((movement) => movement.donation_id === viewingItem.id).length ? movements.filter((movement) => movement.donation_id === viewingItem.id).map((movement) => <div key={movement.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-xs font-extrabold capitalize">{movement.movement_type.replace('_', ' ')} <span className="font-semibold text-[#2563EB]/65">· {movement.staff?.name || 'Staff'}</span></p><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{movement.reason || 'No reason recorded'} · {new Date(movement.created_at).toLocaleString()}</p></div><span className="text-xs font-black text-[#22C55E]">{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</span></div>) : <div className="p-5 text-center text-xs font-semibold text-[#2563EB]/65">No movements have been recorded for this item yet.</div>}</div></div><div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>Adjust stock</Button><Button onClick={() => setViewingItem(null)}>Close</Button></div></div></div>}
+            {viewingItem && <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop /><div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white p-6"><div className="flex items-start justify-between border-b border-[#2563EB]/20 pb-3"><div><p className="eyebrow">Inventory item record</p><h3 className="text-lg font-extrabold">{viewingItem.item_name}</h3></div><button className="nav-link p-1" onClick={() => setViewingItem(null)} aria-label="Close item details"><Icon name="close"/></button></div><div className="mt-5 grid gap-4 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#2563EB]/5 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Stock and location</p><p className="mt-2 text-xl font-black">{viewingItem.quantity} units</p><p className="mt-1 font-bold">{viewingItem.storage_location || viewingItem.pickup_location || 'Location not set'}</p><p className="mt-1 text-[#2563EB]/65">{viewingItem.category} Â· {stockSignal(viewingItem)}</p></div><div className="rounded-xl border border-[#2563EB]/20 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Condition and handling</p><p className="mt-2 font-extrabold capitalize">{(viewingItem.condition_grade || 'good').replace('_', ' ')}</p><p className="mt-1 text-[#2563EB]/70">{viewingItem.condition_notes || viewingItem.intake_notes || 'No inspection notes recorded.'}</p>{viewingItem.expiry_date && <p className="mt-2 font-bold text-[#22C55E]">Expiry: {new Date(viewingItem.expiry_date).toLocaleDateString()}</p>}</div></div><div className="mt-5"><div className="flex items-center justify-between"><div><h4 className="font-extrabold">Movement history</h4><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">Every recorded intake or stock adjustment.</p></div><span className="text-xs font-extrabold">{movements.filter((movement) => movement.donation_id === viewingItem.id).length} records</span></div><div className="mt-3 divide-y divide-[#2563EB]/10 rounded-xl border border-[#2563EB]/15">{movements.filter((movement) => movement.donation_id === viewingItem.id).length ? movements.filter((movement) => movement.donation_id === viewingItem.id).map((movement) => <div key={movement.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-xs font-extrabold capitalize">{movement.movement_type.replace('_', ' ')} <span className="font-semibold text-[#2563EB]/65">Â· {movement.staff?.name || 'Staff'}</span></p><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{movement.reason || 'No reason recorded'} Â· {new Date(movement.created_at).toLocaleString()}</p></div><span className="text-xs font-black text-[#22C55E]">{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</span></div>) : <div className="p-5 text-center text-xs font-semibold text-[#2563EB]/65">No movements have been recorded for this item yet.</div>}</div></div><div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>Adjust stock</Button><Button onClick={() => setViewingItem(null)}>Close</Button></div></div></div>}
 
             {/* Modal: Physical Intake */}
             {showIntakeModal && (
@@ -10086,22 +9987,22 @@ function StaffWalkInDesk() {
                         ['Completed', deskSummary.completed, 'Allocated or handed off', 'check', 'green'],
                         ['Priority', deskSummary.urgent, 'Urgent follow-up needed', 'alert', 'green'],
                         ['Referred', deskSummary.referred, 'Directed to another service', 'arrow', 'blue'],
-                    ].map(([label, value, detail, icon, tone]) => <article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex items-start justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}
+                    ].map(([label, value, detail, icon, tone]) => <article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex items-start justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? 'â€”' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}
                 </section>
 
                 <section aria-label="Walk-in assistance steps" className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Identify student', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-[10px] font-extrabold"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#2563EB] text-white">{index + 1}</span>{step}</div>)}</div></section>
 
                 {successMessage && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
-                        ✓ {successMessage}
+                        âœ“ {successMessage}
                     </div>
                 )}
 
                 {error && <div className="p-4 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-bold">{error}</div>}
 
-                {receipt && <div className="rounded-xl border border-[#22C55E] bg-[#22C55E]/10 p-4 text-xs"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-extrabold text-[#22C55E]">Walk-in assistance recorded · Receipt #{receipt.id}</p><p className="mt-1 font-semibold text-[#2563EB]/75">Status: {(receipt.walk_in_status || 'waiting').replace('_', ' ')} · {receipt.category} · {receipt.quantity_needed} unit{receipt.quantity_needed === 1 ? '' : 's'}</p></div><button onClick={() => setReceipt(null)} className="text-xs font-extrabold underline">Dismiss receipt</button></div></div>}
+                {receipt && <div className="rounded-xl border border-[#22C55E] bg-[#22C55E]/10 p-4 text-xs"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-extrabold text-[#22C55E]">Walk-in assistance recorded Â· Receipt #{receipt.id}</p><p className="mt-1 font-semibold text-[#2563EB]/75">Status: {(receipt.walk_in_status || 'waiting').replace('_', ' ')} Â· {receipt.category} Â· {receipt.quantity_needed} unit{receipt.quantity_needed === 1 ? '' : 's'}</p></div><button onClick={() => setReceipt(null)} className="text-xs font-extrabold underline">Dismiss receipt</button></div></div>}
 
-                {existingStudentRequests.length > 0 && <div className="rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-4"><div className="flex items-start gap-3"><Icon name="info" className="mt-0.5"/><div><p className="text-xs font-extrabold">Existing request found for this student</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Review the active record before creating another request to avoid duplicate assistance.</p><div className="mt-2 flex flex-wrap gap-2">{existingStudentRequests.map((request) => <span key={request.id} className="rounded-full border border-[#2563EB]/20 bg-white px-2 py-1 text-[10px] font-extrabold">#{request.id} · {request.category} · {request.status.replace('_', ' ')}</span>)}</div></div></div></div>}
+                {existingStudentRequests.length > 0 && <div className="rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-4"><div className="flex items-start gap-3"><Icon name="info" className="mt-0.5"/><div><p className="text-xs font-extrabold">Existing request found for this student</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Review the active record before creating another request to avoid duplicate assistance.</p><div className="mt-2 flex flex-wrap gap-2">{existingStudentRequests.map((request) => <span key={request.id} className="rounded-full border border-[#2563EB]/20 bg-white px-2 py-1 text-[10px] font-extrabold">#{request.id} Â· {request.category} Â· {request.status.replace('_', ' ')}</span>)}</div></div></div></div>}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">1</span><div><h2 className="text-sm font-extrabold">Identify and verify the student</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Check campus details before recording a new request.</p></div></div>
@@ -10215,7 +10116,7 @@ function StaffWalkInDesk() {
                             <option value="">-- No Instant Allocation (Add to Priority Queue) --</option>
                             {availableDonations.map((d) => (
                                 <option key={d.id} value={d.id}>
-                                    [{d.category}] {d.item_name} — Qty: {d.quantity} ({d.storage_location || 'Warehouse Bin'})
+                                    [{d.category}] {d.item_name} â€” Qty: {d.quantity} ({d.storage_location || 'Warehouse Bin'})
                                 </option>
                             ))}
                         </select>
@@ -10325,12 +10226,12 @@ function StaffHandoffDispatch() {
                     </Button>
                 </div>
 
-                <section aria-label="Dispatch summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">{[['Pending',dispatchSummary.pending,'Awaiting pickup','clock','blue'],['Ready',dispatchSummary.ready,'Ready for release','check','green'],['In progress',dispatchSummary.inProgress,'PIN verification open','activity','blue'],['Completed',dispatchSummary.completed,'Fulfilled handoffs','check','green'],['Expired',dispatchSummary.expired,'Require reschedule','alert','green']].map(([label,value,detail,icon,tone])=><article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone==='green'?'text-[#22C55E]':''}/></div><p className={`mt-2 text-2xl font-black ${tone==='green'?'text-[#22C55E]':'text-[#2563EB]'}`}>{loading?'—':value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}</section>
+                <section aria-label="Dispatch summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">{[['Pending',dispatchSummary.pending,'Awaiting pickup','clock','blue'],['Ready',dispatchSummary.ready,'Ready for release','check','green'],['In progress',dispatchSummary.inProgress,'PIN verification open','activity','blue'],['Completed',dispatchSummary.completed,'Fulfilled handoffs','check','green'],['Expired',dispatchSummary.expired,'Require reschedule','alert','green']].map(([label,value,detail,icon,tone])=><article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone==='green'?'text-[#22C55E]':''}/></div><p className={`mt-2 text-2xl font-black ${tone==='green'?'text-[#22C55E]':'text-[#2563EB]'}`}>{loading?'â€”':value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}</section>
                 <section className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Locate handoff','Review recipient & item','Verify identity','Enter PIN','Confirm quantity','Complete release','Record audit'].map((step,index)=><div key={step} className="flex items-center gap-2 rounded-lg bg-white px-2 py-2 text-[10px] font-extrabold"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#2563EB] text-white">{index+1}</span>{step}</div>)}</div></section>
 
                 {successMessage && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
-                        ✓ {successMessage}
+                        âœ“ {successMessage}
                     </div>
                 )}
 
@@ -10370,7 +10271,7 @@ function StaffHandoffDispatch() {
                                 filtered.map((m) => (
                                     <tr key={m.id} className="hover:bg-[#2563EB]/5 transition">
                                         <td className="p-3 font-extrabold text-[#2563EB]">
-                                            Match #{m.id} — {m.donation?.item_name || 'Item'}
+                                            Match #{m.id} â€” {m.donation?.item_name || 'Item'}
                                         </td>
                                         <td className="p-3 text-[#2563EB]/80">{m.donation?.donor?.name || 'Donor'}</td>
                                         <td className="p-3">
@@ -10380,7 +10281,7 @@ function StaffHandoffDispatch() {
                                         <td className="p-3 text-[11px] font-bold">
                                             {m.pickup_hub || m.donation?.storage_location || 'Campus Center Desk'}
                                         </td>
-                                        <td className="p-3"><span className={`rounded-full border px-2 py-1 text-[10px] font-extrabold ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'border-[#22C55E] text-[#22C55E]' : 'border-[#2563EB]/20 text-[#2563EB]'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} · ID check required</p></td>
+                                        <td className="p-3"><span className={`rounded-full border px-2 py-1 text-[10px] font-extrabold ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'border-[#22C55E] text-[#22C55E]' : 'border-[#2563EB]/20 text-[#2563EB]'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} Â· ID check required</p></td>
                                         <td className="p-3">
                                             <Badge status={m.status} />
                                         </td>
@@ -10510,12 +10411,12 @@ function DonorDashboard(){
     const chartTooltip = { contentStyle: { backgroundColor: '#FFFFFF', border: '1px solid #2563EB', borderRadius: '12px', color: '#2563EB', fontSize: '12px', fontWeight: 700 }, labelStyle: { color: '#2563EB', fontWeight: 800 }, itemStyle: { color: '#2563EB' } };
 
     let filteredDonations = donations.filter(d => {
-        const matchesStatus = statusFilter === 'all' || 
+        const matchesStatus = statusFilter === 'all' ||
             (statusFilter === 'pending' && d.status === 'pending_match') ||
             (statusFilter === 'active' && d.status === 'matched') ||
             (statusFilter === 'completed' && (d.status === 'completed' || d.status === 'fulfilled'));
         const q = search.toLowerCase();
-        const matchesSearch = !search || 
+        const matchesSearch = !search ||
             (d.item_name && d.item_name.toLowerCase().includes(q)) ||
             (d.category && d.category.toLowerCase().includes(q)) ||
             (d.pickup_location && d.pickup_location.toLowerCase().includes(q));
@@ -10649,12 +10550,12 @@ function DonorDashboard(){
 
                 <div className="space-y-2">
                     <div className="h-3 w-full overflow-hidden rounded-full border border-[#22C55E] bg-white p-0.5">
-                        <div 
-                            className="h-full rounded-full bg-[#22C55E] transition-all duration-500" 
+                        <div
+                            className="h-full rounded-full bg-[#22C55E] transition-all duration-500"
                             style={{ width: `${Math.min(100, Math.max(0, fulfillmentRate))}%` }}
                         />
                     </div>
-                    <p className="text-xs font-semibold text-[#2563EB]/70">Listed <span className="mx-1">→</span> Available for matching <span className="mx-1">→</span> Matched <span className="mx-1">→</span> Handoff <span className="mx-1">→</span> Completed</p>
+                    <p className="text-xs font-semibold text-[#2563EB]/70">Listed <span className="mx-1">â†’</span> Available for matching <span className="mx-1">â†’</span> Matched <span className="mx-1">â†’</span> Handoff <span className="mx-1">â†’</span> Completed</p>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 pt-2">
                         <div className="rounded-xl border border-[#2563EB]/20 p-3 bg-white">
                             <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]/70">Listed Resources</span>
@@ -10716,11 +10617,11 @@ function DonorDashboard(){
                                     </h3>
                                     {m.handoff_scheduled_at && (
                                         <p className="text-xs font-semibold text-[#2563EB]/80">
-                                            📅 Scheduled: {new Date(m.handoff_scheduled_at).toLocaleString()}
+                                            ðŸ“… Scheduled: {new Date(m.handoff_scheduled_at).toLocaleString()}
                                         </p>
                                     )}
                                     {m.handoff_notes && (
-                                        <p className="text-xs italic text-[#2563EB]/70">📍 Location/Notes: {m.handoff_notes}</p>
+                                        <p className="text-xs italic text-[#2563EB]/70">ðŸ“ Location/Notes: {m.handoff_notes}</p>
                                     )}
                                 </div>
                                 <div>
@@ -11196,7 +11097,7 @@ function BeneficiaryDashboard() {
                 <div className="mt-5 rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4">
                     <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]/70"><span>Request to fulfillment pathway</span><span>{completionRate}% completed</span></div>
                     <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white"><span className="bg-[#2563EB]/45" style={{ width: `${totalRequestsCount ? (statusCounts.pending_review / totalRequestsCount) * 100 : 0}%` }}/><span className="bg-[#22C55E]/60" style={{ width: `${totalRequestsCount ? (statusCounts.approved / totalRequestsCount) * 100 : 0}%` }}/><span className="bg-[#2563EB]" style={{ width: `${totalRequestsCount ? (statusCounts.matched / totalRequestsCount) * 100 : 0}%` }}/><span className="bg-[#22C55E]" style={{ width: `${totalRequestsCount ? (statusCounts.fulfilled / totalRequestsCount) * 100 : 0}%` }}/></div>
-                    <p className="mt-3 text-xs font-semibold text-[#2563EB]/70">Under Review <span className="mx-1">→</span> Approved <span className="mx-1">→</span> Matched <span className="mx-1">→</span> Fulfilled</p>
+                    <p className="mt-3 text-xs font-semibold text-[#2563EB]/70">Under Review <span className="mx-1">â†’</span> Approved <span className="mx-1">â†’</span> Matched <span className="mx-1">â†’</span> Fulfilled</p>
                 </div>
             </div>
 
@@ -11244,11 +11145,11 @@ function BeneficiaryDashboard() {
                                                 </div>
                                                 <h4 className="mt-1 text-sm font-extrabold text-[#2563EB]">{itemName}</h4>
                                                 <p className="mt-0.5 text-[11px] text-[#22C55E]">
-                                                    📅 {formatDateTime(m.handoff_scheduled_at)}
+                                                    ðŸ“… {formatDateTime(m.handoff_scheduled_at)}
                                                 </p>
                                                 {m.handoff_notes && (
                                                     <p className="text-[10px] text-[#2563EB] opacity-80 truncate max-w-xs">
-                                                        📍 {m.handoff_notes}
+                                                        ðŸ“ {m.handoff_notes}
                                                     </p>
                                                 )}
                                             </div>
@@ -11309,7 +11210,7 @@ function BeneficiaryDashboard() {
                                                 </div>
                                                 <h4 className="mt-1 text-sm font-extrabold text-[#2563EB]">{itemName}</h4>
                                                 <p className="text-[11px] text-[#2563EB] opacity-90 font-normal">
-                                                    Donor: {m.donation?.donor?.name || 'Campus Donor'} • {m.matched_quantity} unit(s)
+                                                    Donor: {m.donation?.donor?.name || 'Campus Donor'} â€¢ {m.matched_quantity} unit(s)
                                                 </p>
                                             </div>
                                             <Link to="/matches" className="no-underline">
@@ -11396,7 +11297,7 @@ function BeneficiaryDashboard() {
                                                 </td>
                                                 <td className="font-bold text-[#2563EB]">
                                                     {isFinancial
-                                                        ? `₱${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                        ? `â‚±${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                         : `${r.quantity_needed} ${r.unit || 'unit(s)'}`}
                                                 </td>
                                                 <td>
@@ -11443,7 +11344,7 @@ function BeneficiaryDashboard() {
                                         <div>
                                             <h4 className="font-extrabold text-sm">{title(r.category)}</h4>
                                             <p className="text-[11px] opacity-80 mt-0.5">
-                                                Assistance Needed: {isFinancial ? `₱${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : `${r.quantity_needed} ${r.unit || 'unit(s)'}`} • Priority: {title(r.urgency || 'normal')}
+                                                Assistance Needed: {isFinancial ? `â‚±${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : `${r.quantity_needed} ${r.unit || 'unit(s)'}`} â€¢ Priority: {title(r.urgency || 'normal')}
                                             </p>
                                             <p className="text-[10px] opacity-70 mt-0.5">Submitted {formatDate(r.created_at)}</p>
                                         </div>
@@ -11508,7 +11409,7 @@ function BeneficiaryDashboard() {
                                     </span>
                                     <span className="text-[#22C55E] font-black text-sm">
                                         {selectedRequestDetails.request_type === 'financial'
-                                            ? `₱${Number(selectedRequestDetails.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                                            ? `â‚±${Number(selectedRequestDetails.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                                             : `${selectedRequestDetails.quantity_needed} ${selectedRequestDetails.unit || 'unit(s)'}`}
                                     </span>
                                 </div>
@@ -11528,7 +11429,7 @@ function BeneficiaryDashboard() {
                             {selectedRequestDetails.preferred_assistance_date && (
                                 <div className="border-b border-[#2563EB]/30 pb-2">
                                     <span className="text-[#2563EB] opacity-70 block">Preferred Assistance Date</span>
-                                    <p className="font-extrabold text-[#2563EB]">📅 {selectedRequestDetails.preferred_assistance_date}</p>
+                                    <p className="font-extrabold text-[#2563EB]">ðŸ“… {selectedRequestDetails.preferred_assistance_date}</p>
                                 </div>
                             )}
 
@@ -11973,7 +11874,7 @@ function DonorNeeds() {
                                                 </div>
                                                 <span className="rounded-full border border-[#2563EB] bg-white px-2.5 py-1 text-xs font-black text-[#2563EB]">
                                                     {isFinancial
-                                                        ? `₱${remainingAmt.toLocaleString(undefined, { minimumFractionDigits: 2 })} needed`
+                                                        ? `â‚±${remainingAmt.toLocaleString(undefined, { minimumFractionDigits: 2 })} needed`
                                                         : `${remainingQty} ${req.unit || 'unit(s)'} needed`}
                                                 </span>
                                             </div>
@@ -11995,7 +11896,7 @@ function DonorNeeds() {
                                                 )}
                                                 {req.preferred_assistance_date && (
                                                     <p className="mt-0.5 text-[11px] font-bold text-[#2563EB]/80">
-                                                        📅 Needed by: {req.preferred_assistance_date}
+                                                        ðŸ“… Needed by: {req.preferred_assistance_date}
                                                     </p>
                                                 )}
                                                 {req.alternative_categories && !isFinancial && (
@@ -12019,7 +11920,7 @@ function DonorNeeds() {
                                                     <span>Fulfillment Progress</span>
                                                     <span>
                                                         {isFinancial
-                                                            ? `₱${matchedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} / ₱${requestedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} (${progressPercent}%)`
+                                                            ? `â‚±${matchedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} / â‚±${requestedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} (${progressPercent}%)`
                                                             : `${matchedQty} / ${neededQty} ${req.unit || 'units'} (${progressPercent}%)`}
                                                     </span>
                                                 </div>
@@ -12058,7 +11959,7 @@ function DonorNeeds() {
                         {totalPages > 1 && (
                             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#2563EB] pt-4 text-xs font-bold text-[#2563EB]">
                                 <div>
-                                    Showing {startIndex + 1}–{Math.min(startIndex + pageSize, sortedRequests.length)} of {sortedRequests.length} campus needs
+                                    Showing {startIndex + 1}â€“{Math.min(startIndex + pageSize, sortedRequests.length)} of {sortedRequests.length} campus needs
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button
@@ -12127,19 +12028,19 @@ function DonorNeeds() {
                                         <div>
                                             <span className="text-[#2563EB] opacity-70 block text-[10px]">Amount Requested</span>
                                             <span className="text-sm font-extrabold text-[#2563EB]">
-                                                ₱{Number(selectedDetailRequest.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                â‚±{Number(selectedDetailRequest.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                         <div>
                                             <span className="text-[#2563EB] opacity-70 block text-[10px]">Matched Aid</span>
                                             <span className="text-sm font-extrabold text-[#22C55E]">
-                                                ₱{Number(selectedDetailRequest.matched_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                â‚±{Number(selectedDetailRequest.matched_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                         <div>
                                             <span className="text-[#2563EB] opacity-70 block text-[10px]">Remaining</span>
                                             <span className="text-sm font-extrabold text-[#2563EB]">
-                                                ₱{Math.max(0, (Number(selectedDetailRequest.amount_requested) || 0) - (Number(selectedDetailRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                â‚±{Math.max(0, (Number(selectedDetailRequest.amount_requested) || 0) - (Number(selectedDetailRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     </>
@@ -12180,7 +12081,7 @@ function DonorNeeds() {
                                 <div>
                                     <span className="text-[#2563EB] opacity-70 block mb-1">Preferred Assistance Date</span>
                                     <p className="font-extrabold text-[#2563EB]">
-                                        📅 {selectedDetailRequest.preferred_assistance_date}
+                                        ðŸ“… {selectedDetailRequest.preferred_assistance_date}
                                     </p>
                                 </div>
                             )}
@@ -12276,8 +12177,8 @@ function DonorNeeds() {
                                 <div className="rounded-xl border border-[#2563EB] bg-white p-3 text-xs font-bold">
                                     <span className="text-[#2563EB] opacity-70 block">Target Request</span>
                                     <span>
-                                        {title(donatingRequest.category)} — {donatingRequest.request_type === 'financial'
-                                            ? `₱${Math.max(0, (Number(donatingRequest.amount_requested) || 0) - (Number(donatingRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })} remaining needed`
+                                        {title(donatingRequest.category)} â€” {donatingRequest.request_type === 'financial'
+                                            ? `â‚±${Math.max(0, (Number(donatingRequest.amount_requested) || 0) - (Number(donatingRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })} remaining needed`
                                             : `${donatingRequest.quantity_needed - (donatingRequest.matched_quantity || 0)} ${donatingRequest.unit || 'unit(s)'} remaining needed`}
                                     </span>
                                 </div>
@@ -12287,7 +12188,7 @@ function DonorNeeds() {
                                         {/* Financial Donation Amount */}
                                         <div>
                                             <label htmlFor="q_amount" className="block text-xs font-bold text-[#2563EB]">
-                                                Donation Amount (₱ PHP) <span className="text-[#22C55E]">*</span>
+                                                Donation Amount (â‚± PHP) <span className="text-[#22C55E]">*</span>
                                             </label>
                                             <input
                                                 id="q_amount"
@@ -12837,7 +12738,7 @@ function FulfillmentPage({ role }) {
                                             <span className="text-[#2563EB] opacity-70 block mb-1">Schedule & Location</span>
                                             {m.handoff_scheduled_at ? (
                                                 <p className="text-sm font-extrabold text-[#22C55E]">
-                                                    📅 {formatDate(m.handoff_scheduled_at)}
+                                                    ðŸ“… {formatDate(m.handoff_scheduled_at)}
                                                 </p>
                                             ) : (
                                                 <p className="text-xs font-bold text-[#2563EB]">Not scheduled yet</p>
@@ -12856,7 +12757,7 @@ function FulfillmentPage({ role }) {
                                                 <div>
                                                     Your status:{' '}
                                                     {isMyConfirmed ? (
-                                                        <span className="font-extrabold text-[#22C55E]">✓ Confirmed</span>
+                                                        <span className="font-extrabold text-[#22C55E]">âœ“ Confirmed</span>
                                                     ) : (
                                                         <span className="font-extrabold text-[#2563EB]">Pending Confirmation</span>
                                                     )}
@@ -12864,7 +12765,7 @@ function FulfillmentPage({ role }) {
                                                 <div>
                                                     {counterpartyRole} status:{' '}
                                                     {isOtherConfirmed ? (
-                                                        <span className="font-extrabold text-[#22C55E]">✓ Confirmed</span>
+                                                        <span className="font-extrabold text-[#22C55E]">âœ“ Confirmed</span>
                                                     ) : (
                                                         <span className="font-extrabold text-[#2563EB]">Pending Confirmation</span>
                                                     )}
@@ -13610,7 +13511,7 @@ function HistoryPage({ role }) {
                                                 {x.item_name || title(x.category)}
                                             </h4>
                                             <p className="text-xs font-bold text-[#2563EB] uppercase opacity-75">
-                                                {x.category} • {x.quantity || x.quantity_needed} unit(s)
+                                                {x.category} â€¢ {x.quantity || x.quantity_needed} unit(s)
                                             </p>
                                             <p className="text-[11px] text-[#2563EB] mt-1">
                                                 Date: {formatDate(x.created_at)}
@@ -13643,7 +13544,7 @@ function HistoryPage({ role }) {
                         {totalPages > 1 && (
                             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#2563EB] pt-4 text-xs font-bold text-[#2563EB]">
                                 <div>
-                                    Showing {startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length} records
+                                    Showing {startIndex + 1}â€“{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length} records
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button
@@ -13829,7 +13730,7 @@ function HistoryPage({ role }) {
                             </div>
                             <div>
                                 <span className="text-[#2563EB] opacity-70 block">Completion Status</span>
-                                <span className="text-[#22C55E] font-extrabold uppercase">✓ FULFILLED</span>
+                                <span className="text-[#22C55E] font-extrabold uppercase">âœ“ FULFILLED</span>
                             </div>
                         </div>
 
@@ -13867,7 +13768,7 @@ function HistoryPage({ role }) {
 
                         {/* Impact Statement */}
                         <div className="rounded-xl border border-[#22C55E] bg-white p-4 text-xs font-bold text-[#2563EB] text-center mb-6">
-                            <p className="text-[#22C55E] font-extrabold mb-1">🌱 Verified Campus Impact</p>
+                            <p className="text-[#22C55E] font-extrabold mb-1">ðŸŒ± Verified Campus Impact</p>
                             <p className="font-normal opacity-90 leading-relaxed">
                                 This document confirms that the above resource was contributed to the ReliefLink Campus Exchange network and has been matched with student community needs.
                             </p>
@@ -13907,7 +13808,7 @@ function AdminCategories(){
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortBy, setSortBy] = useState('name_asc');
-    
+
     const [addingCategory, setAddingCategory] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [inspectingCategory, setInspectingCategory] = useState(null);
@@ -14341,7 +14242,7 @@ function AdminCategories(){
                                 <div key={d.id} className="p-2.5 rounded-lg border border-[#2563EB]/20 bg-[#2563EB]/5 flex justify-between items-center">
                                     <div>
                                         <strong className="text-[#2563EB] block">{d.item_name}</strong>
-                                        <span className="text-[#2563EB]/70 font-semibold">Donor: {d.donor?.name || 'Campus Donor'} • {d.quantity || 1} units</span>
+                                        <span className="text-[#2563EB]/70 font-semibold">Donor: {d.donor?.name || 'Campus Donor'} â€¢ {d.quantity || 1} units</span>
                                     </div>
                                     <Badge status={d.status}/>
                                 </div>
@@ -14352,7 +14253,7 @@ function AdminCategories(){
                                 <div key={r.id} className="p-2.5 rounded-lg border border-[#2563EB]/20 bg-[#2563EB]/5 flex justify-between items-center">
                                     <div>
                                         <strong className="text-[#2563EB] block">{r.category}</strong>
-                                        <span className="text-[#2563EB]/70 font-semibold">Requester: {r.beneficiary?.name || 'Student'} • {r.quantity_needed} needed</span>
+                                        <span className="text-[#2563EB]/70 font-semibold">Requester: {r.beneficiary?.name || 'Student'} â€¢ {r.quantity_needed} needed</span>
                                     </div>
                                     <Badge status={r.status}/>
                                 </div>
@@ -14382,7 +14283,7 @@ function AdminCategories(){
                         </p>
                         {getItemCount(deletingCategory.slug) > 0 ? (
                             <p className="text-xs font-extrabold text-[#2563EB] bg-[#2563EB]/5 p-3 rounded-lg border border-[#2563EB]/20">
-                                ⚠️ Warning: This category currently has {getItemCount(deletingCategory.slug)} active listing(s). You must reassign or clear these items before deletion.
+                                âš ï¸ Warning: This category currently has {getItemCount(deletingCategory.slug)} active listing(s). You must reassign or clear these items before deletion.
                             </p>
                         ) : (
                             <p className="text-xs font-bold text-[#2563EB]/70">
@@ -14415,7 +14316,7 @@ function AdminApprovals(){
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [sortBy, setSortBy] = useState('urgency_desc');
     const [actionLoading, setActionLoading] = useState(false);
-    
+
     const [inspectingRequest, setInspectingRequest] = useState(null);
     const [approvingRequest, setApprovingRequest] = useState(null);
     const [decliningRequest, setDecliningRequest] = useState(null);
@@ -16452,7 +16353,7 @@ function Profile(){
                                             <Icon name="donation" size={20}/>
                                         </span>
                                         <p className="text-xs font-bold text-[#2563EB]">Click to upload a new photo</p>
-                                        <p className="text-[10px] font-semibold text-[#2563EB]/60 mt-1">JPG, PNG, or GIF — Max 2MB</p>
+                                        <p className="text-[10px] font-semibold text-[#2563EB]/60 mt-1">JPG, PNG, or GIF â€” Max 2MB</p>
                                     </div>
                                     <input
                                         ref={fileRef}
@@ -16469,7 +16370,7 @@ function Profile(){
                                                     New photo selected
                                                 </span>
                                             )}
-                                            <button type="button" className="text-xs font-bold text-[#2563EB] underline hover:text-[#2563EB]/80" onClick={removePhoto}>
+                                            <button type="button" className="profile-photo-remove-button" onClick={removePhoto}>
                                                 Remove photo
                                             </button>
                                         </div>
@@ -16584,9 +16485,9 @@ function Profile(){
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {[
-                                    {label:'Account ID',value:`#${user.id||'—'}`},
-                                    {label:'Full Name',value:user.name||'—'},
-                                    {label:'Email Address',value:user.email||'—'},
+                                    {label:'Account ID',value:`#${user.id||'â€”'}`},
+                                    {label:'Full Name',value:user.name||'â€”'},
+                                    {label:'Email Address',value:user.email||'â€”'},
                                     {label:'Country / Region',value:user.country||'Campus Resident'},
                                     {label:'Contact Number',value:user.contact_number||'Not provided'},
                                     {label:'Account Type',value:user.role==='beneficiary'?'Request Support (Beneficiary)':user.role==='donor'?'Make a Donation (Donor)':title(user.role)},
@@ -17235,7 +17136,7 @@ function Activities(){
                                     </div>
                                     <p className="text-xs font-semibold text-[#2563EB]/80">
                                         Executed by: <strong className="text-[#2563EB]">{x.user?.name || 'System Administrator'}</strong>
-                                        {x.subject_type && ` • Target: ${x.subject_type.split('\\').pop()} #${x.subject_id || ''}`}
+                                        {x.subject_type && ` â€¢ Target: ${x.subject_type.split('\\').pop()} #${x.subject_id || ''}`}
                                     </p>
                                     <p className="text-[11px] font-bold text-[#2563EB]/60">
                                         {new Date(x.created_at).toLocaleString()}
@@ -17580,7 +17481,7 @@ function NotificationsPage(){
 
             {loading?(
                 <div className="panel p-8 text-center font-bold text-[#2563EB]">
-                    Loading notifications…
+                    Loading notificationsâ€¦
                 </div>
             ):!filtered.length?(
                 <div className="panel p-12 text-center bg-white space-y-3">
@@ -17618,7 +17519,7 @@ function NotificationsPage(){
                                         </div>
                                         <p className="mt-1.5 font-bold text-[#2563EB] text-sm leading-relaxed line-clamp-2">{n.message}</p>
                                         <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/60">
-                                            {getRelativeTime(n.created_at)} • {n.created_at?new Date(n.created_at).toLocaleString():'Recent'}
+                                            {getRelativeTime(n.created_at)} â€¢ {n.created_at?new Date(n.created_at).toLocaleString():'Recent'}
                                         </p>
                                     </div>
                                 </div>
@@ -17783,29 +17684,14 @@ function NotificationsPage(){
 }
 
 export default function App() {
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-        try { return localStorage.getItem('rl_sidebar_collapsed') === 'true'; } catch { return false; }
-    });
-    const setCollapsed = (val) => {
-        setSidebarCollapsed(val);
-        try { localStorage.setItem('rl_sidebar_collapsed', String(val)); } catch {}
-    };
-
     const { user, loading } = useAuth();
     const location = useLocation();
 
-    const activeModuleName = user ? (() => {
-        const modules = getModulesForRole(user.role);
-        const activeModule = modules.find((m) => location.pathname === m.path);
-        return activeModule ? activeModule.name : null;
-    })() : null;
-
     return (
         <div className={`min-h-screen bg-white ${user?.role === 'admin' ? 'admin-app' : user ? 'member-app' : ''}`}>
-            <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} setCollapsed={setCollapsed} />
-            <Header setMobileOpen={setMobileOpen} collapsed={sidebarCollapsed} activeModuleName={activeModuleName} />
-            <div className={`lg:min-h-screen ${user ? (sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64') : 'w-full'}`}>
+            <Sidebar />
+            <Header />
+            <div className={`${user ? 'ml-64' : 'w-full'} min-h-screen`}>
                 <main className="flex-1 min-w-0">
                     <Routes>
                         <Route path="/" element={<Home/>}/>

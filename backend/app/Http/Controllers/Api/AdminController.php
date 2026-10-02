@@ -89,6 +89,20 @@ class AdminController extends Controller
         return UserResource::collection(User::latest()->paginate(30));
     }
 
+    public function updateUserStatus(Request $r, User $user)
+    {
+        $data = $r->validate(['is_active' => 'required|boolean']);
+        $user->is_active = $data['is_active'];
+        $user->save();
+
+        if (! $user->is_active) {
+            $user->tokens()->delete();
+        }
+
+        ActivityService::log($r->user(), $user->is_active ? 'reactivated user' : 'deactivated user', $user);
+        return new UserResource($user->fresh());
+    }
+
     public function storeUser(Request $r)
     {
         $rawRole = strtolower(trim((string) ($r->input('account_type') ?: $r->input('role', ''))));

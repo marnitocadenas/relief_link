@@ -47,6 +47,7 @@ class User extends Authenticatable
         'country_code',
         'profile_photo_path',
         'email_verified_at',
+        'is_active',
         'remember_token',
     ];
 
@@ -70,6 +71,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
