@@ -172,6 +172,31 @@ textarea:focus-visible {
   font-weight: 400;
 }
 
+.international-phone-control {
+  min-height: 2.75rem;
+  overflow: hidden;
+  border: 1px solid #DBE3F0;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.international-phone-control:focus-within:not(.international-phone-control-error):not(.international-phone-control-disabled) {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.international-phone-control-error {
+  border-color: #EF4444;
+  box-shadow: 0 0 0 1px #EF4444;
+}
+
+.international-phone-control-disabled {
+  border-color: #DBE3F0;
+  background: #F8FAFC;
+  opacity: 0.65;
+}
+
 .field:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -209,6 +234,155 @@ select.field {
   background-position: right 0.75rem center;
   background-repeat: no-repeat;
   background-size: 1.25rem;
+}
+
+.dropdown-select-trigger {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid #DBE3F0;
+  border-radius: 0.625rem;
+  background-color: #fff;
+  padding: 0.65rem 2.75rem 0.65rem 0.85rem;
+  color: #1E293B;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.dropdown-select-trigger.select,
+.dropdown-select-trigger.field,
+.dropdown-select-trigger.input {
+  background-image: none;
+  padding-right: 2.75rem;
+}
+
+.dropdown-select-trigger:focus-visible,
+.dropdown-select-open {
+  outline: none;
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+.dropdown-select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-select-placeholder {
+  color: #94A3B8;
+}
+
+.dropdown-select-chevron {
+  position: absolute;
+  right: 0.8rem;
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  color: #64748B;
+  transition: transform 160ms ease, color 160ms ease;
+}
+
+.dropdown-select-chevron-open {
+  transform: rotate(180deg);
+  color: var(--blue);
+}
+
+.dropdown-select-disabled {
+  cursor: not-allowed !important;
+  opacity: 0.65;
+}
+
+.dropdown-select-native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dropdown-select-menu {
+  position: fixed;
+  z-index: 10050;
+  overflow-y: auto;
+  padding: 0.35rem;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 0.85rem;
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16), 0 3px 8px rgba(15, 23, 42, 0.07);
+  transform-origin: top center;
+  animation: dropdown-select-in 150ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  overscroll-behavior: contain;
+}
+
+.dropdown-select-menu-closing {
+  pointer-events: none;
+  animation: dropdown-select-out 120ms ease-in both;
+}
+
+.dropdown-select-option {
+  display: flex;
+  width: 100%;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  padding: 0.6rem 0.75rem;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 130ms ease, color 130ms ease;
+}
+
+.dropdown-select-option:hover:not(:disabled),
+.dropdown-select-option:focus-visible {
+  outline: none;
+  background: rgba(37, 99, 235, 0.07);
+  color: #1D4ED8;
+}
+
+.dropdown-select-option-selected {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1D4ED8;
+  font-weight: 700;
+}
+
+.dropdown-select-option:disabled {
+  color: #94A3B8;
+  cursor: not-allowed;
+}
+
+.dropdown-select-check {
+  flex: none;
+  color: #22C55E;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+@keyframes dropdown-select-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes dropdown-select-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-3px) scale(0.99); }
 }
 
 textarea.field {
@@ -1030,6 +1204,20 @@ table[class*="border-collapse"]:not(.data-table) tbody tr:hover {
   place-items: center;
   padding: 1rem;
   animation: fade-in 0.2s ease;
+}
+
+.modal-overlay > .panel {
+  max-height: min(90dvh, 56rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.modal-overlay button[title="Close"],
+.modal-overlay button[aria-label^="Close"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* Full-viewport blur backdrop rendered via React portal directly on <body>.
@@ -2690,5 +2878,65 @@ input:not([type='checkbox']):not([type='radio']):focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: none !important;
+}
+
+/* Shared table presentation across the system; User Management keeps its own table styling. */
+table:not(.user-management-table) {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+table:not(.user-management-table) th,
+table:not(.user-management-table) td,
+table[class*="border-collapse"]:not(.user-management-table):not(.data-table) th,
+table[class*="border-collapse"]:not(.user-management-table):not(.data-table) td,
+table.data-table[class*="border-collapse"]:not(.user-management-table) th,
+table.data-table[class*="border-collapse"]:not(.user-management-table) td,
+.table-container table:not(.user-management-table) th,
+.table-container table:not(.user-management-table) td {
+  height: 3.5rem;
+  padding: 0.875rem 1rem;
+  border-right: 1px solid #EEF2F7;
+  border-bottom: 1px solid #E8EEF7;
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+table:not(.user-management-table) th,
+table[class*="border-collapse"]:not(.user-management-table):not(.data-table) th,
+table.data-table[class*="border-collapse"]:not(.user-management-table) th,
+.table-container table:not(.user-management-table) th {
+  background: #F8FAFC;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+table:not(.user-management-table) th:last-child,
+table:not(.user-management-table) td:last-child,
+table[class*="border-collapse"]:not(.user-management-table):not(.data-table) th:last-child,
+table[class*="border-collapse"]:not(.user-management-table):not(.data-table) td:last-child,
+table.data-table[class*="border-collapse"]:not(.user-management-table) th:last-child,
+table.data-table[class*="border-collapse"]:not(.user-management-table) td:last-child,
+.table-container table:not(.user-management-table) th:last-child,
+.table-container table:not(.user-management-table) td:last-child {
+  border-right: 0;
+}
+
+table:not(.user-management-table) tbody tr:hover,
+table[class*="border-collapse"]:not(.user-management-table):not(.data-table) tbody tr:hover,
+table.data-table[class*="border-collapse"]:not(.user-management-table) tbody tr:hover,
+.table-container table:not(.user-management-table) tbody tr:hover {
+  background: rgba(37, 99, 235, 0.035);
+}
+
+table:not(.user-management-table) td > .flex,
+table[class*="border-collapse"]:not(.user-management-table):not(.data-table) td > .flex,
+table.data-table[class*="border-collapse"]:not(.user-management-table) td > .flex {
+  justify-content: center;
+  align-items: center;
 }
 

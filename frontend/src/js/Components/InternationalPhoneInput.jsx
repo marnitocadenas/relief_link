@@ -255,19 +255,19 @@ export default function InternationalPhoneInput({
 
     return (
         <div className="w-full">
-            <div ref={containerRef} className="relative mt-1">
+            <div ref={containerRef} className="relative w-full">
                 <div
-                    className={`flex rounded-xl border ${
+                    className={`international-phone-control flex w-full ${className} ${
                         disabled
-                            ? 'opacity-60 bg-gray-50 border-[#2563EB]/20 cursor-not-allowed'
+                            ? 'international-phone-control-disabled cursor-not-allowed'
                             : hasError
-                                ? 'border-red-500 ring-1 ring-red-500 bg-white'
-                                : 'border-[#2563EB]/20 bg-white focus-within:border-[#2563EB] focus-within:ring-1 focus-within:ring-[#2563EB]'
-                    } overflow-hidden transition`}
+                                ? 'international-phone-control-error'
+                                : ''
+                    }`}
                 >
                     {/* Calling Code Badge */}
                     <div
-                        className={`flex items-center gap-1.5 px-3 py-2 border-r border-[#2563EB]/15 select-none shrink-0 text-xs font-bold ${
+                        className={`flex min-h-[2.75rem] items-center gap-1.5 border-r border-[#DBE3F0] px-3 py-2 select-none shrink-0 text-xs font-bold ${
                             disabled ? 'bg-gray-100 text-[#2563EB]/50' : 'bg-[#2563EB]/5 text-[#2563EB]'
                         }`}
                         title={`${activeCountryObj.name} (${activeCountryObj.dialCode})`}
@@ -288,7 +288,7 @@ export default function InternationalPhoneInput({
                         placeholder={disabled ? 'Select Country / Region first' : dynamicPlaceholder}
                         maxLength={dynamicMaxLength}
                         required
-                        className="w-full bg-transparent px-3 py-2 text-xs font-semibold text-[#2563EB] placeholder-[#2563EB]/40 outline-none border-0 focus:ring-0 disabled:cursor-not-allowed disabled:bg-gray-50/50"
+                        className="min-h-[2.75rem] min-w-0 w-full flex-1 border-0 bg-transparent px-3 py-[0.65rem] text-xs font-semibold text-[#1E293B] placeholder-[#94A3B8] outline-none focus:ring-0 disabled:cursor-not-allowed disabled:bg-gray-50/50"
                     />
                 </div>
             </div>

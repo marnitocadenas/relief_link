@@ -1,5 +1,5 @@
 import Modal from '@/Components/Modal';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 import { Button, InputError, InputLabel, TextInput } from '@/Components/UI';
 
@@ -10,7 +10,6 @@ export default function DeleteUserForm() {
     const {
         data,
         setData,
-        delete: destroy,
         processing,
         reset,
         errors,
@@ -26,7 +25,7 @@ export default function DeleteUserForm() {
     const deleteUser = (e) => {
         e.preventDefault();
 
-        destroy(route('profile.destroy'), {
+        router.delete(route('profile.destroy'), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
             onError: () => passwordInput.current.focus(),

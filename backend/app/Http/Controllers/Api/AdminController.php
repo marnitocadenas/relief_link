@@ -43,7 +43,7 @@ class AdminController extends Controller
                 ->get(),
             'low_stock_categories' => Donation::selectRaw('category, sum(quantity) as stock')->where('status', 'pending_match')->groupBy('category')->havingRaw('sum(quantity) < 5')->get(),
             'donation_trends' => Donation::selectRaw('DATE(created_at) as date, count(*) as total')
-                ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+                ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
                 ->groupBy('date')->orderBy('date')->get(),
             'request_statuses' => AidRequest::selectRaw('status, count(*) as total')->groupBy('status')->get(),
             'match_statuses' => DonationMatch::selectRaw('status, count(*) as total')->groupBy('status')->get(),

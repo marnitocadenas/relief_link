@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { Children, Fragment, isValidElement, useId, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Routes, Route, Navigate, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -14,7 +14,25 @@ import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieCh
  * so it escapes every stacking context (sticky sidebar, header z-indices, etc.)
  * and genuinely covers the ENTIRE screen behind the modal.
  */
+let openModalBackdropCount = 0;
+let previousBodyOverflow = '';
+
 function ModalBlurBackdrop() {
+    useEffect(() => {
+        if (openModalBackdropCount === 0) {
+            previousBodyOverflow = document.body.style.overflow;
+        }
+        openModalBackdropCount += 1;
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            openModalBackdropCount = Math.max(0, openModalBackdropCount - 1);
+            if (openModalBackdropCount === 0) {
+                document.body.style.overflow = previousBodyOverflow;
+            }
+        };
+    }, []);
+
     return createPortal(
         <div className="modal-blur-backdrop" aria-hidden="true" />,
         document.body
@@ -31,6 +49,201 @@ const labels = {
     requests: 'Support Requests',
     users: 'Members & Accounts',
 };
+
+function DropdownSelect({ children, className = '', value, defaultValue = '', onChange, id, name, form, required, disabled, ...buttonProps }) {
+    const generatedId = useId();
+    const selectId = id || `dropdown-${generatedId}`;
+    const rootRef = useRef(null);
+    const menuRef = useRef(null);
+    const closeTimer = useRef(null);
+    const [internalValue, setInternalValue] = useState(defaultValue);
+    const [isOpen, setIsOpen] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
+    const [menuStyle, setMenuStyle] = useState({});
+    const currentValue = value === undefined ? internalValue : value;
+
+    const collectOptions = (nodes) => Children.toArray(nodes).flatMap((node) => {
+        if (!isValidElement(node)) return [];
+        if (node.type === 'option') return [node];
+        if (node.type === Fragment) return collectOptions(node.props.children);
+        return [];
+    });
+    const options = collectOptions(children);
+    const selectedOption = options.find((option) => String(option.props.value ?? option.props.children) === String(currentValue))
+        || options.find((option) => option.props.value === '');
+
+    const updateMenuPosition = () => {
+        const bounds = rootRef.current?.getBoundingClientRect();
+        if (!bounds) return;
+        const availableBelow = Math.max(0, window.innerHeight - bounds.bottom - 24);
+        const availableAbove = Math.max(0, bounds.top - 24);
+        const openBelow = availableBelow >= Math.min(220, availableAbove) || availableBelow >= availableAbove;
+        const maxHeight = Math.min(320, openBelow ? availableBelow : availableAbove);
+        const top = openBelow ? bounds.bottom + 6 : Math.max(12, bounds.top - maxHeight - 6);
+        setMenuStyle({ left: bounds.left, top, width: bounds.width, maxHeight });
+    };
+
+    const openMenu = () => {
+        if (disabled) return;
+        window.clearTimeout(closeTimer.current);
+        updateMenuPosition();
+        setIsClosing(false);
+        setIsOpen(true);
+    };
+
+    const focusOption = (target = 'selected') => {
+        window.requestAnimationFrame(() => {
+            const items = Array.from(menuRef.current?.querySelectorAll('[role="option"]:not(:disabled)') || []);
+            if (!items.length) return;
+            const selectedIndex = items.findIndex((item) => item.getAttribute('aria-selected') === 'true');
+            const activeIndex = items.indexOf(document.activeElement);
+            const nextIndex = target === 'first' ? 0
+                : target === 'last' ? items.length - 1
+                    : target === 'next' ? Math.min(items.length - 1, activeIndex < 0 ? Math.max(0, selectedIndex) : activeIndex + 1)
+                        : target === 'previous' ? Math.max(0, activeIndex < 0 ? Math.max(0, selectedIndex) : activeIndex - 1)
+                            : Math.max(0, selectedIndex);
+            items[nextIndex].focus();
+        });
+    };
+
+    const closeMenu = () => {
+        if (!isOpen) return;
+        setIsClosing(true);
+        window.clearTimeout(closeTimer.current);
+        closeTimer.current = window.setTimeout(() => {
+            setIsOpen(false);
+            setIsClosing(false);
+        }, 120);
+    };
+
+    useEffect(() => () => window.clearTimeout(closeTimer.current), []);
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        const handleOutsidePointer = (event) => {
+            if (!rootRef.current?.contains(event.target) && !menuRef.current?.contains(event.target)) closeMenu();
+        };
+        const reposition = () => updateMenuPosition();
+        document.addEventListener('pointerdown', handleOutsidePointer);
+        window.addEventListener('resize', reposition);
+        window.addEventListener('scroll', reposition, true);
+        return () => {
+            document.removeEventListener('pointerdown', handleOutsidePointer);
+            window.removeEventListener('resize', reposition);
+            window.removeEventListener('scroll', reposition, true);
+        };
+    }, [isOpen]);
+
+    const chooseOption = (option) => {
+        if (option.props.disabled) return;
+        const nextValue = String(option.props.value ?? option.props.children ?? '');
+        if (value === undefined) setInternalValue(nextValue);
+        onChange?.({ target: { value: nextValue, name, id: selectId }, currentTarget: { value: nextValue, name, id: selectId } });
+        closeMenu();
+    };
+
+    const handleTriggerKeyDown = (event) => {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (isOpen) focusOption(event.key === 'ArrowDown' ? 'next' : 'previous');
+            else {
+                openMenu();
+                focusOption('selected');
+            }
+        } else if (event.key === 'Enter' || event.key === ' ') {
+            if (!isOpen) {
+                event.preventDefault();
+                openMenu();
+                focusOption('selected');
+            }
+        } else if (event.key === 'Escape') {
+            closeMenu();
+        }
+        buttonProps.onKeyDown?.(event);
+    };
+
+    const handleMenuKeyDown = (event) => {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            focusOption(event.key === 'ArrowDown' ? 'next' : 'previous');
+        } else if (event.key === 'Home' || event.key === 'End') {
+            event.preventDefault();
+            focusOption(event.key === 'Home' ? 'first' : 'last');
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            closeMenu();
+            rootRef.current?.querySelector('button')?.focus();
+        }
+    };
+
+    return (
+        <div ref={rootRef} className="relative w-full">
+            <button
+                {...buttonProps}
+                id={selectId}
+                type="button"
+                disabled={disabled}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                aria-controls={`${selectId}-options`}
+                onClick={() => isOpen ? closeMenu() : openMenu()}
+                onKeyDown={handleTriggerKeyDown}
+                className={`dropdown-select-trigger ${className} ${isOpen ? 'dropdown-select-open' : ''} ${disabled ? 'dropdown-select-disabled' : ''}`.trim()}
+            >
+                <span className={`dropdown-select-value ${selectedOption ? '' : 'dropdown-select-placeholder'}`}>
+                    {selectedOption ? selectedOption.props.children : <span aria-hidden="true">Select an option</span>}
+                </span>
+                <svg className={`dropdown-select-chevron ${isOpen ? 'dropdown-select-chevron-open' : ''}`} aria-hidden="true" viewBox="0 0 20 20" fill="none">
+                    <path d="m5.5 7.5 4.5 4.5 4.5-4.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </button>
+            <select
+                id={`${selectId}-native`}
+                name={name}
+                form={form}
+                required={required}
+                disabled={disabled}
+                tabIndex={-1}
+                aria-hidden="true"
+                className="dropdown-select-native"
+                value={currentValue}
+                onChange={() => {}}
+            >
+                {children}
+            </select>
+            {isOpen && createPortal(
+                <div
+                    ref={menuRef}
+                    id={`${selectId}-options`}
+                    role="listbox"
+                    className={`dropdown-select-menu ${isClosing ? 'dropdown-select-menu-closing' : ''}`}
+                    style={menuStyle}
+                    onKeyDown={handleMenuKeyDown}
+                >
+                    {options.filter((option) => !option.props.hidden).map((option, index) => {
+                        const optionValue = String(option.props.value ?? option.props.children ?? '');
+                        const selected = optionValue === String(currentValue);
+                        return (
+                            <button
+                                key={`${optionValue}-${index}`}
+                                type="button"
+                                role="option"
+                                aria-selected={selected}
+                                disabled={option.props.disabled}
+                                onClick={() => chooseOption(option)}
+                                className={`dropdown-select-option ${selected ? 'dropdown-select-option-selected' : ''}`}
+                            >
+                                <span>{option.props.children}</span>
+                                {selected && <span className="dropdown-select-check" aria-hidden="true">✓</span>}
+                            </button>
+                        );
+                    })}
+                </div>,
+                document.body
+            )}
+        </div>
+    );
+}
 
 const getRoleDashboard = (role) => {
     if (role === 'admin') return '/dashboard';
@@ -1725,7 +1938,7 @@ function Auth({ register = false }) {
                                     <label htmlFor="reg_account_type" className="block text-xs font-bold text-[#2563EB]">
                                         Account Type <span className="text-[#22C55E]">*</span>
                                     </label>
-                                    <select
+                                    <DropdownSelect
                                         id="reg_account_type"
                                         className={`field mt-1 text-xs py-2 font-semibold ${!f.account_type ? 'border-amber-400 focus:border-[#2563EB]' : ''}`}
                                         value={f.account_type}
@@ -1735,7 +1948,7 @@ function Auth({ register = false }) {
                                         <option value="" disabled hidden>Select account type</option>
                                         <option value="beneficiary">Beneficiary (Student)</option>
                                         <option value="donor">Donor</option>
-                                    </select>
+                                    </DropdownSelect>
                                     {!f.account_type && (
                                         <p className="mt-1.5 text-xs font-semibold text-amber-600 flex items-center gap-1.5">
                                             <svg className="w-4 h-4 shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
@@ -2030,7 +2243,7 @@ function Auth({ register = false }) {
                                             <label htmlFor="reg_department" className="block text-xs font-bold text-[#2563EB]">
                                                 Department <span className="text-[#22C55E]">*</span>
                                             </label>
-                                            <select
+                                            <DropdownSelect
                                                 id="reg_department"
                                                 disabled={!canEnterDepartment}
                                                 className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDepartment ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
@@ -2042,7 +2255,7 @@ function Auth({ register = false }) {
                                                 {BENEFICIARY_DEPARTMENTS.map((dept) => (
                                                     <option key={dept} value={dept}>{dept}</option>
                                                 ))}
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
 
                                         {/* Rank #8: Course */}
@@ -2050,7 +2263,7 @@ function Auth({ register = false }) {
                                             <label htmlFor="reg_course" className="block text-xs font-bold text-[#2563EB]">
                                                 Course <span className="text-[#22C55E]">*</span>
                                             </label>
-                                            <select
+                                            <DropdownSelect
                                                 id="reg_course"
                                                 disabled={!canEnterCourse}
                                                 className={`field mt-1 text-xs py-2 font-semibold ${!canEnterCourse ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
@@ -2062,7 +2275,7 @@ function Auth({ register = false }) {
                                                 {(BENEFICIARY_DEPARTMENT_COURSES[f.department] || []).map((crs) => (
                                                     <option key={crs} value={crs}>{crs}</option>
                                                 ))}
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
 
                                         {/* Rank #9: Year Level */}
@@ -2070,7 +2283,7 @@ function Auth({ register = false }) {
                                             <label htmlFor="reg_year_level" className="block text-xs font-bold text-[#2563EB]">
                                                 Year Level <span className="text-[#22C55E]">*</span>
                                             </label>
-                                            <select
+                                            <DropdownSelect
                                                 id="reg_year_level"
                                                 disabled={!canEnterYearLevel}
                                                 className={`field mt-1 text-xs py-2 font-semibold ${!canEnterYearLevel ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
@@ -2082,7 +2295,7 @@ function Auth({ register = false }) {
                                                 {BENEFICIARY_YEAR_LEVELS.map((yr) => (
                                                     <option key={yr} value={yr}>{yr}</option>
                                                 ))}
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
 
                                         {/* Rank #10: Contact Number (Local Philippine Mobile 09XXXXXXXXX) */}
@@ -2494,7 +2707,7 @@ function Auth({ register = false }) {
                                             <label htmlFor="reg_valid_id_type" className="block text-xs font-bold text-[#2563EB]">
                                                 Valid ID Type <span className="text-[#22C55E]">*</span>
                                             </label>
-                                            <select
+                                            <DropdownSelect
                                                 id="reg_valid_id_type"
                                                 disabled={!canEnterDonorSubsequent}
                                                 className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDonorSubsequent ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
@@ -2506,7 +2719,7 @@ function Auth({ register = false }) {
                                                 {VALID_ID_TYPES.map((type) => (
                                                     <option key={type} value={type}>{type}</option>
                                                 ))}
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
 
                                         {/* Rank #14: Valid ID Number */}
@@ -3285,7 +3498,7 @@ function DonorDonationForm() {
                             <label htmlFor="category" className="block text-sm font-bold text-[#2563EB]">
                                 Category <span className="text-[#22C55E]">*</span>
                             </label>
-                            <select
+                            <DropdownSelect
                                 id="category"
                                 className="field mt-2"
                                 value={f.category}
@@ -3299,7 +3512,7 @@ function DonorDonationForm() {
                                         {c.label}
                                     </option>
                                 ))}
-                            </select>
+                            </DropdownSelect>
                             {errors.category && (
                                 <p className="mt-1 text-xs font-bold text-[#2563EB]">{errors.category}</p>
                             )}
@@ -3482,7 +3695,7 @@ function DonorDonationForm() {
                             <label htmlFor="pickup_preset" className="block text-sm font-bold text-[#2563EB]">
                                 Pickup Location <span className="text-[#22C55E]">*</span>
                             </label>
-                            <select
+                            <DropdownSelect
                                 id="pickup_preset"
                                 className="field mt-2"
                                 value={f.pickup_preset}
@@ -3496,7 +3709,7 @@ function DonorDonationForm() {
                                         {loc}
                                     </option>
                                 ))}
-                            </select>
+                            </DropdownSelect>
 
                             {f.pickup_preset === 'Custom Location / Address' && (
                                 <div className="mt-3">
@@ -4247,7 +4460,7 @@ function BeneficiaryRequestForm() {
                             <label htmlFor="req_category" className="block text-xs font-bold text-[#2563EB] mb-1">
                                 Category <span className="text-[#22C55E]">*</span>
                             </label>
-                            <select
+                            <DropdownSelect
                                 id="req_category"
                                 disabled={!typeValid}
                                 className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
@@ -4279,7 +4492,7 @@ function BeneficiaryRequestForm() {
                                         <option value="General Financial Aid">General Financial Aid</option>
                                     </>
                                 )}
-                            </select>
+                            </DropdownSelect>
                         </div>
                     </div>
 
@@ -4332,7 +4545,7 @@ function BeneficiaryRequestForm() {
                                         <label htmlFor="req_unit" className="block text-xs font-bold text-[#2563EB] mb-1">
                                             Unit of Measure <span className="text-[#22C55E]">*</span>
                                         </label>
-                                        <select
+                                        <DropdownSelect
                                             id="req_unit"
                                             disabled={!quantityValid}
                                             className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
@@ -4347,7 +4560,7 @@ function BeneficiaryRequestForm() {
                                             <option value="pairs">pairs</option>
                                             <option value="bundles">bundles</option>
                                             <option value="kg">kilograms (kg)</option>
-                                        </select>
+                                        </DropdownSelect>
                                     </div>
                                 </div>
                             </div>
@@ -4378,7 +4591,7 @@ function BeneficiaryRequestForm() {
                                         <label htmlFor="req_currency" className="block text-xs font-bold text-[#2563EB] mb-1">
                                             Currency <span className="text-[#22C55E]">*</span>
                                         </label>
-                                        <select
+                                        <DropdownSelect
                                             id="req_currency"
                                             disabled={!amountValid}
                                             className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
@@ -4387,7 +4600,7 @@ function BeneficiaryRequestForm() {
                                         >
                                             <option value="PHP">PHP (â‚± - Philippine Peso)</option>
                                             <option value="USD">USD ($ - US Dollar)</option>
-                                        </select>
+                                        </DropdownSelect>
                                     </div>
                                 </div>
 
@@ -4460,7 +4673,7 @@ function BeneficiaryRequestForm() {
                                     <label htmlFor="req_urgency" className="block text-xs font-bold text-[#2563EB] mb-1">
                                         Priority Level <span className="text-[#22C55E]">*</span>
                                     </label>
-                                    <select
+                                    <DropdownSelect
                                         id="req_urgency"
                                         disabled={!dateValid}
                                         className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
@@ -4470,7 +4683,7 @@ function BeneficiaryRequestForm() {
                                         <option value="low">Low - Routine Need</option>
                                         <option value="medium">Medium - Standard Need</option>
                                         <option value="high">High - Urgent Support</option>
-                                    </select>
+                                    </DropdownSelect>
                                 </div>
                             </div>
                         </div>
@@ -4717,8 +4930,6 @@ function EditModal({item, kind, admin, close, done}){
         password: '',
         password_confirmation: '',
     });
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
 
@@ -5135,12 +5346,14 @@ function EditModal({item, kind, admin, close, done}){
 
         try {
             const path = admin && isUserKind ? `/admin/users${item.id ? `/${item.id}` : ''}` : `/${kind}/${item.id}`;
-            await (item.id ? api.patch(path, payload) : api.post(path, payload));
-            await done();
+            const response = await (item.id ? api.patch(path, payload) : api.post(path, payload));
+            await done(response.data?.data || response.data, isUserKind && !item.id);
             close();
         } catch (e) {
             const valMsg = e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(' ') : null;
-            setError(valMsg || e.response?.data?.message || 'Could not save changes.');
+            setError(valMsg || e.response?.data?.message || (e.request
+                ? 'The server could not be reached. Check your connection and try again.'
+                : 'Could not save changes. Please try again.'));
         } finally {
             setSaving(false);
         }
@@ -5148,20 +5361,20 @@ function EditModal({item, kind, admin, close, done}){
 
     return (
         <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
-            <form className="panel no-hover w-full max-w-xl p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl rounded-2xl" onSubmit={save}>
+            <form noValidate className="panel no-hover w-full max-w-xl p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl rounded-2xl" onSubmit={save}>
                 <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                     <h2 className="text-lg font-extrabold text-[#2563EB]">{item.id ? (isUserKind ? 'Edit Member Account' : 'Edit entry') : (isUserKind ? 'Add New Member' : 'Add entry')}</h2>
                     <button type="button" title="Close" className="nav-link p-1" onClick={close}><Icon name="close"/></button>
                 </div>
 
                 {isUserKind ? (
-                    <div className="space-y-3.5 text-left">
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-3.5 text-left sm:grid-cols-2">
                         {/* Rank #1: Account Type - MUST NEVER DISAPPEAR */}
                         <div>
                             <label htmlFor="modal_account_type" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                 Account Type <span className="text-[#22C55E]">*</span>
                             </label>
-                            <select
+                            <DropdownSelect
                                 id="modal_account_type"
                                 required
                                 className="field w-full text-xs font-semibold"
@@ -5173,7 +5386,7 @@ function EditModal({item, kind, admin, close, done}){
                                 <option value="staff">Staff</option>
                                 <option value="beneficiary">Beneficiary (Student)</option>
                                 <option value="donor">Donor</option>
-                            </select>
+                            </DropdownSelect>
                         </div>
 
                         {/* Rank #2: First Name */}
@@ -5376,7 +5589,7 @@ function EditModal({item, kind, admin, close, done}){
                                         <label htmlFor="modal_ben_dept" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                             Department <span className="text-[#22C55E]">*</span>
                                         </label>
-                                        <select
+                                        <DropdownSelect
                                             id="modal_ben_dept"
                                             required
                                             className="field w-full text-xs font-semibold"
@@ -5387,7 +5600,7 @@ function EditModal({item, kind, admin, close, done}){
                                             {BENEFICIARY_DEPARTMENTS.map((dept) => (
                                                 <option key={dept} value={dept}>{dept}</option>
                                             ))}
-                                        </select>
+                                        </DropdownSelect>
                                     </div>
 
                                     {/* Rank #8: Course (cascades from Department) */}
@@ -5395,7 +5608,7 @@ function EditModal({item, kind, admin, close, done}){
                                         <label htmlFor="modal_ben_course" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                             Course <span className="text-[#22C55E]">*</span>
                                         </label>
-                                        <select
+                                        <DropdownSelect
                                             id="modal_ben_course"
                                             required
                                             disabled={!f.department}
@@ -5407,7 +5620,7 @@ function EditModal({item, kind, admin, close, done}){
                                             {(BENEFICIARY_DEPARTMENT_COURSES[f.department] || []).map((crs) => (
                                                 <option key={crs} value={crs}>{crs}</option>
                                             ))}
-                                        </select>
+                                        </DropdownSelect>
                                         {!f.department && (
                                             <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/60">Select a Department first to unlock Course.</p>
                                         )}
@@ -5418,7 +5631,7 @@ function EditModal({item, kind, admin, close, done}){
                                         <label htmlFor="modal_ben_year" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                             Year Level <span className="text-[#22C55E]">*</span>
                                         </label>
-                                        <select
+                                        <DropdownSelect
                                             id="modal_ben_year"
                                             required
                                             disabled={!f.course || !f.department}
@@ -5430,7 +5643,7 @@ function EditModal({item, kind, admin, close, done}){
                                             {BENEFICIARY_YEAR_LEVELS.map((yr) => (
                                                 <option key={yr} value={yr}>{yr}</option>
                                             ))}
-                                        </select>
+                                        </DropdownSelect>
                                         {(!f.course || !f.department) && f.department && (
                                             <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/60">Select a Course first to unlock Year Level.</p>
                                         )}
@@ -5596,7 +5809,7 @@ function EditModal({item, kind, admin, close, done}){
                                     <label htmlFor="modal_donor_id_type" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                         Valid ID Type <span className="text-[#22C55E]">*</span>
                                     </label>
-                                    <select
+                                    <DropdownSelect
                                         id="modal_donor_id_type"
                                         required
                                         className="field w-full text-xs font-semibold"
@@ -5607,7 +5820,7 @@ function EditModal({item, kind, admin, close, done}){
                                         {VALID_ID_TYPES.map((type) => (
                                             <option key={type} value={type}>{type}</option>
                                         ))}
-                                    </select>
+                                    </DropdownSelect>
                                 </div>
                                 <div>
                                     <label htmlFor="modal_donor_id_num" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
@@ -5652,7 +5865,7 @@ function EditModal({item, kind, admin, close, done}){
                                 <input
                                     id="modal_pwd"
                                     required={!item.id}
-                                    type={showPassword ? 'text' : 'password'}
+                                    type="password"
                                     minLength={8}
                                     maxLength={64}
                                     autoComplete="new-password"
@@ -5661,24 +5874,6 @@ function EditModal({item, kind, admin, close, done}){
                                     value={f.password || ''}
                                     onChange={e => setF({...f, password: e.target.value})}
                                 />
-                                <button
-                                    type="button"
-                                    tabIndex={-1}
-                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#2563EB] hover:text-[#22C55E] bg-transparent border-0 p-1 cursor-pointer transition"
-                                >
-                                    {showPassword ? (
-                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    )}
-                                </button>
                             </div>
 
                             {/* Password Strength Meter + Requirements â€” only for Beneficiary and Donor */}
@@ -5731,7 +5926,7 @@ function EditModal({item, kind, admin, close, done}){
                                 <input
                                     id="modal_confirm_pwd"
                                     required={!item.id || !!f.password}
-                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    type="password"
                                     minLength={8}
                                     maxLength={64}
                                     autoComplete="new-password"
@@ -5740,24 +5935,6 @@ function EditModal({item, kind, admin, close, done}){
                                     value={f.password_confirmation || ''}
                                     onChange={e => setF({...f, password_confirmation: e.target.value})}
                                 />
-                                <button
-                                    type="button"
-                                    tabIndex={-1}
-                                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#2563EB] hover:text-[#22C55E] bg-transparent border-0 p-1 cursor-pointer transition"
-                                >
-                                    {showConfirmPassword ? (
-                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    )}
-                                </button>
                             </div>
                             {f.password_confirmation && (
                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${adminMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
@@ -5771,12 +5948,12 @@ function EditModal({item, kind, admin, close, done}){
                         <label key={k} className="mt-3 block text-sm font-bold text-left text-[#2563EB]">
                             {title(k)}
                             {k === 'role' ? (
-                                <select className="field mt-1 w-full" value={v} onChange={e => setF({...f, [k]: e.target.value})}>
+                                <DropdownSelect className="field mt-1 w-full" value={v} onChange={e => setF({...f, [k]: e.target.value})}>
                                     <option value="donor">donor</option>
                                     <option value="beneficiary">beneficiary</option>
                                     <option value="staff">staff</option>
                                     <option value="admin">admin</option>
-                                </select>
+                                </DropdownSelect>
                             ) : (
                                 <input required={k !== 'password'} className="field mt-1 w-full" type={k === 'password' ? 'password' : 'text'} value={v ?? ''} onChange={e => setF({...f, [k]: e.target.value})}/>
                             )}
@@ -5814,12 +5991,42 @@ function PeopleManager(){
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
-    const load = () => {
-        if(!user) return;
+    const load = (savedMember = null, isNewMember = false) => {
+        if(!user) return Promise.resolve([]);
         setState(s => ({...s, loading: true}));
-        api.get('/admin/users')
-            .then(r => setState({loading: false, data: r.data.data || r.data || [], error: ''}))
-            .catch(() => setState({loading: false, data: [], error: 'Could not load members.'}));
+        return api.get('/admin/users')
+            .then(r => {
+                const members = r.data.data || r.data || [];
+                const alreadyListed = savedMember?.id && members.some(member => member.id === savedMember.id);
+                const nextMembers = isNewMember && savedMember?.id && !alreadyListed
+                    ? [savedMember, ...members]
+                    : members;
+                setState({loading: false, data: nextMembers, error: ''});
+                return nextMembers;
+            })
+            .catch(() => {
+                setState(current => ({
+                    ...current,
+                    loading: false,
+                    data: isNewMember && savedMember?.id
+                        ? [savedMember, ...current.data.filter(member => member.id !== savedMember.id)]
+                        : current.data,
+                    error: isNewMember
+                        ? 'The member was saved, but the list could not be refreshed. Reload the member list to see the latest data.'
+                        : 'Could not load members.',
+                }));
+                return [];
+            });
+    };
+
+    const handleMemberSaved = (savedMember, isNewMember) => {
+        if (isNewMember) {
+            setSearch('');
+            setRoleFilter('all');
+            setSortBy('date_desc');
+            setPage(1);
+        }
+        return load(savedMember, isNewMember);
     };
 
     useEffect(load, [user]);
@@ -5978,7 +6185,7 @@ function PeopleManager(){
 
                 <div className="min-w-[160px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Filter by Role</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={roleFilter}
                         onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
@@ -5988,12 +6195,12 @@ function PeopleManager(){
                         <option value="beneficiary">Beneficiaries</option>
                         <option value="staff">Staff</option>
                         <option value="admin">Administrators</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[160px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
@@ -6003,7 +6210,7 @@ function PeopleManager(){
                         <option value="email_asc">Email (A-Z)</option>
                         <option value="role">Role</option>
                         <option value="date_desc">Newest First</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
             </div>
 
@@ -6190,7 +6397,7 @@ function PeopleManager(){
                                 <Icon name="close"/>
                             </button>
                         </div>
-                        <div className="flex items-center gap-4 py-2">
+                        <div className="flex items-center gap-4 pb-2">
                             {viewingUser.profile_photo_url ? (
                                 <img
                                     src={viewingUser.profile_photo_url}
@@ -6326,7 +6533,7 @@ function PeopleManager(){
                 </div>
             )}
 
-            {editing && <EditModal item={editing} kind="users" admin={true} close={() => setEditing(null)} done={load}/>}
+            {editing && <EditModal item={editing} kind="users" admin={true} close={() => setEditing(null)} done={handleMemberSaved}/>}
         </main>
     );
 }
@@ -6490,7 +6697,7 @@ function DonationManager(){
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Category</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={categoryFilter}
                         onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
@@ -6502,12 +6709,12 @@ function DonationManager(){
                         <option value="school supplies">School Supplies</option>
                         <option value="books">Books</option>
                         <option value="technology">Technology</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Status</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={statusFilter}
                         onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
@@ -6518,12 +6725,12 @@ function DonationManager(){
                         <option value="matched">Matched</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="fulfilled">Fulfilled</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
@@ -6533,7 +6740,7 @@ function DonationManager(){
                         <option value="category">Category</option>
                         <option value="status">Status</option>
                         <option value="quantity_desc">Quantity (High to Low)</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
             </div>
 
@@ -6838,20 +7045,20 @@ function RequestEditModal({ item, close, done }) {
                 <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                         {lbl(<>Request Type{req}</>)}
-                        <select className="field w-full text-xs font-semibold" value={f.request_type}
+                        <DropdownSelect className="field w-full text-xs font-semibold" value={f.request_type}
                             onChange={e => setF({...f, request_type: e.target.value})}>
                             <option value="physical">Physical (Items)</option>
                             <option value="financial">Financial (Monetary)</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                     <div>
                         {lbl(<>Priority / Urgency{req}</>)}
-                        <select className="field w-full text-xs font-semibold" value={f.urgency}
+                        <DropdownSelect className="field w-full text-xs font-semibold" value={f.urgency}
                             onChange={e => setF({...f, urgency: e.target.value})}>
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                 </div>
 
@@ -6905,12 +7112,12 @@ function RequestEditModal({ item, close, done }) {
                         </div>
                         <div>
                             {lbl('Currency')}
-                            <select className="field w-full text-xs font-semibold" value={f.currency}
+                            <DropdownSelect className="field w-full text-xs font-semibold" value={f.currency}
                                 onChange={e => setF({...f, currency: e.target.value})}>
                                 <option value="PHP">PHP</option>
                                 <option value="USD">USD</option>
                                 <option value="EUR">EUR</option>
-                            </select>
+                            </DropdownSelect>
                         </div>
                     </div>
                 )}
@@ -7201,7 +7408,7 @@ function RequestManager(){
 
                 <div className="min-w-[130px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Type</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={typeFilter}
                         onChange={e => { setTypeFilter(e.target.value); setPage(1); }}
@@ -7209,12 +7416,12 @@ function RequestManager(){
                         <option value="all">All Types</option>
                         <option value="physical">Physical Item</option>
                         <option value="financial">Financial Assistance</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[140px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Category</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={categoryFilter}
                         onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
@@ -7229,12 +7436,12 @@ function RequestManager(){
                         <option value="Tuition & Academic Fees">Tuition Aid</option>
                         <option value="Transportation Allowance">Transport Allowance</option>
                         <option value="Daily Living & Food Allowance">Living Allowance</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[140px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Status</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={statusFilter}
                         onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
@@ -7248,12 +7455,12 @@ function RequestManager(){
                         <option value="fulfilled">Fulfilled</option>
                         <option value="rejected">Rejected</option>
                         <option value="cancelled">Cancelled</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[140px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
@@ -7262,7 +7469,7 @@ function RequestManager(){
                         <option value="urgency_desc">Priority (High First)</option>
                         <option value="category">Category</option>
                         <option value="status">Status</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
             </div>
 
@@ -7933,7 +8140,7 @@ function Matches(){
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Status</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={statusFilter}
                         onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
@@ -7943,12 +8150,12 @@ function Matches(){
                         <option value="confirmed">Confirmed</option>
                         <option value="rejected">Declined</option>
                         <option value="fulfilled">Fulfilled</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Category</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={categoryFilter}
                         onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
@@ -7960,12 +8167,12 @@ function Matches(){
                         <option value="school supplies">School Supplies</option>
                         <option value="books">Books</option>
                         <option value="technology">Technology</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
@@ -7973,7 +8180,7 @@ function Matches(){
                         <option value="date_desc">Newest First</option>
                         <option value="status">Status</option>
                         <option value="quantity_desc">Quantity (High to Low)</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
             </div>
 
@@ -8302,6 +8509,11 @@ function Dashboard(){
 
     useEffect(() => {
         loadData();
+        if (user?.role !== 'admin') return;
+        const refreshStats = window.setInterval(() => {
+            api.get('/admin/stats').then(r => setS(r.data)).catch(() => {});
+        }, 30000);
+        return () => window.clearInterval(refreshStats);
     }, [user]);
 
     if(user?.role !== 'admin') return <Navigate to={getRoleDashboard(user?.role)} replace/>;
@@ -8329,11 +8541,13 @@ function Dashboard(){
     };
 
     const chartTooltip = { contentStyle: { background: '#FFFFFF', border: '1px solid #2563EB', borderRadius: '12px', color: '#2563EB' }, labelStyle: { color: '#2563EB', fontWeight: 700 } };
+    const today = new Date();
+    const weekStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - ((today.getUTCDay() + 6) % 7)));
     const donationTrend = Array.from({ length: 7 }, (_, index) => {
-        const date = new Date(); date.setDate(date.getDate() - (6 - index));
+        const date = new Date(Date.UTC(weekStart.getUTCFullYear(), weekStart.getUTCMonth(), weekStart.getUTCDate() + index));
         const key = date.toISOString().slice(0, 10);
         const found = s?.donation_trends?.find(item => String(item.date).slice(0, 10) === key);
-        return { day: date.toLocaleDateString(undefined, { weekday: 'short' }), donations: Number(found?.total || 0) };
+        return { day: date.toLocaleDateString(undefined, { weekday: 'short', timeZone: 'UTC' }), donations: Number(found?.total || 0) };
     });
     const requestStatusData = ['pending_review', 'approved', 'fulfilled', 'rejected'].map(status => ({
         name: title(status), total: Number(s?.request_statuses?.find(item => item.status === status)?.total || 0),
@@ -8368,41 +8582,39 @@ function Dashboard(){
 
             <Error>{error}</Error>
             {matchMessage && (
-                <div className="rounded-xl border border-[#22C55E] bg-white p-4 text-sm font-bold text-[#22C55E] shadow-sm flex items-center justify-between">
-                    <span>{matchMessage}</span>
-                    <button onClick={() => setMatchMessage('')} className="text-[#22C55E] hover:underline font-extrabold text-xs">Dismiss</button>
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4" role="presentation">
+                    <ModalBlurBackdrop />
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="dashboard-match-result-title"
+                        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-[#22C55E]/20 bg-white p-6 shadow-2xl shadow-[#17356B]/20 sm:p-7"
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setMatchMessage('')}
+                            aria-label="Close match engine result"
+                            className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full p-0 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                        >
+                            <Icon name="close" size={16}/>
+                        </button>
+                        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#22C55E]/10 text-[#16A34A]">
+                            <span aria-hidden="true" className="text-2xl font-bold">✓</span>
+                        </div>
+                        <h2 id="dashboard-match-result-title" className="mt-5 text-xl font-extrabold text-[#2563EB]">Match engine complete</h2>
+                        <p className="mt-2 pr-4 text-sm font-medium leading-relaxed text-slate-600">{matchMessage}</p>
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setMatchMessage('')}
+                                className="rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-extrabold text-white shadow-md shadow-[#2563EB]/20 transition hover:bg-[#1D4ED8] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2"
+                            >
+                                Dismiss
+                            </button>
+                        </div>
+                    </section>
                 </div>
             )}
-
-            <section className="admin-quick-actions panel no-hover p-4 sm:p-5">
-                <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70 mb-3">Quick Actions</p>
-                <div className="flex flex-wrap items-center gap-3">
-                    <Button className="admin-action-primary" loading={runningMatch} onClick={handleRunMatches}>
-                        <Icon name="match"/>
-                        <span className="ml-2">Run Match Engine</span>
-                    </Button>
-                    <NavLink to="/requests" className="nav-link admin-action-secondary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
-                        <Icon name="request"/>
-                        <span>Review Requests</span>
-                    </NavLink>
-                    <NavLink to="/matches" className="nav-link admin-action-secondary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
-                        <Icon name="match"/>
-                        <span>Manage Matches</span>
-                    </NavLink>
-                    <NavLink to="/users" className="nav-link admin-action-secondary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
-                        <Icon name="users"/>
-                        <span>Manage People</span>
-                    </NavLink>
-                    <NavLink to="/reports" className="nav-link admin-action-secondary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
-                        <Icon name="report"/>
-                        <span>View Reports</span>
-                    </NavLink>
-                    <NavLink to="/admin/announcements" className="nav-link admin-action-primary border border-[#2563EB] bg-white text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition">
-                        <Icon name="announcements"/>
-                        <span>Post Announcement</span>
-                    </NavLink>
-                </div>
-            </section>
 
             {loading && !s ? (
                 <p className="mt-8 font-bold text-[#2563EB]">Loading dashboard statisticsâ€¦</p>
@@ -8671,6 +8883,36 @@ function Dashboard(){
                                             </div>
                                         ))
                                     )}
+                                </div>
+                            </section>
+
+                            <section className="admin-quick-actions panel no-hover p-4 sm:p-5">
+                                <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-[#2563EB]/70">Quick Actions</p>
+                                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] gap-3">
+                                    <Button className="admin-action-primary !flex min-h-12 w-full items-center justify-center gap-2" loading={runningMatch} onClick={handleRunMatches}>
+                                        <Icon name="match"/>
+                                        <span>Run Match Engine</span>
+                                    </Button>
+                                    <NavLink to="/requests" className="nav-link admin-action-secondary flex min-h-12 w-full items-center !justify-center gap-2 border border-[#2563EB] bg-white text-[#2563EB] transition hover:bg-[#2563EB] hover:text-white">
+                                        <Icon name="request"/>
+                                        <span>Review Requests</span>
+                                    </NavLink>
+                                    <NavLink to="/matches" className="nav-link admin-action-secondary flex min-h-12 w-full items-center !justify-center gap-2 border border-[#2563EB] bg-white text-[#2563EB] transition hover:bg-[#2563EB] hover:text-white">
+                                        <Icon name="match"/>
+                                        <span>Manage Matches</span>
+                                    </NavLink>
+                                    <NavLink to="/users" className="nav-link admin-action-secondary flex min-h-12 w-full items-center !justify-center gap-2 border border-[#2563EB] bg-white text-[#2563EB] transition hover:bg-[#2563EB] hover:text-white">
+                                        <Icon name="users"/>
+                                        <span>Manage People</span>
+                                    </NavLink>
+                                    <NavLink to="/reports" className="nav-link admin-action-secondary flex min-h-12 w-full items-center !justify-center gap-2 border border-[#2563EB] bg-white text-[#2563EB] transition hover:bg-[#2563EB] hover:text-white">
+                                        <Icon name="report"/>
+                                        <span>View Reports</span>
+                                    </NavLink>
+                                    <NavLink to="/admin/announcements" className="nav-link admin-action-primary flex min-h-12 w-full items-center !justify-center gap-2 border border-[#2563EB] bg-white text-[#2563EB] transition hover:bg-[#2563EB] hover:text-white">
+                                        <Icon name="announcements"/>
+                                        <span>Post Announcement</span>
+                                    </NavLink>
                                 </div>
                             </section>
                         </div>
@@ -9214,7 +9456,7 @@ function StaffVerificationDesk() {
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Filter Status</label>
-                        <select
+                        <DropdownSelect
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                             className="input text-xs w-full mt-1"
@@ -9223,11 +9465,11 @@ function StaffVerificationDesk() {
                             <option value="pending_review">Pending Verification</option>
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Filter Verification Tier</label>
-                        <select
+                        <DropdownSelect
                             value={tierFilter}
                             onChange={(e) => setTierFilter(e.target.value)}
                             className="input text-xs w-full mt-1"
@@ -9237,19 +9479,19 @@ function StaffVerificationDesk() {
                             <option value="identity_verified">Identity Verified</option>
                             <option value="financial_hardship">Financial Hardship</option>
                             <option value="emergency">Emergency / Disaster</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Category</label>
-                        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">All categories</option>{categories.map((category) => <option key={category} value={category}>{category}</option>)}</select>
+                        <DropdownSelect value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">All categories</option>{categories.map((category) => <option key={category} value={category}>{category}</option>)}</DropdownSelect>
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Urgency</label>
-                        <select value={urgencyFilter} onChange={(e) => setUrgencyFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">All urgency levels</option><option value="high">High priority</option><option value="medium">Medium priority</option><option value="low">Low priority</option></select>
+                        <DropdownSelect value={urgencyFilter} onChange={(e) => setUrgencyFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">All urgency levels</option><option value="high">High priority</option><option value="medium">Medium priority</option><option value="low">Low priority</option></DropdownSelect>
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Submitted</label>
-                        <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">Any date</option><option value="today">Today</option><option value="week">Last 7 days</option></select>
+                        <DropdownSelect value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">Any date</option><option value="today">Today</option><option value="week">Last 7 days</option></DropdownSelect>
                     </div>
                 </div>
                 </div>
@@ -9376,7 +9618,7 @@ function StaffVerificationDesk() {
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Assign Verification Tier</label>
-                                    <select
+                                    <DropdownSelect
                                         value={form.verification_tier}
                                         onChange={(e) => setForm({ ...form, verification_tier: e.target.value })}
                                         className="input text-xs w-full mt-1"
@@ -9385,7 +9627,7 @@ function StaffVerificationDesk() {
                                         <option value="identity_verified">Identity Verified</option>
                                         <option value="financial_hardship">Verified Financial Hardship</option>
                                         <option value="emergency">Emergency Crisis Relief</option>
-                                    </select>
+                                    </DropdownSelect>
                                 </div>
                             </div>
 
@@ -9610,7 +9852,7 @@ function StaffWarehouseInventory() {
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Category</label>
-                        <select
+                        <DropdownSelect
                             value={categoryFilter}
                             onChange={(e) => setCategoryFilter(e.target.value)}
                             className="input text-xs w-full mt-1"
@@ -9621,11 +9863,11 @@ function StaffWarehouseInventory() {
                             <option value="Educational & Books">Educational & Books</option>
                             <option value="Medical & Health">Medical & Health</option>
                             <option value="Electronics & Tech">Electronics & Tech</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Condition Grade</label>
-                        <select
+                        <DropdownSelect
                             value={gradeFilter}
                             onChange={(e) => setGradeFilter(e.target.value)}
                             className="input text-xs w-full mt-1"
@@ -9636,11 +9878,11 @@ function StaffWarehouseInventory() {
                             <option value="good">Good</option>
                             <option value="fair">Fair</option>
                             <option value="damaged">Damaged</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Stock health</label>
-                        <select value={stockFilter} onChange={(e) => setStockFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">All stock health</option><option value="low">Low stock</option><option value="out">Out of stock</option><option value="expiring">Expiring soon</option><option value="expired">Expired</option><option value="damaged">Damaged</option></select>
+                        <DropdownSelect value={stockFilter} onChange={(e) => setStockFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">All stock health</option><option value="low">Low stock</option><option value="out">Out of stock</option><option value="expiring">Expiring soon</option><option value="expired">Expired</option><option value="damaged">Damaged</option></DropdownSelect>
                     </div>
                 </div>
                 </div>
@@ -9728,7 +9970,7 @@ function StaffWarehouseInventory() {
                             </div>
                             <div>
                                 <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Category *</label>
-                                <select
+                                <DropdownSelect
                                     value={intakeForm.category}
                                     onChange={(e) => setIntakeForm({ ...intakeForm, category: e.target.value })}
                                     className="input text-xs w-full mt-1"
@@ -9739,7 +9981,7 @@ function StaffWarehouseInventory() {
                                     <option value="Medical & Health">Medical & Health</option>
                                     <option value="Electronics & Tech">Electronics & Tech</option>
                                     <option value="Household & Bedding">Household & Bedding</option>
-                                </select>
+                                </DropdownSelect>
                             </div>
                         </div>
 
@@ -9757,7 +9999,7 @@ function StaffWarehouseInventory() {
                             </div>
                             <div>
                                 <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Condition Grade *</label>
-                                <select
+                                <DropdownSelect
                                     value={intakeForm.condition_grade}
                                     onChange={(e) => setIntakeForm({ ...intakeForm, condition_grade: e.target.value })}
                                     className="input text-xs w-full mt-1"
@@ -9766,7 +10008,7 @@ function StaffWarehouseInventory() {
                                     <option value="like_new">Like New</option>
                                     <option value="good">Good</option>
                                     <option value="fair">Fair</option>
-                                </select>
+                                </DropdownSelect>
                             </div>
                             <div>
                                 <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Donor Name</label>
@@ -9857,7 +10099,7 @@ function StaffWarehouseInventory() {
                             </div>
                             <div>
                                 <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Condition Grade</label>
-                                <select
+                                <DropdownSelect
                                     value={editForm.condition_grade}
                                     onChange={(e) => setEditForm({ ...editForm, condition_grade: e.target.value })}
                                     className="input text-xs w-full mt-1"
@@ -9867,7 +10109,7 @@ function StaffWarehouseInventory() {
                                     <option value="good">Good</option>
                                     <option value="fair">Fair</option>
                                     <option value="damaged">Damaged</option>
-                                </select>
+                                </DropdownSelect>
                             </div>
                         </div>
 
@@ -10047,7 +10289,7 @@ function StaffWalkInDesk() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                             <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Aid Category *</label>
-                            <select
+                            <DropdownSelect
                                 value={form.category}
                                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                                 className="input text-xs w-full mt-1"
@@ -10058,7 +10300,7 @@ function StaffWalkInDesk() {
                                 <option value="Medical & Health">Medical & Health</option>
                                 <option value="Electronics & Tech">Electronics & Tech</option>
                                 <option value="Household & Bedding">Household & Bedding</option>
-                            </select>
+                            </DropdownSelect>
                         </div>
                         <div>
                             <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Quantity Needed *</label>
@@ -10073,7 +10315,7 @@ function StaffWalkInDesk() {
                         </div>
                         <div>
                             <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Urgency Level *</label>
-                            <select
+                            <DropdownSelect
                                 value={form.urgency}
                                 onChange={(e) => setForm({ ...form, urgency: e.target.value })}
                                 className="input text-xs w-full mt-1"
@@ -10081,7 +10323,7 @@ function StaffWalkInDesk() {
                                 <option value="low">Low Urgency</option>
                                 <option value="medium">Medium Urgency</option>
                                 <option value="high">High Urgency (Crisis)</option>
-                            </select>
+                            </DropdownSelect>
                         </div>
                     </div>
 
@@ -10097,7 +10339,7 @@ function StaffWalkInDesk() {
                         />
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-2"><div><label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Eligibility verification</label><select value={form.verification_tier} onChange={(e) => setForm({ ...form, verification_tier: e.target.value })} className="input text-xs w-full mt-1"><option value="identity_verified">Identity verified on site</option><option value="financial_hardship">Financial hardship verified</option><option value="emergency">Emergency relief</option><option value="unverified">Requires verification</option></select></div><div><label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Referral destination <span className="normal-case text-[#2563EB]/55">(if needed)</span></label><input value={form.referral_destination} onChange={(e) => setForm({ ...form, referral_destination: e.target.value })} placeholder="e.g. Student Services / Financial Aid" className="input text-xs w-full mt-1"/></div></div>
+                    <div className="grid gap-3 sm:grid-cols-2"><div><label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Eligibility verification</label><DropdownSelect value={form.verification_tier} onChange={(e) => setForm({ ...form, verification_tier: e.target.value })} className="input text-xs w-full mt-1"><option value="identity_verified">Identity verified on site</option><option value="financial_hardship">Financial hardship verified</option><option value="emergency">Emergency relief</option><option value="unverified">Requires verification</option></DropdownSelect></div><div><label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Referral destination <span className="normal-case text-[#2563EB]/55">(if needed)</span></label><input value={form.referral_destination} onChange={(e) => setForm({ ...form, referral_destination: e.target.value })} placeholder="e.g. Student Services / Financial Aid" className="input text-xs w-full mt-1"/></div></div>
 
                     <div><label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Internal staff remarks</label><textarea rows="2" value={form.staff_internal_notes} onChange={(e) => setForm({ ...form, staff_internal_notes: e.target.value })} placeholder="Record checks completed, context, or follow-up instructions..." className="input text-xs w-full mt-1"/></div>
 
@@ -10108,7 +10350,7 @@ function StaffWalkInDesk() {
                         <p className="text-xs text-[#2563EB]/80 font-semibold">
                             Select an available warehouse item to hand off immediately during this walk-in session.
                         </p>
-                        <select
+                        <DropdownSelect
                             value={form.instant_donation_id}
                             onChange={(e) => setForm({ ...form, instant_donation_id: e.target.value })}
                             className="input text-xs w-full"
@@ -10119,7 +10361,7 @@ function StaffWalkInDesk() {
                                     [{d.category}] {d.item_name} â€” Qty: {d.quantity} ({d.storage_location || 'Warehouse Bin'})
                                 </option>
                             ))}
-                        </select>
+                        </DropdownSelect>
                         {!loading && !availableDonations.length && <p className="rounded-lg border border-[#2563EB]/15 bg-white p-2 text-[10px] font-semibold text-[#2563EB]/70">No matching inventory is available for this category and quantity. The request will be added to the priority queue unless it is referred.</p>}
                     </div>
 
@@ -10243,8 +10485,8 @@ function StaffHandoffDispatch() {
                         onChange={(e) => setSearch(e.target.value)}
                         className="input text-xs w-full"
                     />
-                    <select value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="input text-xs w-full"><option value="all">All active statuses</option><option value="proposed">Pending</option><option value="confirmed">Ready for pickup</option></select>
-                    <select value={hubFilter} onChange={(e)=>setHubFilter(e.target.value)} className="input text-xs w-full"><option value="all">All pickup locations</option>{hubs.map((hub)=><option key={hub} value={hub}>{hub}</option>)}</select>
+                    <DropdownSelect value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="input text-xs w-full"><option value="all">All active statuses</option><option value="proposed">Pending</option><option value="confirmed">Ready for pickup</option></DropdownSelect>
+                    <DropdownSelect value={hubFilter} onChange={(e)=>setHubFilter(e.target.value)} className="input text-xs w-full"><option value="all">All pickup locations</option>{hubs.map((hub)=><option key={hub} value={hub}>{hub}</option>)}</DropdownSelect>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -11733,7 +11975,7 @@ function DonorNeeds() {
                         <label htmlFor="filter_type" className="block text-xs font-bold text-[#2563EB] mb-1">
                             Request Type
                         </label>
-                        <select
+                        <DropdownSelect
                             id="filter_type"
                             className="field text-xs"
                             value={typeFilter}
@@ -11745,7 +11987,7 @@ function DonorNeeds() {
                             <option value="all">All Request Types</option>
                             <option value="physical">Physical Goods</option>
                             <option value="financial">Financial Assistance</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
 
                     {/* Category Filter */}
@@ -11753,7 +11995,7 @@ function DonorNeeds() {
                         <label htmlFor="filter_category" className="block text-xs font-bold text-[#2563EB] mb-1">
                             Filter by Category
                         </label>
-                        <select
+                        <DropdownSelect
                             id="filter_category"
                             className="field text-xs"
                             value={categoryFilter}
@@ -11767,7 +12009,7 @@ function DonorNeeds() {
                                     {c.label}
                                 </option>
                             ))}
-                        </select>
+                        </DropdownSelect>
                     </div>
 
                     {/* Urgency Filter */}
@@ -11775,7 +12017,7 @@ function DonorNeeds() {
                         <label htmlFor="filter_urgency" className="block text-xs font-bold text-[#2563EB] mb-1">
                             Priority Level
                         </label>
-                        <select
+                        <DropdownSelect
                             id="filter_urgency"
                             className="field text-xs"
                             value={urgencyFilter}
@@ -11788,7 +12030,7 @@ function DonorNeeds() {
                             <option value="high">High Priority</option>
                             <option value="medium">Medium Priority</option>
                             <option value="low">Low Priority</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                 </div>
 
@@ -12269,7 +12511,7 @@ function DonorNeeds() {
                                             <label htmlFor="q_condition" className="block text-xs font-bold text-[#2563EB]">
                                                 Item Condition
                                             </label>
-                                            <select
+                                            <DropdownSelect
                                                 id="q_condition"
                                                 className="field mt-1 text-xs"
                                                 value={donationForm.condition_type}
@@ -12279,7 +12521,7 @@ function DonorNeeds() {
                                                 <option value="Like New">Like New</option>
                                                 <option value="Gently Used">Gently Used</option>
                                                 <option value="Fair / Functional">Fair / Functional</option>
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
 
                                         {/* Pickup Location */}
@@ -13291,7 +13533,7 @@ function HistoryPage({ role }) {
                         <label htmlFor="h_category" className="block text-xs font-bold text-[#2563EB] mb-1">
                             Category
                         </label>
-                        <select
+                        <DropdownSelect
                             id="h_category"
                             className="field text-xs"
                             value={categoryFilter}
@@ -13305,7 +13547,7 @@ function HistoryPage({ role }) {
                                     {c.label}
                                 </option>
                             ))}
-                        </select>
+                        </DropdownSelect>
                     </div>
 
                     {/* Status Filter */}
@@ -13313,7 +13555,7 @@ function HistoryPage({ role }) {
                         <label htmlFor="h_status" className="block text-xs font-bold text-[#2563EB] mb-1">
                             Status
                         </label>
-                        <select
+                        <DropdownSelect
                             id="h_status"
                             className="field text-xs"
                             value={statusFilter}
@@ -13326,7 +13568,7 @@ function HistoryPage({ role }) {
                             <option value="completed">Completed / Fulfilled</option>
                             <option value="active">Active / Pending</option>
                             <option value="cancelled">Cancelled / Rejected</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
 
                     {/* Date From */}
@@ -13351,7 +13593,7 @@ function HistoryPage({ role }) {
                         <label htmlFor="h_sort" className="block text-xs font-bold text-[#2563EB] mb-1">
                             Sort By
                         </label>
-                        <select
+                        <DropdownSelect
                             id="h_sort"
                             className="field text-xs"
                             value={sortBy}
@@ -13365,7 +13607,7 @@ function HistoryPage({ role }) {
                             <option value="name_asc">Name (A-Z)</option>
                             <option value="name_desc">Name (Z-A)</option>
                             <option value="qty_desc">Quantity (High to Low)</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                 </div>
 
@@ -14004,7 +14246,7 @@ function AdminCategories(){
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Status Filter</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={statusFilter}
                         onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
@@ -14012,12 +14254,12 @@ function AdminCategories(){
                         <option value="all">All Statuses</option>
                         <option value="active">Active Only</option>
                         <option value="inactive">Inactive Only</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
@@ -14026,7 +14268,7 @@ function AdminCategories(){
                         <option value="name_desc">Name (Z-A)</option>
                         <option value="count_desc">Listings (High to Low)</option>
                         <option value="status">Status</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
             </div>
 
@@ -14494,7 +14736,7 @@ function AdminApprovals(){
 
                     <div className="min-w-[150px]">
                         <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Category</label>
-                        <select
+                        <DropdownSelect
                             className="field w-full text-sm"
                             value={categoryFilter}
                             onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
@@ -14506,12 +14748,12 @@ function AdminApprovals(){
                             <option value="school supplies">School Supplies</option>
                             <option value="books">Books</option>
                             <option value="technology">Technology</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
 
                     <div className="min-w-[150px]">
                         <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
-                        <select
+                        <DropdownSelect
                             className="field w-full text-sm"
                             value={sortBy}
                             onChange={e => setSortBy(e.target.value)}
@@ -14519,7 +14761,7 @@ function AdminApprovals(){
                             <option value="urgency_desc">Urgency (High First)</option>
                             <option value="date_desc">Newest First</option>
                             <option value="category">Category</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                 </div>
             </div>
@@ -14970,7 +15212,7 @@ function AdminAnnouncements(){
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB] mb-1">Target Audience</label>
-                                    <select
+                                    <DropdownSelect
                                         className="field w-full text-xs"
                                         value={audience}
                                         onChange={e => setAudience(e.target.value)}
@@ -14978,19 +15220,19 @@ function AdminAnnouncements(){
                                         <option value="All Members">All Members</option>
                                         <option value="Donors Only">Donors Only</option>
                                         <option value="Beneficiaries Only">Beneficiaries Only</option>
-                                    </select>
+                                    </DropdownSelect>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB] mb-1">Priority</label>
-                                    <select
+                                    <DropdownSelect
                                         className="field w-full text-xs"
                                         value={priority}
                                         onChange={e => setPriority(e.target.value)}
                                     >
                                         <option value="normal">Normal</option>
                                         <option value="urgent">Urgent</option>
-                                    </select>
+                                    </DropdownSelect>
                                 </div>
                             </div>
 
@@ -15049,7 +15291,7 @@ function AdminAnnouncements(){
                             </div>
 
                             <div className="min-w-[130px]">
-                                <select
+                                <DropdownSelect
                                     className="field w-full text-xs"
                                     value={audienceFilter}
                                     onChange={e => { setAudienceFilter(e.target.value); setPage(1); }}
@@ -15058,11 +15300,11 @@ function AdminAnnouncements(){
                                     <option value="All Members">All Members</option>
                                     <option value="Donors Only">Donors Only</option>
                                     <option value="Beneficiaries Only">Beneficiaries Only</option>
-                                </select>
+                                </DropdownSelect>
                             </div>
 
                             <div className="min-w-[110px]">
-                                <select
+                                <DropdownSelect
                                     className="field w-full text-xs"
                                     value={statusFilter}
                                     onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
@@ -15070,7 +15312,7 @@ function AdminAnnouncements(){
                                     <option value="all">All Statuses</option>
                                     <option value="published">Published</option>
                                     <option value="draft">Drafts</option>
-                                </select>
+                                </DropdownSelect>
                             </div>
                         </div>
 
@@ -16169,7 +16411,7 @@ function Profile(){
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Valid ID Type</label>
-                                            <select
+                                            <DropdownSelect
                                                 className="field w-full"
                                                 value={f.valid_id_type}
                                                 onChange={e=>setF({...f,valid_id_type:e.target.value})}
@@ -16178,7 +16420,7 @@ function Profile(){
                                                 {VALID_ID_TYPES.map(type => (
                                                     <option key={type} value={type}>{type}</option>
                                                 ))}
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
                                     </div>
 
@@ -16272,30 +16514,30 @@ function Profile(){
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Department</label>
-                                            <select className="field w-full" value={f.department} onChange={e=>setF({...f,department:e.target.value})}>
+                                            <DropdownSelect className="field w-full" value={f.department} onChange={e=>setF({...f,department:e.target.value})}>
                                                 <option value="" disabled hidden>Select Department</option>
                                                 {BENEFICIARY_DEPARTMENTS.map(dept => (
                                                     <option key={dept} value={dept}>{dept}</option>
                                                 ))}
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Course</label>
-                                            <select className="field w-full" value={f.course} onChange={e=>setF({...f,course:e.target.value})}>
+                                            <DropdownSelect className="field w-full" value={f.course} onChange={e=>setF({...f,course:e.target.value})}>
                                                 <option value="" disabled hidden>Select Course</option>
                                                 {BENEFICIARY_COURSES.map(crs => (
                                                     <option key={crs} value={crs}>{crs}</option>
                                                 ))}
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Year Level</label>
-                                            <select className="field w-full" value={f.year_level} onChange={e=>setF({...f,year_level:e.target.value})}>
+                                            <DropdownSelect className="field w-full" value={f.year_level} onChange={e=>setF({...f,year_level:e.target.value})}>
                                                 <option value="" disabled hidden>Select Year Level</option>
                                                 {BENEFICIARY_YEAR_LEVELS.map(yr => (
                                                     <option key={yr} value={yr}>{yr}</option>
                                                 ))}
-                                            </select>
+                                            </DropdownSelect>
                                         </div>
                                         </>}
                                         {user.role!=='beneficiary'&&<div>
@@ -16644,7 +16886,7 @@ function Reports(){
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                    <select
+                    <DropdownSelect
                         className="field text-sm font-bold min-w-[140px]"
                         value={timeframe}
                         onChange={e => setTimeframe(e.target.value)}
@@ -16653,7 +16895,7 @@ function Reports(){
                         <option value="this_month">This Month</option>
                         <option value="this_week">This Week</option>
                         <option value="today">Today</option>
-                    </select>
+                    </DropdownSelect>
                     <Button variant="secondary" onClick={loadReport} loading={loading}>
                         <Icon name="activity"/>
                         <span className="ml-1 text-xs">Refresh Data</span>
@@ -17084,7 +17326,7 @@ function Activities(){
 
                 <div className="min-w-[160px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Filter by Module</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={actionFilter}
                         onChange={e => { setActionFilter(e.target.value); setPage(1); }}
@@ -17094,19 +17336,19 @@ function Activities(){
                         <option value="requests">Support Requests</option>
                         <option value="donations">Donations</option>
                         <option value="matches">Match Operations</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
 
                 <div className="min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort Order</label>
-                    <select
+                    <DropdownSelect
                         className="field w-full text-sm"
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
                     >
                         <option value="newest">Newest First</option>
                         <option value="oldest">Oldest First</option>
-                    </select>
+                    </DropdownSelect>
                 </div>
             </div>
 
@@ -17467,14 +17709,14 @@ function NotificationsPage(){
 
                     <div className="min-w-[150px]">
                         <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
-                        <select
+                        <DropdownSelect
                             className="field w-full text-sm"
                             value={sortBy}
                             onChange={e=>setSortBy(e.target.value)}
                         >
                             <option value="newest">Newest First</option>
                             <option value="oldest">Oldest First</option>
-                        </select>
+                        </DropdownSelect>
                     </div>
                 </div>
             </div>
