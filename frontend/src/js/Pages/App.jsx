@@ -6342,9 +6342,11 @@ function PeopleManager(){
                                                     <Button
                                                         title={userItem.is_active ? 'Deactivate Member' : 'Reactivate Member'}
                                                         variant="secondary"
+                                                        className="user-management-status-button"
                                                         loading={updatingStatus === userItem.id}
                                                         onClick={() => toggleUserStatus(userItem)}
                                                     >
+                                                        {userItem.is_active ? <Icon name="decline" size={14}/> : <Icon name="check" size={14}/>}
                                                         <span className="text-xs">{userItem.is_active ? 'Deactivate' : 'Reactivate'}</span>
                                                     </Button>
                                                 </div>
@@ -7582,10 +7584,16 @@ function RequestManager(){
 
                                     return (
                                         <tr key={item.id}>
-                                            <td className="font-extrabold text-[#2563EB]">
-                                                #REQ-{String(item.id).padStart(3, '0')}
+                                            <td className="request-single-line-cell font-extrabold text-[#2563EB]">
+                                                <span className="request-single-line-text" title={`#REQ-${String(item.id).padStart(3, '0')}`}>
+                                                    #REQ-{String(item.id).padStart(3, '0')}
+                                                </span>
                                             </td>
-                                            <td className="text-xs font-semibold">{item.beneficiary?.name || 'N/A'}</td>
+                                            <td className="request-single-line-cell text-xs font-semibold">
+                                                <span className="request-single-line-text" title={item.beneficiary?.name || 'N/A'}>
+                                                    {item.beneficiary?.name || 'N/A'}
+                                                </span>
+                                            </td>
                                             <td className="max-w-[180px] truncate" title={item.item_details || item.purpose_of_funds || item.category}>
                                                 <strong className="block text-xs">{title(item.category)}</strong>
                                                 <span className="text-[11px] font-semibold text-[#2563EB]/70 truncate block">
@@ -7600,7 +7608,7 @@ function RequestManager(){
                                                 <Badge status={item.status}/>
                                             </td>
                                             <td>
-                                                <div className="flex flex-wrap gap-1.5">
+                                                <div className="request-management-actions flex flex-nowrap items-center gap-1">
                                                     <Button title="View Request Details" variant="secondary" disabled={viewingRequestLoading} onClick={() => openRequestDetails(item)}>
                                                         <Icon name="eye"/>
                                                         <span className="ml-1 text-xs">View</span>
@@ -7715,18 +7723,18 @@ function RequestManager(){
                     <div className="panel no-hover w-full max-w-xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <div>
-                                <span className="text-xs font-black text-[#2563EB]">
+                                <span className="text-sm font-black text-[#2563EB]">
                                     #REQ-{String(viewingRequest.id).padStart(3, '0')}
                                 </span>
-                                <h2 className="text-lg font-black text-[#2563EB]">Support Request Inspection</h2>
+                                <h2 className="text-xl font-black text-[#2563EB]">Support Request Inspection</h2>
                             </div>
                             <button className="nav-link p-1" onClick={() => setViewingRequest(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <span className={`px-2.5 py-1 rounded text-xs font-black uppercase ${viewingRequest.request_type === 'financial' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-[#2563EB]'}`}>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className={`px-2.5 py-1 rounded text-sm font-black uppercase ${viewingRequest.request_type === 'financial' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-[#2563EB]'}`}>
                                 {viewingRequest.request_type === 'financial' ? 'Financial Assistance' : 'Physical Item Request'}
                             </span>
                             <Badge status={viewingRequest.urgency}/>
@@ -7735,97 +7743,124 @@ function RequestManager(){
 
                         {/* Beneficiary Student Information Section */}
                         {viewingRequest.beneficiary && (
-                            <div className="rounded-xl border border-[#2563EB]/30 bg-[#2563EB]/5 p-3.5 text-xs space-y-1.5">
+                            <div className="rounded-xl border border-[#2563EB]/30 bg-[#2563EB]/5 p-4 text-sm space-y-2">
                                 <span className="font-extrabold text-[#2563EB] uppercase tracking-wider block">Student Beneficiary Profile</span>
-                                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                                    <div><span className="font-bold text-[#2563EB]/70">Name:</span> <span className="font-semibold">{viewingRequest.beneficiary.name}</span></div>
-                                    <div><span className="font-bold text-[#2563EB]/70">Student ID:</span> <span className="font-semibold">{viewingRequest.beneficiary.student_id_number || viewingRequest.student_id_number || 'N/A'}</span></div>
-                                    <div><span className="font-bold text-[#2563EB]/70">Department:</span> <span className="font-semibold">{viewingRequest.beneficiary.department || 'N/A'}</span></div>
-                                    <div><span className="font-bold text-[#2563EB]/70">Course:</span> <span className="font-semibold">{viewingRequest.beneficiary.course || 'N/A'}</span></div>
-                                    <div><span className="font-bold text-[#2563EB]/70">Year Level:</span> <span className="font-semibold">{viewingRequest.beneficiary.year_level || 'N/A'}</span></div>
-                                    <div><span className="font-bold text-[#2563EB]/70">School Email:</span> <span className="font-semibold">{viewingRequest.beneficiary.school_email || viewingRequest.beneficiary.email || 'N/A'}</span></div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm leading-relaxed">
+                                    <div className="min-w-0 break-words">
+                                        <span className="block font-bold text-[#2563EB]/70">Beneficiary Name</span>
+                                        <span className="mt-1 block break-words font-semibold">{viewingRequest.beneficiary.name || 'Not provided'}</span>
+                                    </div>
+                                    <div className="min-w-0 break-words">
+                                        <span className="block font-bold text-[#2563EB]/70">Student ID</span>
+                                        <span className="mt-1 block break-words font-semibold">{viewingRequest.beneficiary.student_id_number || viewingRequest.beneficiary.campus_id || viewingRequest.student_id_number || 'Not provided'}</span>
+                                    </div>
+                                    <div className="min-w-0 break-words">
+                                        <span className="block font-bold text-[#2563EB]/70">School Email</span>
+                                        <span className="mt-1 block break-words font-semibold">{viewingRequest.beneficiary.school_email || viewingRequest.beneficiary.email || 'Not provided'}</span>
+                                    </div>
+                                    <div className="min-w-0 break-words">
+                                        <span className="block font-bold text-[#2563EB]/70">Contact Number</span>
+                                        <span className="mt-1 block break-words font-semibold">{viewingRequest.beneficiary.contact_number || 'Not provided'}</span>
+                                    </div>
+                                    <div className="min-w-0 break-words">
+                                        <span className="block font-bold text-[#2563EB]/70">Course/Program</span>
+                                        <span className="mt-1 block break-words font-semibold">{viewingRequest.beneficiary.course || 'Not provided'}</span>
+                                    </div>
+                                    <div className="min-w-0 break-words">
+                                        <span className="block font-bold text-[#2563EB]/70">Year Level</span>
+                                        <span className="mt-1 block break-words font-semibold">{viewingRequest.beneficiary.year_level || 'Not provided'}</span>
+                                    </div>
+                                    <div className="min-w-0 break-words">
+                                        <span className="block font-bold text-[#2563EB]/70">Department</span>
+                                        <span className="mt-1 block break-words font-semibold">{viewingRequest.beneficiary.department || 'Not provided'}</span>
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        <div className="rounded-xl border border-[#2563EB]/20 p-3.5">
-                            <h3 className="mb-2 text-xs font-extrabold uppercase tracking-wider text-[#2563EB]">Complete Request Record</h3>
-                            <dl className="grid gap-2 sm:grid-cols-2">
-                                {Object.entries(viewingRequest).filter(([key]) => key !== 'id').map(([key, value]) => (
-                                    <div key={key} className="min-w-0 rounded-lg bg-gray-50 p-2 text-[11px]">
-                                        <dt className="font-bold uppercase tracking-wide text-[#2563EB]/70">{key.replaceAll('_', ' ')}</dt>
-                                        {value !== null && typeof value === 'object' ? (
-                                            <pre className="mt-0.5 whitespace-pre-wrap break-words font-sans font-semibold text-gray-800">{JSON.stringify(value, null, 2)}</pre>
-                                        ) : (
-                                            <dd className="mt-0.5 break-words font-semibold text-gray-800">{value === null || value === undefined || value === '' ? 'N/A' : String(value)}</dd>
-                                        )}
-                                    </div>
-                                ))}
+                        <div className="rounded-xl border border-[#2563EB]/20 p-4">
+                            <h3 className="mb-3 text-sm font-extrabold uppercase tracking-wider text-[#2563EB]">Complete Request Record</h3>
+                            <dl className="grid gap-3 sm:grid-cols-2">
+                                {Object.entries(viewingRequest).filter(([key]) => key !== 'id' && key !== 'beneficiary').map(([key, value]) => {
+                                    const label = key === 'created_by_staff_id'
+                                        ? 'Created By Staff ID'
+                                        : key.replaceAll('_', ' ').replace(/\b\w/g, character => character.toUpperCase());
+                                    return (
+                                        <div key={key} className="min-w-0 rounded-lg bg-gray-50 p-3 text-sm leading-relaxed">
+                                            <dt className="text-xs font-bold uppercase tracking-wide text-[#2563EB]/70">{label}</dt>
+                                            {value !== null && typeof value === 'object' ? (
+                                                <pre className="mt-1 whitespace-pre-wrap break-words font-sans text-sm font-semibold leading-relaxed text-gray-800">{JSON.stringify(value, null, 2)}</pre>
+                                            ) : (
+                                                <dd className="mt-1 break-words text-sm font-semibold leading-relaxed text-gray-800">{value === null || value === undefined || value === '' ? 'N/A' : String(value)}</dd>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </dl>
                         </div>
 
-                        <div className="space-y-2.5 border-t border-b border-[#2563EB]/20 py-3 text-xs font-bold">
-                            <div className="flex justify-between">
+                        <div className="space-y-3 border-t border-b border-[#2563EB]/20 py-4 text-sm font-bold">
+                            <div className="flex items-start justify-between gap-4">
                                 <span className="text-[#2563EB]/70">Category:</span>
-                                <span className="font-black text-[#2563EB]">{title(viewingRequest.category)}</span>
+                                <span className="break-words text-right font-black text-[#2563EB]">{title(viewingRequest.category)}</span>
                             </div>
                             {viewingRequest.request_type === 'financial' ? (
                                 <>
-                                    <div className="flex justify-between">
+                                    <div className="flex items-start justify-between gap-4">
                                         <span className="text-[#2563EB]/70">Amount Requested:</span>
-                                        <span className="font-black text-[#22C55E]">
+                                        <span className="break-words text-right font-black text-[#22C55E]">
                                             {viewingRequest.currency || 'PHP'} {Number(viewingRequest.amount_requested).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex items-start justify-between gap-4">
                                         <span className="text-[#2563EB]/70">Remaining Amount:</span>
-                                        <span className="font-black text-[#2563EB]">
+                                        <span className="break-words text-right font-black text-[#2563EB]">
                                             {viewingRequest.currency || 'PHP'} {Number(viewingRequest.remaining_amount ?? viewingRequest.amount_requested).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                         </span>
                                     </div>
                                     {viewingRequest.purpose_of_funds && (
                                         <div className="pt-1">
                                             <span className="text-[#2563EB]/70 block mb-1">Purpose of Funds:</span>
-                                            <p className="font-normal text-[11px] bg-white p-2.5 rounded border border-[#2563EB]/20">{viewingRequest.purpose_of_funds}</p>
+                                            <p className="rounded border border-[#2563EB]/20 bg-white p-3 text-sm font-normal leading-relaxed break-words">{viewingRequest.purpose_of_funds}</p>
                                         </div>
                                     )}
                                 </>
                             ) : (
                                 <>
-                                    <div className="flex justify-between">
+                                    <div className="flex items-start justify-between gap-4">
                                         <span className="text-[#2563EB]/70">Assistance Needed:</span>
-                                        <span className="font-black text-[#2563EB]">{viewingRequest.item_details || 'Standard Need'}</span>
+                                        <span className="break-words text-right font-black text-[#2563EB]">{viewingRequest.item_details || 'Standard Need'}</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex items-start justify-between gap-4">
                                         <span className="text-[#2563EB]/70">Quantity Needed:</span>
-                                        <span>{viewingRequest.quantity_needed} {viewingRequest.unit || 'unit(s)'}</span>
+                                        <span className="break-words text-right">{viewingRequest.quantity_needed} {viewingRequest.unit || 'unit(s)'}</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex items-start justify-between gap-4">
                                         <span className="text-[#2563EB]/70">Remaining Quantity:</span>
-                                        <span>{viewingRequest.remaining_quantity ?? viewingRequest.quantity_needed} {viewingRequest.unit || 'unit(s)'}</span>
+                                        <span className="break-words text-right">{viewingRequest.remaining_quantity ?? viewingRequest.quantity_needed} {viewingRequest.unit || 'unit(s)'}</span>
                                     </div>
                                 </>
                             )}
-                            <div className="flex justify-between">
+                            <div className="flex items-start justify-between gap-4">
                                 <span className="text-[#2563EB]/70">Preferred Assistance Date:</span>
-                                <span>{viewingRequest.preferred_assistance_date || 'Flexible'}</span>
+                                <span className="break-words text-right">{viewingRequest.preferred_assistance_date || 'Flexible'}</span>
                             </div>
                             {viewingRequest.justification && (
                                 <div className="pt-1">
                                     <span className="text-[#2563EB]/70 block mb-1">Reason for Request:</span>
-                                    <p className="font-normal text-[11px] bg-white p-2.5 rounded border border-[#2563EB]/20 leading-relaxed whitespace-pre-wrap">{viewingRequest.justification}</p>
+                                    <p className="rounded border border-[#2563EB]/20 bg-white p-3 text-sm font-normal leading-relaxed whitespace-pre-wrap break-words">{viewingRequest.justification}</p>
                                 </div>
                             )}
                             {viewingRequest.additional_info && (
                                 <div className="pt-1">
                                     <span className="text-[#2563EB]/70 block mb-1">Additional Notes:</span>
-                                    <p className="font-normal text-[11px]">{viewingRequest.additional_info}</p>
+                                    <p className="text-sm font-normal leading-relaxed break-words">{viewingRequest.additional_info}</p>
                                 </div>
                             )}
                             {viewingRequest.cancellation_reason && (
                                 <div className="pt-1 text-red-600">
                                     <span className="font-extrabold block">Cancellation Reason:</span>
-                                    <p className="font-normal text-[11px]">{viewingRequest.cancellation_reason}</p>
+                                    <p className="text-sm font-normal leading-relaxed break-words">{viewingRequest.cancellation_reason}</p>
                                 </div>
                             )}
                         </div>
@@ -8284,7 +8319,7 @@ function Matches(){
                                         <span className="text-[#22C55E] flex items-center"><Icon name="arrow"/></span>
                                         <span>{title(x.request?.category)}</span>
                                     </div>
-                                    <p className="text-xs font-bold text-[#2563EB]/70">
+                                    <p className="text-sm font-bold text-[#2563EB]/70">
                                         Matched Quantity: <strong className="text-[#2563EB]">{x.matched_quantity} units</strong>
                                     </p>
                                 </div>
@@ -8293,29 +8328,29 @@ function Matches(){
                                 </div>
                             </div>
 
-                            <div className="grid gap-3 text-xs font-semibold sm:grid-cols-2 lg:grid-cols-3">
-                                <div className="rounded-lg border border-[#2563EB]/20 p-2.5 bg-white">
-                                    <span className="text-[#2563EB]/70 block font-bold uppercase text-[10px]">Donor Info</span>
-                                    <p className="text-[#2563EB] font-bold mt-0.5">{x.donation?.donor?.name || 'Campus Donor'}</p>
-                                    <span className="text-[10px] text-[#2563EB]/80 mt-1 block">
+                            <div className="grid gap-3 text-sm font-semibold sm:grid-cols-2 lg:grid-cols-3">
+                                <div className="min-w-0 rounded-lg border border-[#2563EB]/20 p-2.5 bg-white">
+                                    <span className="text-[#2563EB]/70 block font-bold uppercase text-xs">Donor Info</span>
+                                    <p className="text-sm text-[#2563EB] font-bold mt-0.5 break-words">{x.donation?.donor?.name || 'Campus Donor'}</p>
+                                    <span className="text-xs text-[#2563EB]/80 mt-1 block break-words">
                                         Handoff Status: {x.donor_completed_at ? <strong className="text-[#22C55E]">Confirmed</strong> : 'Awaiting'}
                                     </span>
                                 </div>
 
-                                <div className="rounded-lg border border-[#2563EB]/20 p-2.5 bg-white">
-                                    <span className="text-[#2563EB]/70 block font-bold uppercase text-[10px]">Beneficiary Info</span>
-                                    <p className="text-[#2563EB] font-bold mt-0.5">{x.request?.beneficiary?.name || 'Student Requester'}</p>
-                                    <span className="text-[10px] text-[#2563EB]/80 mt-1 block">
+                                <div className="min-w-0 rounded-lg border border-[#2563EB]/20 p-2.5 bg-white">
+                                    <span className="text-[#2563EB]/70 block font-bold uppercase text-xs">Beneficiary Info</span>
+                                    <p className="text-sm text-[#2563EB] font-bold mt-0.5 break-words">{x.request?.beneficiary?.name || 'Student Requester'}</p>
+                                    <span className="text-xs text-[#2563EB]/80 mt-1 block break-words">
                                         Handoff Status: {x.beneficiary_completed_at ? <strong className="text-[#22C55E]">Confirmed</strong> : 'Awaiting'}
                                     </span>
                                 </div>
 
-                                <div className="rounded-lg border border-[#2563EB]/20 p-2.5 bg-white sm:col-span-2 lg:col-span-1">
-                                    <span className="text-[#2563EB]/70 block font-bold uppercase text-[10px]">Handoff Schedule</span>
-                                    <p className="text-[#2563EB] font-bold mt-0.5">
+                                <div className="min-w-0 rounded-lg border border-[#2563EB]/20 p-2.5 bg-white sm:col-span-2 lg:col-span-1">
+                                    <span className="text-[#2563EB]/70 block font-bold uppercase text-xs">Handoff Schedule</span>
+                                    <p className="text-sm text-[#2563EB] font-bold mt-0.5 break-words">
                                         {x.handoff_scheduled_at ? new Date(x.handoff_scheduled_at).toLocaleString() : 'Not scheduled yet'}
                                     </p>
-                                    {x.handoff_notes && <p className="text-[10px] text-[#2563EB]/80 truncate mt-0.5">{x.handoff_notes}</p>}
+                                    {x.handoff_notes && <p className="text-xs text-[#2563EB]/80 break-words leading-relaxed mt-0.5">{x.handoff_notes}</p>}
                                 </div>
                             </div>
 
@@ -8710,9 +8745,9 @@ function Dashboard(){
                                     <Icon name="donation"/>
                                 </span>
                             </div>
-                            <div className="mt-4">
+                            <div className="mt-4 flex flex-1 flex-col justify-end">
                                 <strong className="text-3xl font-extrabold text-[#2563EB]">{s.total_donations}</strong>
-                                <p className="mt-1 text-xs font-semibold text-[#2563EB]/70">Total items listed</p>
+                                <p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Total items listed</p>
                             </div>
                         </article>
 
@@ -8723,9 +8758,9 @@ function Dashboard(){
                                     <Icon name="request"/>
                                 </span>
                             </div>
-                            <div className="mt-4">
+                            <div className="mt-4 flex flex-1 flex-col justify-end">
                                 <strong className="text-3xl font-extrabold text-[#2563EB]">{s.total_requests}</strong>
-                                <p className="mt-1 text-xs font-semibold text-[#2563EB]/70">Total support requests</p>
+                                <p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Total support requests</p>
                             </div>
                         </article>
 
@@ -8736,11 +8771,9 @@ function Dashboard(){
                                     <Icon name="approvals"/>
                                 </span>
                             </div>
-                            <div className="mt-4">
+                            <div className="mt-4 flex flex-1 flex-col justify-end">
                                 <strong className="text-3xl font-extrabold text-[#2563EB]">{s.pending_reviews}</strong>
-                                <div className="mt-1 flex items-center justify-between">
-                                    <span className="text-xs font-semibold text-[#2563EB]/70">Awaiting approval</span>
-                                </div>
+                                <p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Awaiting approval</p>
                             </div>
                         </article>
 
@@ -8751,9 +8784,9 @@ function Dashboard(){
                                     <Icon name="match"/>
                                 </span>
                             </div>
-                            <div className="mt-4">
+                            <div className="mt-4 flex flex-1 flex-col justify-end">
                                 <strong className="text-3xl font-extrabold text-[#2563EB]">{s.proposed_matches}</strong>
-                                <p className="mt-1 text-xs font-semibold text-[#2563EB]/70">Ready for review</p>
+                                <p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Ready for review</p>
                             </div>
                         </article>
 
@@ -9260,7 +9293,7 @@ function StaffDashboard() {
                             <h2 className="font-extrabold text-[#2563EB]">Priority verification queue</h2>
                             <p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Highest-priority pending requests, ordered for review.</p>
                         </div>
-                        <button onClick={() => navigate('/staff/verifications')} className="text-xs font-extrabold text-[#2563EB] underline">View all</button>
+                        <button onClick={() => navigate('/staff/verifications')} className="text-xs font-extrabold text-[#2563EB]">View all</button>
                     </div>
                     {loading ? (
                         <div className="space-y-3 p-5"><div className="h-14 animate-pulse rounded-lg bg-[#2563EB]/10"/><div className="h-14 animate-pulse rounded-lg bg-[#2563EB]/10"/></div>
@@ -9283,8 +9316,8 @@ function StaffDashboard() {
             </section>
 
             <section className="grid gap-4 lg:grid-cols-3" aria-label="Operational status">
-                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Manage inventory →</button></div>
-                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Open dispatch hub →</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB]">Manage inventory →</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB]">Open dispatch hub →</button></div>
                 <div className="rounded-2xl bg-[#2563EB] p-5 text-white"><div className="flex items-start justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-white/70">Walk-in relief desk</p><h2 className="mt-1 font-extrabold">Ready to serve</h2></div><span className="grid h-9 w-9 place-items-center rounded-lg bg-white text-[#22C55E]"><Icon name="check"/></span></div><p className="mt-4 text-sm font-semibold leading-relaxed text-white/85">Log verified in-person needs and make an immediate allocation when stock is available.</p><button onClick={() => navigate('/staff/desk')} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-extrabold text-[#2563EB]">Launch desk <Icon name="arrow" size={15}/></button></div>
             </section>
 
@@ -9303,7 +9336,7 @@ function StaffDashboard() {
                             Inspect student credentials, set financial hardship/emergency tiers, attach staff notes, and approve requests.
                         </p>
                     </div>
-                    <span className="text-xs font-extrabold text-[#2563EB] underline mt-4">Open Queue ({pendingRequests.length}) &rarr;</span>
+                    <span className="text-xs font-extrabold text-[#2563EB] mt-4">Open Queue ({pendingRequests.length}) &rarr;</span>
                 </div>
 
                 <div
@@ -9319,7 +9352,7 @@ function StaffDashboard() {
                             Assign physical shelf/bin storage locations, log condition grades, record expiration dates, and intake stock.
                         </p>
                     </div>
-                    <span className="text-xs font-extrabold text-[#2563EB] underline mt-4">View Storage Bins &rarr;</span>
+                    <span className="text-xs font-extrabold text-[#2563EB] mt-4">View Storage Bins &rarr;</span>
                 </div>
 
                 <div
@@ -9335,7 +9368,7 @@ function StaffDashboard() {
                             Process offline students visiting the campus relief office in person. Log immediate needs & instant allocation.
                         </p>
                     </div>
-                    <span className="text-xs font-extrabold text-[#2563EB] underline mt-4">Launch Walk-In Desk &rarr;</span>
+                    <span className="text-xs font-extrabold text-[#2563EB] mt-4">Launch Walk-In Desk &rarr;</span>
                 </div>
 
                 <div
@@ -9351,7 +9384,7 @@ function StaffDashboard() {
                             Coordinate physical pickup depot windows and clear handoffs using recipient 6-digit PIN verification.
                         </p>
                     </div>
-                    <span className="text-xs font-extrabold text-[#22C55E] underline mt-4">Dispatch Hub ({activeHandoffs.length}) &rarr;</span>
+                    <span className="text-xs font-extrabold text-[#22C55E] mt-4">Dispatch Hub ({activeHandoffs.length}) &rarr;</span>
                 </div>
             </div>
         </main>
@@ -14392,7 +14425,7 @@ function AdminCategories(){
                                                 <Badge status={cat.status}/>
                                             </td>
                                             <td>
-                                                <div className="flex flex-wrap items-center gap-2">
+                                                <div className="flex flex-nowrap items-center gap-2">
                                                     <Button title="View Associated Listings" variant="secondary" onClick={() => setInspectingCategory(cat)}>
                                                         <Icon name="eye"/>
                                                         <span className="ml-1 text-xs">View ({count})</span>
@@ -14406,6 +14439,7 @@ function AdminCategories(){
                                                         variant="secondary"
                                                         onClick={() => toggleStatus(cat.id)}
                                                     >
+                                                        {cat.status === 'active' ? <Icon name="decline" size={14}/> : <Icon name="check" size={14}/>}
                                                         <span className="text-xs">{cat.status === 'active' ? 'Deactivate' : 'Activate'}</span>
                                                     </Button>
                                                     <Button title="Delete Category" variant="secondary" onClick={() => setDeletingCategory(cat)}>
@@ -14450,6 +14484,7 @@ function AdminCategories(){
                                             variant="secondary"
                                             onClick={() => toggleStatus(cat.id)}
                                         >
+                                            {cat.status === 'active' ? <Icon name="decline" size={14}/> : <Icon name="check" size={14}/>}
                                             <span className="text-xs">{cat.status === 'active' ? 'Deactivate' : 'Activate'}</span>
                                         </Button>
                                         <Button title="Delete Category" variant="secondary" onClick={() => setDeletingCategory(cat)}>
@@ -14874,7 +14909,7 @@ function AdminApprovals(){
                                         <Badge status={req.urgency}/>
                                         <h3 className="text-lg font-extrabold text-[#2563EB]">{title(req.category)} ({req.quantity_needed} needed)</h3>
                                     </div>
-                                    <p className="text-xs font-semibold text-[#2563EB]/80 mt-1">
+                                    <p className="text-sm font-semibold text-[#2563EB]/80 mt-1 break-words">
                                         Requester: <strong className="text-[#2563EB]">{req.beneficiary?.name || 'Student Requester'}</strong>
                                         {req.beneficiary?.email && ` (${req.beneficiary.email})`}
                                     </p>
@@ -14885,13 +14920,13 @@ function AdminApprovals(){
                             </div>
 
                             {req.justification && (
-                                <p className="text-xs text-[#2563EB] bg-[#2563EB]/5 p-3 rounded-lg border border-[#2563EB]/20 italic leading-relaxed">
+                                <p className="text-sm text-[#2563EB] bg-[#2563EB]/5 p-3 rounded-lg border border-[#2563EB]/20 italic leading-relaxed">
                                     "{req.justification}"
                                 </p>
                             )}
 
                             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                                <span className="text-[11px] font-bold text-[#2563EB]/60">
+                                <span className="text-xs font-bold text-[#2563EB]/60">
                                     Submitted: {req.created_at ? new Date(req.created_at).toLocaleString() : 'N/A'}
                                 </span>
 
@@ -15407,25 +15442,25 @@ function AdminAnnouncements(){
                         ) : (
                             <div className="space-y-3">
                                 {paginatedHistory.map(item => (
-                                    <article key={item.id} className="panel p-4 space-y-2 bg-white hover:border-[#22C55E] transition">
-                                        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#2563EB]/15 pb-2">
-                                            <div>
+                                    <article key={item.id} className="announcement-history-card panel p-4 space-y-1.5 bg-white hover:border-[#22C55E] transition">
+                                        <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#2563EB]/15 pb-1">
+                                            <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <Badge status={item.priority}/>
                                                     <Badge status={item.status}/>
                                                 </div>
-                                                <h3 className="text-base font-extrabold text-[#2563EB] mt-1">{item.headline}</h3>
+                                                <h3 className="text-lg font-extrabold text-[#2563EB] mt-1 leading-snug">{item.headline}</h3>
                                             </div>
-                                            <span className="text-[11px] font-extrabold text-[#2563EB] bg-[#2563EB]/5 px-2 py-0.5 rounded border border-[#2563EB]/20">
+                                            <span className="shrink-0 text-xs font-extrabold text-[#2563EB] bg-[#2563EB]/5 px-2 py-0.5 rounded border border-[#2563EB]/20">
                                                 Audience: {item.audience}
                                             </span>
                                         </div>
 
-                                        <p className="text-xs text-[#2563EB]/90 leading-relaxed font-medium">
+                                        <p className="text-sm text-[#2563EB]/90 leading-relaxed font-medium">
                                             {item.message}
                                         </p>
 
-                                        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#2563EB]/10 text-[11px]">
+                                        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-3 pt-2 border-t border-[#2563EB]/10 text-xs leading-relaxed">
                                             <span className="font-semibold text-[#2563EB]/70">
                                                 Posted by <strong>{item.author}</strong> on {new Date(item.created_at).toLocaleString()}
                                             </span>
@@ -17004,38 +17039,38 @@ function Reports(){
                     <section className="panel p-6 bg-white space-y-4">
                         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-3">
                             <div>
-                                <h2 className="text-lg font-extrabold text-[#2563EB]">Executive Performance Summary</h2>
-                                <p className="text-xs text-[#2563EB]/70 font-semibold">Key insights computed from live campus exchange data</p>
+                                <h2 className="text-xl font-extrabold text-[#2563EB]">Executive Performance Summary</h2>
+                                <p className="text-sm text-[#2563EB]/70 font-semibold leading-relaxed">Key insights computed from live campus exchange data</p>
                             </div>
-                            <span className="rounded-xl border border-[#22C55E] bg-[#22C55E] px-3 py-1 text-xs font-extrabold text-white">
+                            <span className="rounded-xl border border-[#22C55E] bg-[#22C55E] px-3 py-1 text-sm font-extrabold text-white">
                                 {overallCoverage}% Overall Demand Met
                             </span>
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-3 text-xs font-semibold">
+                        <div className="grid gap-4 sm:grid-cols-3 text-sm font-semibold">
                             <div className="rounded-xl border border-[#2563EB]/20 p-4 bg-white">
-                                <span className="text-[#2563EB]/70 block font-bold uppercase text-[10px]">Supply vs Demand Ratio</span>
-                                <p className="text-lg font-extrabold text-[#2563EB] mt-1">{totalDonated} Donated / {totalRequested} Requested</p>
-                                <p className="text-[11px] text-[#2563EB]/80 mt-1">
+                                <span className="text-[#2563EB]/70 block font-bold uppercase text-xs">Supply vs Demand Ratio</span>
+                                <p className="text-lg font-extrabold text-[#2563EB] mt-1 leading-snug">{totalDonated} Donated / {totalRequested} Requested</p>
+                                <p className="text-sm text-[#2563EB]/80 mt-1 leading-relaxed">
                                     {totalDonated >= totalRequested ? 'Surplus available across categories.' : 'Demand exceeds current available donation items.'}
                                 </p>
                             </div>
 
                             <div className="rounded-xl border border-[#2563EB]/20 p-4 bg-white">
-                                <span className="text-[#2563EB]/70 block font-bold uppercase text-[10px]">Request Authorization</span>
-                                <p className="text-lg font-extrabold text-[#22C55E] mt-1">{report.approval_rate}% Approved</p>
-                                <p className="text-[11px] text-[#2563EB]/80 mt-1">High review efficiency maintains quick assistance turnaround.</p>
+                                <span className="text-[#2563EB]/70 block font-bold uppercase text-xs">Request Authorization</span>
+                                <p className="text-lg font-extrabold text-[#22C55E] mt-1 leading-snug">{report.approval_rate}% Approved</p>
+                                <p className="text-sm text-[#2563EB]/80 mt-1 leading-relaxed">High review efficiency maintains quick assistance turnaround.</p>
                             </div>
 
                             <div className="rounded-xl border border-[#2563EB]/20 p-4 bg-white">
-                                <span className="text-[#2563EB]/70 block font-bold uppercase text-[10px]">Match Confirmation</span>
-                                <p className="text-lg font-extrabold text-[#22C55E] mt-1">{report.confirmation_rate}% Confirmed</p>
-                                <p className="text-[11px] text-[#2563EB]/80 mt-1">Paired donations successfully authorized for scheduled handoff.</p>
+                                <span className="text-[#2563EB]/70 block font-bold uppercase text-xs">Match Confirmation</span>
+                                <p className="text-lg font-extrabold text-[#22C55E] mt-1 leading-snug">{report.confirmation_rate}% Confirmed</p>
+                                <p className="text-sm text-[#2563EB]/80 mt-1 leading-relaxed">Paired donations successfully authorized for scheduled handoff.</p>
                             </div>
                         </div>
 
                         <div className="space-y-1.5 pt-1">
-                            <div className="flex justify-between text-xs font-extrabold text-[#2563EB]">
+                            <div className="flex justify-between text-sm font-extrabold text-[#2563EB]">
                                 <span>Campus Demand Fulfillment Progress</span>
                                 <span>{overallCoverage}%</span>
                             </div>
@@ -17051,9 +17086,9 @@ function Reports(){
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <article className="panel p-5 flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Request Approval Rate</p>
+                                <p className="text-sm font-bold uppercase tracking-wider text-[#22C55E]">Request Approval Rate</p>
                                 <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{report.approval_rate}%</strong>
-                                <span className="text-[11px] font-semibold text-[#2563EB]/80 mt-1 block">Reviewed & authorized aid requests</span>
+                                <span className="text-sm font-semibold text-[#2563EB]/80 mt-1 block leading-relaxed">Reviewed & authorized aid requests</span>
                             </div>
                             <span className="grid h-12 w-12 place-items-center rounded-xl border border-[#22C55E] bg-white text-[#22C55E]">
                                 <Icon name="check"/>
@@ -17062,9 +17097,9 @@ function Reports(){
 
                         <article className="panel p-5 flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Match Confirmation Rate</p>
+                                <p className="text-sm font-bold uppercase tracking-wider text-[#22C55E]">Match Confirmation Rate</p>
                                 <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{report.confirmation_rate}%</strong>
-                                <span className="text-[11px] font-semibold text-[#2563EB]/80 mt-1 block">Proposed matches confirmed for delivery</span>
+                                <span className="text-sm font-semibold text-[#2563EB]/80 mt-1 block leading-relaxed">Proposed matches confirmed for delivery</span>
                             </div>
                             <span className="grid h-12 w-12 place-items-center rounded-xl border border-[#22C55E] bg-white text-[#22C55E]">
                                 <Icon name="match"/>
@@ -17073,9 +17108,9 @@ function Reports(){
 
                         <article className="panel p-5 flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Active Donors</p>
+                                <p className="text-sm font-bold uppercase tracking-wider text-[#2563EB]/70">Active Donors</p>
                                 <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{report.coverage.active_donors}</strong>
-                                <span className="text-[11px] font-semibold text-[#2563EB]/80 mt-1 block">Registered donors supporting campus</span>
+                                <span className="text-sm font-semibold text-[#2563EB]/80 mt-1 block leading-relaxed">Registered donors supporting campus</span>
                             </div>
                             <span className="grid h-12 w-12 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
                                 <Icon name="donation"/>
@@ -17084,9 +17119,9 @@ function Reports(){
 
                         <article className="panel p-5 flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Active Beneficiaries</p>
+                                <p className="text-sm font-bold uppercase tracking-wider text-[#2563EB]/70">Active Beneficiaries</p>
                                 <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{report.coverage.active_beneficiaries}</strong>
-                                <span className="text-[11px] font-semibold text-[#2563EB]/80 mt-1 block">Registered students seeking assistance</span>
+                                <span className="text-sm font-semibold text-[#2563EB]/80 mt-1 block leading-relaxed">Registered students seeking assistance</span>
                             </div>
                             <span className="grid h-12 w-12 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
                                 <Icon name="request"/>
@@ -17095,9 +17130,9 @@ function Reports(){
 
                         <article className="panel p-5 flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Fulfilled Donations</p>
+                                <p className="text-sm font-bold uppercase tracking-wider text-[#22C55E]">Fulfilled Donations</p>
                                 <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{report.coverage.fulfilled_donations}</strong>
-                                <span className="text-[11px] font-semibold text-[#2563EB]/80 mt-1 block">Donated items handed off to students</span>
+                                <span className="text-sm font-semibold text-[#2563EB]/80 mt-1 block leading-relaxed">Donated items handed off to students</span>
                             </div>
                             <span className="grid h-12 w-12 place-items-center rounded-xl border border-[#22C55E] bg-[#22C55E] text-white">
                                 <Icon name="check"/>
@@ -17106,9 +17141,9 @@ function Reports(){
 
                         <article className="panel p-5 flex items-center justify-between">
                             <div>
-                                <p className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Fulfilled Requests</p>
+                                <p className="text-sm font-bold uppercase tracking-wider text-[#22C55E]">Fulfilled Requests</p>
                                 <strong className="mt-1 block text-3xl font-extrabold text-[#22C55E]">{report.coverage.fulfilled_requests}</strong>
-                                <span className="text-[11px] font-semibold text-[#2563EB]/80 mt-1 block">Student requests fully satisfied</span>
+                                <span className="text-sm font-semibold text-[#2563EB]/80 mt-1 block leading-relaxed">Student requests fully satisfied</span>
                             </div>
                             <span className="grid h-12 w-12 place-items-center rounded-xl border border-[#22C55E] bg-[#22C55E] text-white">
                                 <Icon name="check"/>
@@ -17119,14 +17154,14 @@ function Reports(){
                     <section className="panel p-6 bg-white space-y-6">
                         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                             <div>
-                                <h2 className="text-lg font-extrabold text-[#2563EB]">Category Balance & Distribution</h2>
-                                <p className="text-xs text-[#2563EB]/70 font-semibold">Detailed resource supply vs demand breakdown per category</p>
+                                <h2 className="text-xl font-extrabold text-[#2563EB]">Category Balance & Distribution</h2>
+                                <p className="text-sm text-[#2563EB]/70 font-semibold leading-relaxed">Detailed resource supply vs demand breakdown per category</p>
                             </div>
-                            <span className="text-xs font-bold text-[#2563EB]">{categories.length} Categories Analyzed</span>
+                            <span className="text-sm font-bold text-[#2563EB]">{categories.length} Categories Analyzed</span>
                         </div>
 
                         <div className="space-y-4">
-                            <h3 className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Visual Supply vs Demand Charts</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-[#2563EB]/70">Visual Supply vs Demand Charts</h3>
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {categories.map(cat => {
                                     const d = Number(cat.donated_quantity || 0);
@@ -17139,14 +17174,14 @@ function Reports(){
                                     return (
                                         <div key={cat.category} className="rounded-xl border border-[#2563EB] p-4 space-y-3 bg-white">
                                             <div className="flex justify-between items-center">
-                                                <strong className="text-sm font-extrabold text-[#2563EB]">{title(cat.category)}</strong>
-                                                <span className={`text-xs font-extrabold px-2 py-0.5 rounded ${balance >= 0 ? 'bg-[#22C55E] text-white' : 'border border-[#2563EB] text-[#2563EB]'}`}>
+                                                <strong className="text-base font-extrabold text-[#2563EB]">{title(cat.category)}</strong>
+                                                <span className={`text-sm font-extrabold px-2 py-0.5 rounded ${balance >= 0 ? 'bg-[#22C55E] text-white' : 'border border-[#2563EB] text-[#2563EB]'}`}>
                                                     {balance >= 0 ? `+${balance} Surplus` : `${balance} Deficit`}
                                                 </span>
                                             </div>
 
                                             <div className="space-y-1">
-                                                <div className="flex justify-between text-[11px] font-bold text-[#2563EB]">
+                                                <div className="flex justify-between text-sm font-bold text-[#2563EB]">
                                                     <span>Donated: {d} units</span>
                                                     <span>{dPct}%</span>
                                                 </div>
@@ -17156,7 +17191,7 @@ function Reports(){
                                             </div>
 
                                             <div className="space-y-1">
-                                                <div className="flex justify-between text-[11px] font-bold text-[#2563EB]">
+                                                <div className="flex justify-between text-sm font-bold text-[#2563EB]">
                                                     <span>Requested: {r} units</span>
                                                     <span>{rPct}%</span>
                                                 </div>

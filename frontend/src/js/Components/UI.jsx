@@ -257,16 +257,16 @@ export const Button = ({
     <button
       {...props}
       disabled={loading || props.disabled}
+      aria-busy={loading || undefined}
       className={`${styles[variant]} ${className}`}
     >
-      {loading ? (
-        <>
-          <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          Saving...
-        </>
-      ) : (
-        children
+      {loading && (
+        <span
+          aria-hidden="true"
+          className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
+        />
       )}
+      {children}
     </button>
   );
 };
