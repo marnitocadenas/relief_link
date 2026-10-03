@@ -44,13 +44,21 @@ const title = (s = '') =>
         .replace(/_/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
+const truncateDonationText = (value, maxLength) => {
+    const text = String(value || '');
+    const characters = Array.from(text);
+    return characters.length > maxLength
+        ? `${characters.slice(0, maxLength - 3).join('')}...`
+        : text;
+};
+
 const labels = {
     donations: 'Donations',
     requests: 'Support Requests',
     users: 'Members & Accounts',
 };
 
-function DropdownSelect({ children, className = '', value, defaultValue = '', onChange, id, name, form, required, disabled, ...buttonProps }) {
+function DropdownSelect({ children, className = '', menuClassName = '', menuWidth, menuAlign = 'left', value, defaultValue = '', onChange, id, name, form, required, disabled, ...buttonProps }) {
     const generatedId = useId();
     const selectId = id || `dropdown-${generatedId}`;
     const rootRef = useRef(null);
@@ -75,12 +83,31 @@ function DropdownSelect({ children, className = '', value, defaultValue = '', on
     const updateMenuPosition = () => {
         const bounds = rootRef.current?.getBoundingClientRect();
         if (!bounds) return;
+        const trigger = rootRef.current.querySelector('button');
+        const triggerStyles = trigger ? window.getComputedStyle(trigger) : null;
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (context && triggerStyles) {
+            context.font = `700 ${triggerStyles.fontSize} ${triggerStyles.fontFamily}`;
+        }
+        const widestOption = options
+            .filter(option => !option.props.hidden)
+            .reduce((widest, option) => {
+                const label = Children.toArray(option.props.children)
+                    .map(child => typeof child === 'string' || typeof child === 'number' ? String(child) : '')
+                    .join('');
+                return Math.max(widest, context?.measureText(label).width || 0);
+            }, 0);
+        const width = Math.min(Math.max(bounds.width, menuWidth || 0, widestOption + 64), window.innerWidth - 24);
         const availableBelow = Math.max(0, window.innerHeight - bounds.bottom - 24);
         const availableAbove = Math.max(0, bounds.top - 24);
         const openBelow = availableBelow >= Math.min(220, availableAbove) || availableBelow >= availableAbove;
         const maxHeight = Math.min(320, openBelow ? availableBelow : availableAbove);
         const top = openBelow ? bounds.bottom + 6 : Math.max(12, bounds.top - maxHeight - 6);
-        setMenuStyle({ left: bounds.left, top, width: bounds.width, maxHeight });
+        const left = menuAlign === 'right'
+            ? Math.max(12, bounds.right - width)
+            : Math.min(bounds.left, window.innerWidth - width - 12);
+        setMenuStyle({ left, top, width, maxHeight });
     };
 
     const openMenu = () => {
@@ -216,7 +243,7 @@ function DropdownSelect({ children, className = '', value, defaultValue = '', on
                     ref={menuRef}
                     id={`${selectId}-options`}
                     role="listbox"
-                    className={`dropdown-select-menu ${isClosing ? 'dropdown-select-menu-closing' : ''}`}
+                    className={`dropdown-select-menu ${menuClassName} ${isClosing ? 'dropdown-select-menu-closing' : ''}`.trim()}
                     style={menuStyle}
                     onKeyDown={handleMenuKeyDown}
                 >
@@ -251,6 +278,17 @@ const getRoleDashboard = (role) => {
     if (role === 'donor') return '/donor/dashboard';
     if (role === 'beneficiary') return '/beneficiary/dashboard';
     return '/login';
+};
+
+const getHeaderDisplayName = (name) => {
+    const nameParts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    const firstAndLastName = nameParts.length > 1
+        ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
+        : nameParts[0] || 'User';
+
+    return firstAndLastName.length > 17
+        ? `${firstAndLastName.slice(0, 14).trimEnd()}...`
+        : firstAndLastName;
 };
 
 function RouteGuard({ children, roles }) {
@@ -410,6 +448,11 @@ function UserDropdown() {
 
     if (!user) return null;
 
+    const hasAdminOrStaffHeader = ['admin', 'staff'].includes(user.role);
+    const displayName = hasAdminOrStaffHeader
+        ? getHeaderDisplayName(user.name)
+        : user.name;
+
     const handleLogout = async () => {
         setOpen(false);
         try {
@@ -426,7 +469,7 @@ function UserDropdown() {
         <div className="relative">
             <button
                 onClick={() => setOpen(v => !v)}
-                className="btn btn-ghost user-menu-btn flex items-center gap-2.5"
+                className={`btn btn-ghost user-menu-btn flex items-center gap-2.5 ${hasAdminOrStaffHeader ? 'w-52 shrink-0 justify-between' : ''}`}
                 aria-label="User menu"
                 aria-expanded={open}
             >
@@ -441,7 +484,7 @@ function UserDropdown() {
                         {initial}
                     </span>
                 )}
-                <span className="text-sm font-semibold hidden sm:block">{user.name}</span>
+                <span className={`${hasAdminOrStaffHeader ? 'min-w-0 flex-1 truncate text-left' : ''} text-sm font-semibold hidden sm:block`}>{displayName}</span>
                 <Icon name="chevronDown" size={16} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
             </button>
 
@@ -677,7 +720,7 @@ function Home() {
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-white/30 pt-4 text-[10px] font-extrabold uppercase tracking-wide text-white"><span>Donate</span><span className="text-[#22C55E]">â†’</span><span>Verify</span><span className="text-[#22C55E]">â†’</span><span>Smart match</span><span className="text-[#22C55E]">â†’</span><span>Safe handoff</span><span className="text-[#22C55E]">â†’</span><span>Impact</span></div>
+                        <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-white/30 pt-4 text-[10px] font-extrabold uppercase tracking-wide text-white"><span>Donate</span><span className="text-[#22C55E]">→</span><span>Verify</span><span className="text-[#22C55E]">→</span><span>Smart match</span><span className="text-[#22C55E]">→</span><span>Safe handoff</span><span className="text-[#22C55E]">→</span><span>Impact</span></div>
                     </div>
                 </div>
             </section>
@@ -748,7 +791,7 @@ function Home() {
 
             <section className="flow-section shell py-14">
                 <div className="text-center"><p className="eyebrow">THE RELIEFLINK FLOW</p><h2 className="mt-2 text-3xl font-extrabold text-[#2563EB]">From generous offer to real support</h2></div>
-                <div className="flow-grid mt-8 grid gap-3">{[['Donate', 'donation'], ['Verify', 'approvals'], ['Match', 'match'], ['Handoff', 'fulfillment'], ['Impact', 'check']].map(([label, icon], index) => <div key={label} className="flow-item relative text-center"><div className="panel no-hover min-h-32 place-items-center p-4 transition hover:-translate-y-1 hover:border-[#22C55E]"><div><span className={`mx-auto grid h-10 w-10 place-items-center rounded-full ${index === 4 ? 'bg-[#22C55E] text-white' : 'bg-[#2563EB] text-white'}`}><Icon name={icon}/></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">{['Share a resource', 'Confirm eligibility', 'Connect the right need', 'Coordinate safely', 'See the outcome'][index]}</p></div></div>{index < 4 && <span className="flow-arrow hidden sm:block absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-xl font-extrabold text-[#22C55E]">â†’</span>}</div>)}</div>
+                <div className="flow-grid mt-8 grid gap-3">{[['Donate', 'donation'], ['Verify', 'approvals'], ['Match', 'match'], ['Handoff', 'fulfillment'], ['Impact', 'check']].map(([label, icon], index) => <div key={label} className="flow-item relative text-center"><div className="panel no-hover min-h-32 place-items-center p-4 transition hover:-translate-y-1 hover:border-[#22C55E]"><div><span className={`mx-auto grid h-10 w-10 place-items-center rounded-full ${index === 4 ? 'bg-[#22C55E] text-white' : 'bg-[#2563EB] text-white'}`}><Icon name={icon}/></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">{['Share a resource', 'Confirm eligibility', 'Connect the right need', 'Coordinate safely', 'See the outcome'][index]}</p></div></div>{index < 4 && <span className="flow-arrow hidden sm:block absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-xl font-extrabold text-[#22C55E]">→</span>}</div>)}</div>
             </section>
 
             {/* RESOURCE CATEGORIES SHOWCASE */}
@@ -809,7 +852,7 @@ function Home() {
                     <div><p className="text-xs font-extrabold uppercase tracking-wider text-white/75">Navigation</p><div className="mt-3 grid gap-2 text-sm font-bold">{[['Home', '#top'], ['How It Works', '#how-it-works'], ['Categories', '#categories'], ['About', '#about']].map(([label, href]) => <a key={label} href={href} className="text-white no-underline hover:text-[#22C55E]">{label}</a>)}</div></div>
                     <div><p className="text-xs font-extrabold uppercase tracking-wider text-white/75">Support</p><div className="mt-3 grid gap-2 text-sm font-bold"><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Help</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Contact</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Privacy Policy</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Terms of Service</NavLink></div></div>
                 </div>
-                <div className="border-t border-white/30"><div className="shell flex flex-wrap justify-between gap-2 py-4 text-xs font-semibold text-white/80"><span>Â© {new Date().getFullYear()} ReliefLink</span><span>Campus Exchange</span></div></div>
+                <div className="border-t border-white/30"><div className="shell flex flex-wrap justify-between gap-2 py-4 text-xs font-semibold text-white/80"><span>© {new Date().getFullYear()} ReliefLink</span><span>Campus Exchange</span></div></div>
             </footer>
         </main>
     );
@@ -1199,7 +1242,7 @@ function Auth({ register = false }) {
         const state = uniqueness[field];
         if (!state || state.status === 'idle' || state.status === 'available') return null;
         if (state.status === 'checking') {
-            return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availabilityâ€¦</p>;
+            return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availability…</p>;
         }
         return <p className="mt-1 text-[11px] font-semibold text-red-600">{state.message}</p>;
     };
@@ -1782,7 +1825,7 @@ function Auth({ register = false }) {
                 </div>
 
                 <div className="border-t border-white pt-6 text-xs font-extrabold text-white flex items-center justify-between">
-                    <span>Â© {new Date().getFullYear()} ReliefLink System</span>
+                    <span>© {new Date().getFullYear()} ReliefLink System</span>
                     <span>100% Campus Verified</span>
                 </div>
             </aside>
@@ -1959,7 +2002,7 @@ function Auth({ register = false }) {
                                     )}
                                 </div>
 
-                                {/* CASE 1: INITIAL FORM â€” BEFORE ACCOUNT TYPE IS SELECTED */}
+                                {/* CASE 1: INITIAL FORM — BEFORE ACCOUNT TYPE IS SELECTED */}
                                 {f.account_type === '' && (
                                     <>
                                         {/* Rank #2: First Name */}
@@ -1980,7 +2023,7 @@ function Auth({ register = false }) {
                                             />
                                         </div>
 
-                                        {/* Rank #3: Middle Name â€” Optional */}
+                                        {/* Rank #3: Middle Name — Optional */}
                                         <div>
                                             <label htmlFor="reg_middle_name_init" className="block text-xs font-bold text-[#2563EB]">
                                                 Middle Name <span className="text-xs font-normal text-[#2563EB]/60">(Optional)</span>
@@ -2077,15 +2120,15 @@ function Auth({ register = false }) {
                                                     Password Security Requirements:
                                                 </p>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${regHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{regHasLength ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{regHasLength ? '✓' : '•'}</span>
                                                     <span>8 to 64 characters in length</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasUpper && regHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasUpper && regHasLower) ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{(regHasUpper && regHasLower) ? '✓' : '•'}</span>
                                                     <span>Contains uppercase (A-Z) & lowercase (a-z) letters</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasNumber && regHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? '✓' : '•'}</span>
                                                     <span>Contains numbers (0-9) & special characters (!@#$...)</span>
                                                 </div>
                                             </div>
@@ -2132,7 +2175,7 @@ function Auth({ register = false }) {
                                             </div>
                                             {f.password_confirmation && (
                                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
-                                                    <span className="font-black">{regMatchesConfirm ? 'âœ“ Passwords match' : 'âœ• Passwords do not match.'}</span>
+                                                    <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '✗ Passwords do not match.'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -2159,7 +2202,7 @@ function Auth({ register = false }) {
                                             />
                                         </div>
 
-                                        {/* Rank #3: Middle Name â€” Optional */}
+                                        {/* Rank #3: Middle Name — Optional */}
                                         <div>
                                             <label htmlFor="reg_middle_name_ben" className="block text-xs font-bold text-[#2563EB]">
                                                 Middle Name <span className="text-xs font-normal text-[#2563EB]/60">(Optional)</span>
@@ -2389,19 +2432,19 @@ function Auth({ register = false }) {
                                                     Password Security Requirements:
                                                 </p>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${regHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{regHasLength ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{regHasLength ? '✓' : '•'}</span>
                                                     <span>8 to 64 characters in length</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasUpper && regHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasUpper && regHasLower) ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{(regHasUpper && regHasLower) ? '✓' : '•'}</span>
                                                     <span>Contains uppercase (A-Z) & lowercase (a-z) letters</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasNumber && regHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? '✓' : '•'}</span>
                                                     <span>Contains numbers (0-9) & special characters (!@#$...)</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regNoSpaces && regNotWeak && regNoPersonal) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? '✓' : '•'}</span>
                                                     <span>No personal info (name/email), spaces, or common passwords</span>
                                                 </div>
                                             </div>
@@ -2448,7 +2491,7 @@ function Auth({ register = false }) {
                                             </div>
                                             {f.password_confirmation && (
                                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
-                                                    <span className="font-black">{regMatchesConfirm ? 'âœ“ Passwords match' : 'âœ• Passwords do not match.'}</span>
+                                                    <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '✗ Passwords do not match.'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -2480,7 +2523,7 @@ function Auth({ register = false }) {
                                             )}
                                         </div>
 
-                                        {/* Rank #3: Middle Name â€” Optional */}
+                                        {/* Rank #3: Middle Name — Optional */}
                                         <div>
                                             <label htmlFor="reg_middle_name_donor" className="block text-xs font-bold text-[#2563EB]">
                                                 Middle Name <span className="text-xs font-normal text-[#2563EB]/60">(Optional)</span>
@@ -2557,7 +2600,7 @@ function Auth({ register = false }) {
                                                 </p>
                                             )}
                                             {canEnterDonorEmail && isDonorEmailFormatValid && uniqueness.email?.status === 'checking' && (
-                                                <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availabilityâ€¦</p>
+                                                <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availability…</p>
                                             )}
                                             {canEnterDonorEmail && isDonorEmailFormatValid && uniqueness.email?.status === 'taken' && (
                                                 <p className="mt-1 text-[11px] font-semibold text-red-600">
@@ -2566,7 +2609,7 @@ function Auth({ register = false }) {
                                             )}
                                             {canEnterDonorEmail && isDonorEmailFormatValid && uniqueness.email?.status === 'available' && (
                                                 <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1">
-                                                    <span>âœ“ Email address is available.</span>
+                                                    <span>✓ Email address is available.</span>
                                                 </p>
                                             )}
                                             {canEnterDonorEmail && isDonorEmailFormatValid && uniqueness.email?.status === 'error' && (
@@ -2609,7 +2652,7 @@ function Auth({ register = false }) {
                                             />
                                             {canEnterDonorContact && isPhoneValid && uniqueness.contact_number?.status === 'available' && (
                                                 <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1">
-                                                    <span>âœ“ Contact Number is available.</span>
+                                                    <span>✓ Contact Number is available.</span>
                                                 </p>
                                             )}
                                             {renderDuplicateStatus('contact_number')}
@@ -2805,19 +2848,19 @@ function Auth({ register = false }) {
                                                     Password Security Requirements:
                                                 </p>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${regHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{regHasLength ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{regHasLength ? '✓' : '•'}</span>
                                                     <span>8 to 64 characters in length</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasUpper && regHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasUpper && regHasLower) ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{(regHasUpper && regHasLower) ? '✓' : '•'}</span>
                                                     <span>Contains uppercase (A-Z) & lowercase (a-z) letters</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasNumber && regHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{(regHasNumber && regHasSpecial) ? '✓' : '•'}</span>
                                                     <span>Contains numbers (0-9) & special characters (!@#$...)</span>
                                                 </div>
                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regNoSpaces && regNotWeak && regNoPersonal) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                                    <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? 'âœ“' : 'â€¢'}</span>
+                                                    <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? '✓' : '•'}</span>
                                                     <span>No personal info (name/email), spaces, or common passwords</span>
                                                 </div>
                                             </div>
@@ -2864,7 +2907,7 @@ function Auth({ register = false }) {
                                             </div>
                                             {f.password_confirmation && (
                                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
-                                                    <span className="font-black">{regMatchesConfirm ? 'âœ“ Passwords match' : 'âœ• Passwords do not match.'}</span>
+                                                    <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '✗ Passwords do not match.'}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -3101,22 +3144,22 @@ function Auth({ register = false }) {
                                         </p>
 
                                         <div className={`flex items-center gap-1.5 text-[11px] font-bold ${regHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{regHasLength ? 'âœ“' : 'â€¢'}</span>
+                                            <span className="font-black">{regHasLength ? '✓' : '•'}</span>
                                             <span>8 to 64 characters in length</span>
                                         </div>
 
                                         <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasUpper && regHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{(regHasUpper && regHasLower) ? 'âœ“' : 'â€¢'}</span>
+                                            <span className="font-black">{(regHasUpper && regHasLower) ? '✓' : '•'}</span>
                                             <span>Contains uppercase (A-Z) & lowercase (a-z) letters</span>
                                         </div>
 
                                         <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regHasNumber && regHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{(regHasNumber && regHasSpecial) ? 'âœ“' : 'â€¢'}</span>
+                                            <span className="font-black">{(regHasNumber && regHasSpecial) ? '✓' : '•'}</span>
                                             <span>Contains numbers (0-9) & special characters (!@#$...)</span>
                                         </div>
 
                                         <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(regNoSpaces && regNotWeak && regNoPersonal) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? 'âœ“' : 'â€¢'}</span>
+                                            <span className="font-black">{(regNoSpaces && regNotWeak && regNoPersonal) ? '✓' : '•'}</span>
                                             <span>No personal info (email), spaces, or common passwords</span>
                                         </div>
                                     </div>
@@ -3142,7 +3185,7 @@ function Auth({ register = false }) {
                                     </div>
                                     {f.password_confirmation && (
                                         <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${regMatchesConfirm ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                            <span className="font-black">{regMatchesConfirm ? 'âœ“ Passwords match' : 'â€¢ Passwords do not match'}</span>
+                                            <span className="font-black">{regMatchesConfirm ? '✓ Passwords match' : '• Passwords do not match'}</span>
                                         </div>
                                     )}
                                 </div>
@@ -3754,7 +3797,7 @@ function DonorDonationForm() {
                                             }`}
                                             onClick={() => toggleTimeSlot(slot)}
                                         >
-                                            {active ? 'âœ“ ' : '+ '} {slot}
+                                            {active ? '✓ ' : '+ '} {slot}
                                         </button>
                                     );
                                 })}
@@ -4598,7 +4641,7 @@ function BeneficiaryRequestForm() {
                                             value={f.currency}
                                             onChange={(e) => setF({ ...f, currency: e.target.value })}
                                         >
-                                            <option value="PHP">PHP (â‚± - Philippine Peso)</option>
+                                            <option value="PHP">PHP (₱ - Philippine Peso)</option>
                                             <option value="USD">USD ($ - US Dollar)</option>
                                         </DropdownSelect>
                                     </div>
@@ -5061,8 +5104,8 @@ function EditModal({item, kind, admin, close, done}){
     const renderAdminDuplicateStatus = (field) => {
         const state = adminUniqueness[field];
         if (!state || state.status === 'idle') return null;
-        if (state.status === 'available') return <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1"><span>âœ“ Available.</span></p>;
-        if (state.status === 'checking') return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availabilityâ€¦</p>;
+        if (state.status === 'available') return <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1"><span>✓ Available.</span></p>;
+        if (state.status === 'checking') return <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Checking availability…</p>;
         return <p className="mt-1 text-[11px] font-semibold text-red-600">{state.message}</p>;
     };
 
@@ -5250,7 +5293,7 @@ function EditModal({item, kind, admin, close, done}){
                 // Block submission if real-time uniqueness checks are still pending or have failed
                 if (!item.id) {
                     if (adminUniqueness.student_id_number.status === 'checking') {
-                        setError('Please wait â€” verifying Student ID Number availability.');
+                        setError('Please wait — verifying Student ID Number availability.');
                         return;
                     }
                     if (adminUniqueness.student_id_number.status === 'taken') {
@@ -5258,7 +5301,7 @@ function EditModal({item, kind, admin, close, done}){
                         return;
                     }
                     if (adminUniqueness.email.status === 'checking') {
-                        setError('Please wait â€” verifying email address availability.');
+                        setError('Please wait — verifying email address availability.');
                         return;
                     }
                     if (adminUniqueness.email.status === 'taken') {
@@ -5266,7 +5309,7 @@ function EditModal({item, kind, admin, close, done}){
                         return;
                     }
                     if (adminUniqueness.contact_number.status === 'checking') {
-                        setError('Please wait â€” verifying Contact Number availability.');
+                        setError('Please wait — verifying Contact Number availability.');
                         return;
                     }
                     if (adminUniqueness.contact_number.status === 'taken') {
@@ -5876,7 +5919,7 @@ function EditModal({item, kind, admin, close, done}){
                                 />
                             </div>
 
-                            {/* Password Strength Meter + Requirements â€” only for Beneficiary and Donor */}
+                            {/* Password Strength Meter + Requirements — only for Beneficiary and Donor */}
                             {(f.role === 'beneficiary' || f.role === 'donor') && adminPwd && (
                                 <div className="mt-2 space-y-1">
                                     <div className="flex justify-between text-[11px] font-bold text-[#2563EB]">
@@ -5899,19 +5942,19 @@ function EditModal({item, kind, admin, close, done}){
                                         Password Security Requirements:
                                     </p>
                                     <div className={`flex items-center gap-1.5 text-[11px] font-bold ${adminHasLength ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                        <span className="font-black">{adminHasLength ? 'âœ“' : 'â€¢'}</span>
+                                        <span className="font-black">{adminHasLength ? '✓' : '•'}</span>
                                         <span>8 to 64 characters in length</span>
                                     </div>
                                     <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(adminHasUpper && adminHasLower) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                        <span className="font-black">{(adminHasUpper && adminHasLower) ? 'âœ“' : 'â€¢'}</span>
+                                        <span className="font-black">{(adminHasUpper && adminHasLower) ? '✓' : '•'}</span>
                                         <span>Contains uppercase (A-Z) &amp; lowercase (a-z) letters</span>
                                     </div>
                                     <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(adminHasNumber && adminHasSpecial) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                        <span className="font-black">{(adminHasNumber && adminHasSpecial) ? 'âœ“' : 'â€¢'}</span>
+                                        <span className="font-black">{(adminHasNumber && adminHasSpecial) ? '✓' : '•'}</span>
                                         <span>Contains numbers (0-9) &amp; special characters (!@#$...)</span>
                                     </div>
                                     <div className={`flex items-center gap-1.5 text-[11px] font-bold ${(adminNoSpaces && adminNotWeak && adminNoPersonal) ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>
-                                        <span className="font-black">{(adminNoSpaces && adminNotWeak && adminNoPersonal) ? 'âœ“' : 'â€¢'}</span>
+                                        <span className="font-black">{(adminNoSpaces && adminNotWeak && adminNoPersonal) ? '✓' : '•'}</span>
                                         <span>No personal info (name/email), spaces, or common passwords</span>
                                     </div>
                                 </div>
@@ -5938,27 +5981,29 @@ function EditModal({item, kind, admin, close, done}){
                             </div>
                             {f.password_confirmation && (
                                 <div className={`mt-1 flex items-center gap-1.5 text-[11px] font-bold ${adminMatchesConfirm ? 'text-[#22C55E]' : 'text-red-500'}`}>
-                                    <span className="font-black">{adminMatchesConfirm ? 'âœ“ Passwords match' : 'âœ• Passwords do not match.'}</span>
+                                    <span className="font-black">{adminMatchesConfirm ? '✓ Passwords match' : '✗ Passwords do not match.'}</span>
                                 </div>
                             )}
                         </div>
                     </div>
                 ) : (
-                    Object.entries(f).filter(([k]) => !['id','status','created_at','beneficiary','donor','profile_photo_url','profile_photo_path','email_verified_at','updated_at'].includes(k)).map(([k, v]) => (typeof v === 'string' || typeof v === 'number') && (
-                        <label key={k} className="mt-3 block text-sm font-bold text-left text-[#2563EB]">
-                            {title(k)}
-                            {k === 'role' ? (
-                                <DropdownSelect className="field mt-1 w-full" value={v} onChange={e => setF({...f, [k]: e.target.value})}>
-                                    <option value="donor">donor</option>
-                                    <option value="beneficiary">beneficiary</option>
-                                    <option value="staff">staff</option>
-                                    <option value="admin">admin</option>
-                                </DropdownSelect>
-                            ) : (
-                                <input required={k !== 'password'} className="field mt-1 w-full" type={k === 'password' ? 'password' : 'text'} value={v ?? ''} onChange={e => setF({...f, [k]: e.target.value})}/>
-                            )}
-                        </label>
-                    ))
+                    <div className={kind === 'donations' ? 'grid grid-cols-1 gap-x-4 gap-y-3.5 text-left sm:grid-cols-2' : 'space-y-3.5'}>
+                        {Object.entries(f).filter(([k]) => !['id','status','created_at','beneficiary','donor','profile_photo_url','profile_photo_path','email_verified_at','updated_at'].includes(k)).map(([k, v]) => (typeof v === 'string' || typeof v === 'number') && (
+                            <label key={k} className="block min-w-0 text-sm font-bold text-left text-[#2563EB]">
+                                {title(k)}
+                                {k === 'role' ? (
+                                    <DropdownSelect className="field mt-1 w-full" value={v} onChange={e => setF({...f, [k]: e.target.value})}>
+                                        <option value="donor">donor</option>
+                                        <option value="beneficiary">beneficiary</option>
+                                        <option value="staff">staff</option>
+                                        <option value="admin">admin</option>
+                                    </DropdownSelect>
+                                ) : (
+                                    <input required={k !== 'password'} className="field mt-1 w-full" type={k === 'password' ? 'password' : 'text'} value={v ?? ''} onChange={e => setF({...f, [k]: e.target.value})}/>
+                                )}
+                            </label>
+                        ))}
+                    </div>
                 )}
 
                 <Error>{error}</Error>
@@ -6029,7 +6074,9 @@ function PeopleManager(){
         return load(savedMember, isNewMember);
     };
 
-    useEffect(load, [user]);
+    useEffect(() => {
+        load();
+    }, [user]);
 
     if(!user) return <Navigate to="/login"/>;
     if(user.role !== 'admin') return <Navigate to={getRoleDashboard(user.role)} replace/>;
@@ -6562,7 +6609,9 @@ function DonationManager(){
             .catch(() => setState({loading: false, data: [], error: 'Could not load donation records.'}));
     };
 
-    useEffect(load, [user]);
+    useEffect(() => {
+        load();
+    }, [user]);
 
     if(!user) return <Navigate to="/login"/>;
     if(!['donor','staff','admin'].includes(user.role)) return <Navigate to={getRoleDashboard(user.role)} replace/>;
@@ -6695,10 +6744,12 @@ function DonationManager(){
                     />
                 </div>
 
-                <div className="min-w-[150px]">
+                <div className="min-w-[190px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Category</label>
                     <DropdownSelect
                         className="field w-full text-sm"
+                        menuClassName="donation-category-menu"
+                        menuWidth={190}
                         value={categoryFilter}
                         onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}
                     >
@@ -6728,10 +6779,13 @@ function DonationManager(){
                     </DropdownSelect>
                 </div>
 
-                <div className="min-w-[150px]">
+                <div className="min-w-[240px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort By</label>
                     <DropdownSelect
                         className="field w-full text-sm"
+                        menuClassName="donation-sort-menu"
+                        menuWidth={240}
+                        menuAlign="right"
                         value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
                     >
@@ -6756,7 +6810,15 @@ function DonationManager(){
             ) : (
                 <div className="space-y-4">
                     <div className="hidden sm:block table-wrap no-hover">
-                        <table className="data-table">
+                        <table className="data-table donations-table">
+                            <colgroup>
+                                <col style={{ width: '12%' }} />
+                                <col style={{ width: '14%' }} />
+                                <col style={{ width: '10%' }} />
+                                <col style={{ width: '17%' }} />
+                                <col style={{ width: '17%' }} />
+                                <col style={{ width: '30%' }} />
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Resource</th>
@@ -6771,12 +6833,12 @@ function DonationManager(){
                                 {paginated.map(item => (
                                     <tr key={item.id}>
                                         <td className="max-w-[200px] truncate" title={item.item_name || title(item.category)}>
-                                            <strong>{item.item_name || title(item.category)}</strong>
+                                            <strong className="block whitespace-nowrap">{truncateDonationText(item.item_name || title(item.category), 15)}</strong>
                                         </td>
                                         <td>{title(item.category)}</td>
                                         <td>{item.quantity || 1} units</td>
-                                        <td className="max-w-[180px] truncate" title={item.donor?.name || 'Donor'}>
-                                            <span className="text-sm font-semibold text-[#2563EB]">{item.donor?.name || 'Campus Donor'}</span>
+                                        <td className="max-w-[180px] truncate" title={item.donor?.name || 'Campus Donor'}>
+                                            <span className="block whitespace-nowrap text-sm font-semibold text-[#2563EB]">{truncateDonationText(item.donor?.name || 'Campus Donor', 21)}</span>
                                         </td>
                                         <td><Badge status={item.status}/></td>
                                         <td>
@@ -6811,7 +6873,7 @@ function DonationManager(){
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
                                         <strong className="text-base text-[#2563EB] block">{item.item_name || title(item.category)}</strong>
-                                        <span className="text-xs font-semibold text-[#2563EB]/80">{title(item.category)} â€¢ {item.quantity || 1} units</span>
+                                        <span className="text-xs font-semibold text-[#2563EB]/80">{title(item.category)} • {item.quantity || 1} units</span>
                                     </div>
                                     <Badge status={item.status}/>
                                 </div>
@@ -7223,7 +7285,9 @@ function RequestManager(){
             .catch(() => setState({loading: false, data: [], error: 'Could not load support requests.'}));
     };
 
-    useEffect(load, [user]);
+    useEffect(() => {
+        load();
+    }, [user]);
 
     if(!user) return <Navigate to="/login"/>;
     if(!['beneficiary','admin'].includes(user.role)) return <Navigate to={getRoleDashboard(user.role)} replace/>;
@@ -7900,7 +7964,9 @@ function List({kind}){
             .catch(() => setState({loading: false, data: [], error: 'Could not load this information.'}));
     };
 
-    useEffect(load, [user, kind]);
+    useEffect(() => {
+        load();
+    }, [user, kind]);
 
     if(!user) return <Navigate to="/login"/>;
     if(kind === 'donations' && !['donor','staff','admin'].includes(user.role)) return <Navigate to={getRoleDashboard(user.role)} replace/>;
@@ -7930,7 +7996,7 @@ function List({kind}){
             <Error>{state.error}</Error>
             <div className="mt-8">
                 {state.loading ? (
-                    <p className="font-bold text-[#2563EB]">Loading workspace dataâ€¦</p>
+                    <p className="font-bold text-[#2563EB]">Loading workspace data…</p>
                 ) : !state.data.length ? (
                     <Empty/>
                 ) : (
@@ -8078,9 +8144,37 @@ function Matches(){
 
             <Error>{error}</Error>
             {matchMessage && (
-                <div className="rounded-xl border border-[#22C55E] bg-white p-4 text-sm font-bold text-[#22C55E] shadow-sm flex items-center justify-between">
-                    <span>{matchMessage}</span>
-                    <button onClick={() => setMatchMessage('')} className="text-[#22C55E] hover:underline font-extrabold text-xs">Dismiss</button>
+                <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4" role="presentation">
+                    <ModalBlurBackdrop />
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="matches-engine-result-title"
+                        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-[#22C55E]/20 bg-white p-6 shadow-2xl shadow-[#17356B]/20 sm:p-7"
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setMatchMessage('')}
+                            aria-label="Close match engine result"
+                            className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full p-0 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                        >
+                            <Icon name="close" size={16}/>
+                        </button>
+                        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#22C55E]/10 text-[#16A34A]">
+                            <Icon name="check" size={24}/>
+                        </div>
+                        <h2 id="matches-engine-result-title" className="mt-5 text-xl font-extrabold text-[#2563EB]">Match engine complete</h2>
+                        <p className="mt-2 pr-4 text-sm font-medium leading-relaxed text-slate-600">{matchMessage}</p>
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setMatchMessage('')}
+                                className="rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-extrabold text-white shadow-md shadow-[#2563EB]/20 transition hover:bg-[#1D4ED8] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2"
+                            >
+                                Dismiss
+                            </button>
+                        </div>
+                    </section>
                 </div>
             )}
 
@@ -8617,7 +8711,7 @@ function Dashboard(){
             )}
 
             {loading && !s ? (
-                <p className="mt-8 font-bold text-[#2563EB]">Loading dashboard statisticsâ€¦</p>
+                <p className="mt-8 font-bold text-[#2563EB]">Loading dashboard statistics…</p>
             ) : s && (
                 <>
                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
@@ -8834,7 +8928,7 @@ function Dashboard(){
                                 </div>
                                 <div className="mt-4 space-y-3">
                                     {!pendingRequests.length ? (
-                                        <p className="admin-empty-state admin-empty-success py-4 text-center text-sm font-bold text-[#22C55E]">âœ“ All submitted requests have been reviewed!</p>
+                                        <p className="admin-empty-state admin-empty-success py-4 text-center text-sm font-bold text-[#22C55E]">✓ All submitted requests have been reviewed!</p>
                                     ) : (
                                         pendingRequests.map(req => (
                                             <div key={req.id} className="admin-request-row rounded-xl border border-[#2563EB] p-4 flex flex-wrap items-center justify-between gap-3 bg-white">
@@ -8844,7 +8938,7 @@ function Dashboard(){
                                                         <strong className="text-sm text-[#2563EB]">{title(req.category)}</strong>
                                                     </div>
                                                     <p className="mt-1 text-xs text-[#2563EB]/80 font-medium">
-                                                        Beneficiary: <strong>{req.beneficiary?.name || 'Student'}</strong> â€¢ Quantity: {req.quantity_needed}
+                                                        Beneficiary: <strong>{req.beneficiary?.name || 'Student'}</strong> • Quantity: {req.quantity_needed}
                                                     </p>
                                                     {req.justification && (
                                                         <p className="mt-1 text-xs text-[#2563EB]/70 italic line-clamp-2">"{req.justification}"</p>
@@ -9135,9 +9229,9 @@ function StaffDashboard() {
                     {lowStockItems.length > 0 && (
                         <div className="p-4 rounded-xl border border-[#22C55E]/40 bg-[#22C55E]/10 text-[#2563EB] flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm">âš ï¸ LOW WAREHOUSE STOCK WARNING:</span>
+                                <span className="font-bold text-sm">⚠️ LOW WAREHOUSE STOCK WARNING:</span>
                                 <span className="text-xs font-semibold">
-                                    {lowStockItems.length} category item(s) running low (quantity â‰¤ 2).
+                                    {lowStockItems.length} category item(s) running low (quantity ≤ 2).
                                 </span>
                             </div>
                             <Button size="sm" onClick={() => navigate('/staff/inventory')}>
@@ -9148,7 +9242,7 @@ function StaffDashboard() {
                     {pendingRequests.length > 5 && (
                         <div className="p-4 rounded-xl border border-[#2563EB]/35 bg-[#2563EB]/5 text-[#2563EB] flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm">â³ VERIFICATION BOTTLENECK:</span>
+                                <span className="font-bold text-sm">⏳ VERIFICATION BOTTLENECK:</span>
                                 <span className="text-xs font-semibold">
                                     {pendingRequests.length} student aid requests awaiting review.
                                 </span>
@@ -9190,7 +9284,7 @@ function StaffDashboard() {
                             {priorityRequests.map((request) => (
                                 <button key={request.id} onClick={() => navigate('/staff/verifications')} className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-[#2563EB]/5">
                                     <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${['high', 'critical'].includes(request.urgency) ? 'bg-[#22C55E]' : 'bg-[#2563EB]'}`}/>
-                                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-extrabold">{request.beneficiary?.name || 'Student request'} <span className="font-semibold text-[#2563EB]/55">Â· {request.category}</span></span><span className="mt-0.5 block text-xs font-semibold text-[#2563EB]/65">{request.quantity_needed} unit{request.quantity_needed === 1 ? '' : 's'} requested Â· {formatTime(request.created_at)}</span></span>
+                                    <span className="min-w-0 flex-1"><span className="block truncate text-sm font-extrabold">{request.beneficiary?.name || 'Student request'} <span className="font-semibold text-[#2563EB]/55">· {request.category}</span></span><span className="mt-0.5 block text-xs font-semibold text-[#2563EB]/65">{request.quantity_needed} unit{request.quantity_needed === 1 ? '' : 's'} requested · {formatTime(request.created_at)}</span></span>
                                     <span className="hidden rounded-full border border-[#2563EB]/20 px-2 py-1 text-[10px] font-extrabold capitalize sm:inline">{request.urgency || 'standard'}</span><Icon name="arrow" size={16}/>
                                 </button>
                             ))}
@@ -9204,8 +9298,8 @@ function StaffDashboard() {
             </section>
 
             <section className="grid gap-4 lg:grid-cols-3" aria-label="Operational status">
-                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? 'â€”' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? 'â€”' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Manage inventory â†’</button></div>
-                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? 'â€”' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Open dispatch hub â†’</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Manage inventory →</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB] underline">Open dispatch hub →</button></div>
                 <div className="rounded-2xl bg-[#2563EB] p-5 text-white"><div className="flex items-start justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-white/70">Walk-in relief desk</p><h2 className="mt-1 font-extrabold">Ready to serve</h2></div><span className="grid h-9 w-9 place-items-center rounded-lg bg-white text-[#22C55E]"><Icon name="check"/></span></div><p className="mt-4 text-sm font-semibold leading-relaxed text-white/85">Log verified in-person needs and make an immediate allocation when stock is available.</p><button onClick={() => navigate('/staff/desk')} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-extrabold text-[#2563EB]">Launch desk <Icon name="arrow" size={15}/></button></div>
             </section>
 
@@ -9437,7 +9531,7 @@ function StaffVerificationDesk() {
                         ['Approved', summary.approved, 'Eligible for matching', 'check', 'green'],
                         ['Rejected', summary.rejected, 'Decision recorded', 'decline', 'blue'],
                         ['Needs attention', summary.attention, 'Urgent or revision needed', 'alert', 'green'],
-                    ].map(([label, count, detail, icon, tone]) => <button key={label} onClick={() => label === 'Approved' ? setStatusFilter('approved') : label === 'Rejected' ? setStatusFilter('rejected') : label === 'Pending' ? setStatusFilter('pending_review') : setStatusFilter('all')} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? 'â€”' : count}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
+                    ].map(([label, count, detail, icon, tone]) => <button key={label} onClick={() => label === 'Approved' ? setStatusFilter('approved') : label === 'Rejected' ? setStatusFilter('rejected') : label === 'Pending' ? setStatusFilter('pending_review') : setStatusFilter('all')} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : count}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
                 </section>
 
                 {/* Filters Bar */}
@@ -9543,7 +9637,7 @@ function StaffVerificationDesk() {
                                                 </span>
                                             </td>
                                             <td className="p-3 text-[11px] text-[#2563EB]/80">
-                                                {req.verified_by?.name || 'â€”'}
+                                                {req.verified_by?.name || '—'}
                                             </td>
                                             <td className="p-3">
                                                 <Badge status={req.status} />
@@ -9652,7 +9746,7 @@ function StaffVerificationDesk() {
                                 <textarea rows="2" placeholder="Explain what is missing, why the request is ineligible, or record the decision basis..." value={form.verification_decision_reason} onChange={(e) => setForm({ ...form, verification_decision_reason: e.target.value })} className="input text-xs w-full mt-1"/>
                             </div>
 
-                            <div className="rounded-lg border border-[#2563EB]/15 p-3 text-[11px] font-semibold text-[#2563EB]/75"><span className="font-extrabold text-[#2563EB]">Request history: </span>submitted {new Date(inspecting.created_at).toLocaleString()}{inspecting.verified_by?.name ? ` Â· last reviewed by ${inspecting.verified_by.name}` : ' Â· no earlier verification recorded'}{inspecting.verification_decided_at ? ` Â· decision updated ${new Date(inspecting.verification_decided_at).toLocaleString()}` : ''}.</div>
+                            <div className="rounded-lg border border-[#2563EB]/15 p-3 text-[11px] font-semibold text-[#2563EB]/75"><span className="font-extrabold text-[#2563EB]">Request history: </span>submitted {new Date(inspecting.created_at).toLocaleString()}{inspecting.verified_by?.name ? ` · last reviewed by ${inspecting.verified_by.name}` : ' · no earlier verification recorded'}{inspecting.verification_decided_at ? ` · decision updated ${new Date(inspecting.verification_decided_at).toLocaleString()}` : ''}.</div>
                         </div>
 
                         <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-[#2563EB]/20">
@@ -9835,7 +9929,7 @@ function StaffWarehouseInventory() {
                         ['Low stock', stockSummary.low, 'Two units or fewer', 'alert', 'low'],
                         ['Expiring soon', stockSummary.expiring, 'Within 30 days', 'clock', 'expiring'],
                         ['Needs attention', stockSummary.attention, 'Damaged or expired', 'alert', 'damaged'],
-                    ].map(([label, value, detail, icon, filter]) => <button key={label} onClick={() => setStockFilter(filter)} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={filter !== 'all' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${filter !== 'all' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? 'â€”' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
+                    ].map(([label, value, detail, icon, filter]) => <button key={label} onClick={() => setStockFilter(filter)} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={filter !== 'all' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${filter !== 'all' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
                 </section>
 
                 {/* Filters */}
@@ -9923,7 +10017,7 @@ function StaffWarehouseInventory() {
                                                 {item.storage_location || item.pickup_location || 'Warehouse Depot 1'}
                                             </span>
                                         </td>
-                                        <td className="p-3"><p className="font-black text-sm">{item.quantity} <span className="text-[10px] font-bold text-[#2563EB]/60">on hand</span></p><p className="mt-1 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? ` Â· ${item.reserved_quantity} reserved` : ''}</p></td>
+                                        <td className="p-3"><p className="font-black text-sm">{item.quantity} <span className="text-[10px] font-bold text-[#2563EB]/60">on hand</span></p><p className="mt-1 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? ` · ${item.reserved_quantity} reserved` : ''}</p></td>
                                         <td className="p-3">
                                             <span className="uppercase text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
                                                 {(item.condition_grade || 'good').replace('_', ' ')}
@@ -9941,7 +10035,7 @@ function StaffWarehouseInventory() {
                 </div>
             </div>
 
-            {viewingItem && <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop /><div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white p-6"><div className="flex items-start justify-between border-b border-[#2563EB]/20 pb-3"><div><p className="eyebrow">Inventory item record</p><h3 className="text-lg font-extrabold">{viewingItem.item_name}</h3></div><button className="nav-link p-1" onClick={() => setViewingItem(null)} aria-label="Close item details"><Icon name="close"/></button></div><div className="mt-5 grid gap-4 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#2563EB]/5 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Stock and location</p><p className="mt-2 text-xl font-black">{viewingItem.quantity} units</p><p className="mt-1 font-bold">{viewingItem.storage_location || viewingItem.pickup_location || 'Location not set'}</p><p className="mt-1 text-[#2563EB]/65">{viewingItem.category} Â· {stockSignal(viewingItem)}</p></div><div className="rounded-xl border border-[#2563EB]/20 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Condition and handling</p><p className="mt-2 font-extrabold capitalize">{(viewingItem.condition_grade || 'good').replace('_', ' ')}</p><p className="mt-1 text-[#2563EB]/70">{viewingItem.condition_notes || viewingItem.intake_notes || 'No inspection notes recorded.'}</p>{viewingItem.expiry_date && <p className="mt-2 font-bold text-[#22C55E]">Expiry: {new Date(viewingItem.expiry_date).toLocaleDateString()}</p>}</div></div><div className="mt-5"><div className="flex items-center justify-between"><div><h4 className="font-extrabold">Movement history</h4><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">Every recorded intake or stock adjustment.</p></div><span className="text-xs font-extrabold">{movements.filter((movement) => movement.donation_id === viewingItem.id).length} records</span></div><div className="mt-3 divide-y divide-[#2563EB]/10 rounded-xl border border-[#2563EB]/15">{movements.filter((movement) => movement.donation_id === viewingItem.id).length ? movements.filter((movement) => movement.donation_id === viewingItem.id).map((movement) => <div key={movement.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-xs font-extrabold capitalize">{movement.movement_type.replace('_', ' ')} <span className="font-semibold text-[#2563EB]/65">Â· {movement.staff?.name || 'Staff'}</span></p><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{movement.reason || 'No reason recorded'} Â· {new Date(movement.created_at).toLocaleString()}</p></div><span className="text-xs font-black text-[#22C55E]">{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</span></div>) : <div className="p-5 text-center text-xs font-semibold text-[#2563EB]/65">No movements have been recorded for this item yet.</div>}</div></div><div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>Adjust stock</Button><Button onClick={() => setViewingItem(null)}>Close</Button></div></div></div>}
+            {viewingItem && <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop /><div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white p-6"><div className="flex items-start justify-between border-b border-[#2563EB]/20 pb-3"><div><p className="eyebrow">Inventory item record</p><h3 className="text-lg font-extrabold">{viewingItem.item_name}</h3></div><button className="nav-link p-1" onClick={() => setViewingItem(null)} aria-label="Close item details"><Icon name="close"/></button></div><div className="mt-5 grid gap-4 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#2563EB]/5 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Stock and location</p><p className="mt-2 text-xl font-black">{viewingItem.quantity} units</p><p className="mt-1 font-bold">{viewingItem.storage_location || viewingItem.pickup_location || 'Location not set'}</p><p className="mt-1 text-[#2563EB]/65">{viewingItem.category} · {stockSignal(viewingItem)}</p></div><div className="rounded-xl border border-[#2563EB]/20 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Condition and handling</p><p className="mt-2 font-extrabold capitalize">{(viewingItem.condition_grade || 'good').replace('_', ' ')}</p><p className="mt-1 text-[#2563EB]/70">{viewingItem.condition_notes || viewingItem.intake_notes || 'No inspection notes recorded.'}</p>{viewingItem.expiry_date && <p className="mt-2 font-bold text-[#22C55E]">Expiry: {new Date(viewingItem.expiry_date).toLocaleDateString()}</p>}</div></div><div className="mt-5"><div className="flex items-center justify-between"><div><h4 className="font-extrabold">Movement history</h4><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">Every recorded intake or stock adjustment.</p></div><span className="text-xs font-extrabold">{movements.filter((movement) => movement.donation_id === viewingItem.id).length} records</span></div><div className="mt-3 divide-y divide-[#2563EB]/10 rounded-xl border border-[#2563EB]/15">{movements.filter((movement) => movement.donation_id === viewingItem.id).length ? movements.filter((movement) => movement.donation_id === viewingItem.id).map((movement) => <div key={movement.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-xs font-extrabold capitalize">{movement.movement_type.replace('_', ' ')} <span className="font-semibold text-[#2563EB]/65">· {movement.staff?.name || 'Staff'}</span></p><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{movement.reason || 'No reason recorded'} · {new Date(movement.created_at).toLocaleString()}</p></div><span className="text-xs font-black text-[#22C55E]">{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</span></div>) : <div className="p-5 text-center text-xs font-semibold text-[#2563EB]/65">No movements have been recorded for this item yet.</div>}</div></div><div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>Adjust stock</Button><Button onClick={() => setViewingItem(null)}>Close</Button></div></div></div>}
 
             {/* Modal: Physical Intake */}
             {showIntakeModal && (
@@ -10229,22 +10323,22 @@ function StaffWalkInDesk() {
                         ['Completed', deskSummary.completed, 'Allocated or handed off', 'check', 'green'],
                         ['Priority', deskSummary.urgent, 'Urgent follow-up needed', 'alert', 'green'],
                         ['Referred', deskSummary.referred, 'Directed to another service', 'arrow', 'blue'],
-                    ].map(([label, value, detail, icon, tone]) => <article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex items-start justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? 'â€”' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}
+                    ].map(([label, value, detail, icon, tone]) => <article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex items-start justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}
                 </section>
 
                 <section aria-label="Walk-in assistance steps" className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Identify student', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-[10px] font-extrabold"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#2563EB] text-white">{index + 1}</span>{step}</div>)}</div></section>
 
                 {successMessage && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
-                        âœ“ {successMessage}
+                        ✓ {successMessage}
                     </div>
                 )}
 
                 {error && <div className="p-4 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-bold">{error}</div>}
 
-                {receipt && <div className="rounded-xl border border-[#22C55E] bg-[#22C55E]/10 p-4 text-xs"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-extrabold text-[#22C55E]">Walk-in assistance recorded Â· Receipt #{receipt.id}</p><p className="mt-1 font-semibold text-[#2563EB]/75">Status: {(receipt.walk_in_status || 'waiting').replace('_', ' ')} Â· {receipt.category} Â· {receipt.quantity_needed} unit{receipt.quantity_needed === 1 ? '' : 's'}</p></div><button onClick={() => setReceipt(null)} className="text-xs font-extrabold underline">Dismiss receipt</button></div></div>}
+                {receipt && <div className="rounded-xl border border-[#22C55E] bg-[#22C55E]/10 p-4 text-xs"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-extrabold text-[#22C55E]">Walk-in assistance recorded · Receipt #{receipt.id}</p><p className="mt-1 font-semibold text-[#2563EB]/75">Status: {(receipt.walk_in_status || 'waiting').replace('_', ' ')} · {receipt.category} · {receipt.quantity_needed} unit{receipt.quantity_needed === 1 ? '' : 's'}</p></div><button onClick={() => setReceipt(null)} className="text-xs font-extrabold underline">Dismiss receipt</button></div></div>}
 
-                {existingStudentRequests.length > 0 && <div className="rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-4"><div className="flex items-start gap-3"><Icon name="info" className="mt-0.5"/><div><p className="text-xs font-extrabold">Existing request found for this student</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Review the active record before creating another request to avoid duplicate assistance.</p><div className="mt-2 flex flex-wrap gap-2">{existingStudentRequests.map((request) => <span key={request.id} className="rounded-full border border-[#2563EB]/20 bg-white px-2 py-1 text-[10px] font-extrabold">#{request.id} Â· {request.category} Â· {request.status.replace('_', ' ')}</span>)}</div></div></div></div>}
+                {existingStudentRequests.length > 0 && <div className="rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-4"><div className="flex items-start gap-3"><Icon name="info" className="mt-0.5"/><div><p className="text-xs font-extrabold">Existing request found for this student</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Review the active record before creating another request to avoid duplicate assistance.</p><div className="mt-2 flex flex-wrap gap-2">{existingStudentRequests.map((request) => <span key={request.id} className="rounded-full border border-[#2563EB]/20 bg-white px-2 py-1 text-[10px] font-extrabold">#{request.id} · {request.category} · {request.status.replace('_', ' ')}</span>)}</div></div></div></div>}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">1</span><div><h2 className="text-sm font-extrabold">Identify and verify the student</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Check campus details before recording a new request.</p></div></div>
@@ -10358,7 +10452,7 @@ function StaffWalkInDesk() {
                             <option value="">-- No Instant Allocation (Add to Priority Queue) --</option>
                             {availableDonations.map((d) => (
                                 <option key={d.id} value={d.id}>
-                                    [{d.category}] {d.item_name} â€” Qty: {d.quantity} ({d.storage_location || 'Warehouse Bin'})
+                                    [{d.category}] {d.item_name} — Qty: {d.quantity} ({d.storage_location || 'Warehouse Bin'})
                                 </option>
                             ))}
                         </DropdownSelect>
@@ -10468,12 +10562,12 @@ function StaffHandoffDispatch() {
                     </Button>
                 </div>
 
-                <section aria-label="Dispatch summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">{[['Pending',dispatchSummary.pending,'Awaiting pickup','clock','blue'],['Ready',dispatchSummary.ready,'Ready for release','check','green'],['In progress',dispatchSummary.inProgress,'PIN verification open','activity','blue'],['Completed',dispatchSummary.completed,'Fulfilled handoffs','check','green'],['Expired',dispatchSummary.expired,'Require reschedule','alert','green']].map(([label,value,detail,icon,tone])=><article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone==='green'?'text-[#22C55E]':''}/></div><p className={`mt-2 text-2xl font-black ${tone==='green'?'text-[#22C55E]':'text-[#2563EB]'}`}>{loading?'â€”':value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}</section>
+                <section aria-label="Dispatch summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">{[['Pending',dispatchSummary.pending,'Awaiting pickup','clock','blue'],['Ready',dispatchSummary.ready,'Ready for release','check','green'],['In progress',dispatchSummary.inProgress,'PIN verification open','activity','blue'],['Completed',dispatchSummary.completed,'Fulfilled handoffs','check','green'],['Expired',dispatchSummary.expired,'Require reschedule','alert','green']].map(([label,value,detail,icon,tone])=><article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone==='green'?'text-[#22C55E]':''}/></div><p className={`mt-2 text-2xl font-black ${tone==='green'?'text-[#22C55E]':'text-[#2563EB]'}`}>{loading?'—':value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}</section>
                 <section className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Locate handoff','Review recipient & item','Verify identity','Enter PIN','Confirm quantity','Complete release','Record audit'].map((step,index)=><div key={step} className="flex items-center gap-2 rounded-lg bg-white px-2 py-2 text-[10px] font-extrabold"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#2563EB] text-white">{index+1}</span>{step}</div>)}</div></section>
 
                 {successMessage && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
-                        âœ“ {successMessage}
+                        ✓ {successMessage}
                     </div>
                 )}
 
@@ -10513,7 +10607,7 @@ function StaffHandoffDispatch() {
                                 filtered.map((m) => (
                                     <tr key={m.id} className="hover:bg-[#2563EB]/5 transition">
                                         <td className="p-3 font-extrabold text-[#2563EB]">
-                                            Match #{m.id} â€” {m.donation?.item_name || 'Item'}
+                                            Match #{m.id} — {m.donation?.item_name || 'Item'}
                                         </td>
                                         <td className="p-3 text-[#2563EB]/80">{m.donation?.donor?.name || 'Donor'}</td>
                                         <td className="p-3">
@@ -10523,7 +10617,7 @@ function StaffHandoffDispatch() {
                                         <td className="p-3 text-[11px] font-bold">
                                             {m.pickup_hub || m.donation?.storage_location || 'Campus Center Desk'}
                                         </td>
-                                        <td className="p-3"><span className={`rounded-full border px-2 py-1 text-[10px] font-extrabold ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'border-[#22C55E] text-[#22C55E]' : 'border-[#2563EB]/20 text-[#2563EB]'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} Â· ID check required</p></td>
+                                        <td className="p-3"><span className={`rounded-full border px-2 py-1 text-[10px] font-extrabold ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'border-[#22C55E] text-[#22C55E]' : 'border-[#2563EB]/20 text-[#2563EB]'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} · ID check required</p></td>
                                         <td className="p-3">
                                             <Badge status={m.status} />
                                         </td>
@@ -10797,7 +10891,7 @@ function DonorDashboard(){
                             style={{ width: `${Math.min(100, Math.max(0, fulfillmentRate))}%` }}
                         />
                     </div>
-                    <p className="text-xs font-semibold text-[#2563EB]/70">Listed <span className="mx-1">â†’</span> Available for matching <span className="mx-1">â†’</span> Matched <span className="mx-1">â†’</span> Handoff <span className="mx-1">â†’</span> Completed</p>
+                    <p className="text-xs font-semibold text-[#2563EB]/70">Listed <span className="mx-1">→</span> Available for matching <span className="mx-1">→</span> Matched <span className="mx-1">→</span> Handoff <span className="mx-1">→</span> Completed</p>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 pt-2">
                         <div className="rounded-xl border border-[#2563EB]/20 p-3 bg-white">
                             <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]/70">Listed Resources</span>
@@ -11339,7 +11433,7 @@ function BeneficiaryDashboard() {
                 <div className="mt-5 rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4">
                     <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB]/70"><span>Request to fulfillment pathway</span><span>{completionRate}% completed</span></div>
                     <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white"><span className="bg-[#2563EB]/45" style={{ width: `${totalRequestsCount ? (statusCounts.pending_review / totalRequestsCount) * 100 : 0}%` }}/><span className="bg-[#22C55E]/60" style={{ width: `${totalRequestsCount ? (statusCounts.approved / totalRequestsCount) * 100 : 0}%` }}/><span className="bg-[#2563EB]" style={{ width: `${totalRequestsCount ? (statusCounts.matched / totalRequestsCount) * 100 : 0}%` }}/><span className="bg-[#22C55E]" style={{ width: `${totalRequestsCount ? (statusCounts.fulfilled / totalRequestsCount) * 100 : 0}%` }}/></div>
-                    <p className="mt-3 text-xs font-semibold text-[#2563EB]/70">Under Review <span className="mx-1">â†’</span> Approved <span className="mx-1">â†’</span> Matched <span className="mx-1">â†’</span> Fulfilled</p>
+                    <p className="mt-3 text-xs font-semibold text-[#2563EB]/70">Under Review <span className="mx-1">→</span> Approved <span className="mx-1">→</span> Matched <span className="mx-1">→</span> Fulfilled</p>
                 </div>
             </div>
 
@@ -11452,7 +11546,7 @@ function BeneficiaryDashboard() {
                                                 </div>
                                                 <h4 className="mt-1 text-sm font-extrabold text-[#2563EB]">{itemName}</h4>
                                                 <p className="text-[11px] text-[#2563EB] opacity-90 font-normal">
-                                                    Donor: {m.donation?.donor?.name || 'Campus Donor'} â€¢ {m.matched_quantity} unit(s)
+                                                    Donor: {m.donation?.donor?.name || 'Campus Donor'} • {m.matched_quantity} unit(s)
                                                 </p>
                                             </div>
                                             <Link to="/matches" className="no-underline">
@@ -11539,7 +11633,7 @@ function BeneficiaryDashboard() {
                                                 </td>
                                                 <td className="font-bold text-[#2563EB]">
                                                     {isFinancial
-                                                        ? `â‚±${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                        ? `₱${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                         : `${r.quantity_needed} ${r.unit || 'unit(s)'}`}
                                                 </td>
                                                 <td>
@@ -11586,7 +11680,7 @@ function BeneficiaryDashboard() {
                                         <div>
                                             <h4 className="font-extrabold text-sm">{title(r.category)}</h4>
                                             <p className="text-[11px] opacity-80 mt-0.5">
-                                                Assistance Needed: {isFinancial ? `â‚±${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : `${r.quantity_needed} ${r.unit || 'unit(s)'}`} â€¢ Priority: {title(r.urgency || 'normal')}
+                                                Assistance Needed: {isFinancial ? `₱${Number(r.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : `${r.quantity_needed} ${r.unit || 'unit(s)'}`} • Priority: {title(r.urgency || 'normal')}
                                             </p>
                                             <p className="text-[10px] opacity-70 mt-0.5">Submitted {formatDate(r.created_at)}</p>
                                         </div>
@@ -11651,7 +11745,7 @@ function BeneficiaryDashboard() {
                                     </span>
                                     <span className="text-[#22C55E] font-black text-sm">
                                         {selectedRequestDetails.request_type === 'financial'
-                                            ? `â‚±${Number(selectedRequestDetails.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                                            ? `₱${Number(selectedRequestDetails.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                                             : `${selectedRequestDetails.quantity_needed} ${selectedRequestDetails.unit || 'unit(s)'}`}
                                     </span>
                                 </div>
@@ -12116,7 +12210,7 @@ function DonorNeeds() {
                                                 </div>
                                                 <span className="rounded-full border border-[#2563EB] bg-white px-2.5 py-1 text-xs font-black text-[#2563EB]">
                                                     {isFinancial
-                                                        ? `â‚±${remainingAmt.toLocaleString(undefined, { minimumFractionDigits: 2 })} needed`
+                                                        ? `₱${remainingAmt.toLocaleString(undefined, { minimumFractionDigits: 2 })} needed`
                                                         : `${remainingQty} ${req.unit || 'unit(s)'} needed`}
                                                 </span>
                                             </div>
@@ -12162,7 +12256,7 @@ function DonorNeeds() {
                                                     <span>Fulfillment Progress</span>
                                                     <span>
                                                         {isFinancial
-                                                            ? `â‚±${matchedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} / â‚±${requestedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} (${progressPercent}%)`
+                                                            ? `₱${matchedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} / ₱${requestedAmt.toLocaleString(undefined, { minimumFractionDigits: 0 })} (${progressPercent}%)`
                                                             : `${matchedQty} / ${neededQty} ${req.unit || 'units'} (${progressPercent}%)`}
                                                     </span>
                                                 </div>
@@ -12201,7 +12295,7 @@ function DonorNeeds() {
                         {totalPages > 1 && (
                             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#2563EB] pt-4 text-xs font-bold text-[#2563EB]">
                                 <div>
-                                    Showing {startIndex + 1}â€“{Math.min(startIndex + pageSize, sortedRequests.length)} of {sortedRequests.length} campus needs
+                                    Showing {startIndex + 1}–{Math.min(startIndex + pageSize, sortedRequests.length)} of {sortedRequests.length} campus needs
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button
@@ -12270,19 +12364,19 @@ function DonorNeeds() {
                                         <div>
                                             <span className="text-[#2563EB] opacity-70 block text-[10px]">Amount Requested</span>
                                             <span className="text-sm font-extrabold text-[#2563EB]">
-                                                â‚±{Number(selectedDetailRequest.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                ₱{Number(selectedDetailRequest.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                         <div>
                                             <span className="text-[#2563EB] opacity-70 block text-[10px]">Matched Aid</span>
                                             <span className="text-sm font-extrabold text-[#22C55E]">
-                                                â‚±{Number(selectedDetailRequest.matched_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                ₱{Number(selectedDetailRequest.matched_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                         <div>
                                             <span className="text-[#2563EB] opacity-70 block text-[10px]">Remaining</span>
                                             <span className="text-sm font-extrabold text-[#2563EB]">
-                                                â‚±{Math.max(0, (Number(selectedDetailRequest.amount_requested) || 0) - (Number(selectedDetailRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                ₱{Math.max(0, (Number(selectedDetailRequest.amount_requested) || 0) - (Number(selectedDetailRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     </>
@@ -12419,8 +12513,8 @@ function DonorNeeds() {
                                 <div className="rounded-xl border border-[#2563EB] bg-white p-3 text-xs font-bold">
                                     <span className="text-[#2563EB] opacity-70 block">Target Request</span>
                                     <span>
-                                        {title(donatingRequest.category)} â€” {donatingRequest.request_type === 'financial'
-                                            ? `â‚±${Math.max(0, (Number(donatingRequest.amount_requested) || 0) - (Number(donatingRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })} remaining needed`
+                                        {title(donatingRequest.category)} — {donatingRequest.request_type === 'financial'
+                                            ? `₱${Math.max(0, (Number(donatingRequest.amount_requested) || 0) - (Number(donatingRequest.matched_amount) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })} remaining needed`
                                             : `${donatingRequest.quantity_needed - (donatingRequest.matched_quantity || 0)} ${donatingRequest.unit || 'unit(s)'} remaining needed`}
                                     </span>
                                 </div>
@@ -12430,7 +12524,7 @@ function DonorNeeds() {
                                         {/* Financial Donation Amount */}
                                         <div>
                                             <label htmlFor="q_amount" className="block text-xs font-bold text-[#2563EB]">
-                                                Donation Amount (â‚± PHP) <span className="text-[#22C55E]">*</span>
+                                                Donation Amount (₱ PHP) <span className="text-[#22C55E]">*</span>
                                             </label>
                                             <input
                                                 id="q_amount"
@@ -12999,7 +13093,7 @@ function FulfillmentPage({ role }) {
                                                 <div>
                                                     Your status:{' '}
                                                     {isMyConfirmed ? (
-                                                        <span className="font-extrabold text-[#22C55E]">âœ“ Confirmed</span>
+                                                        <span className="font-extrabold text-[#22C55E]">✓ Confirmed</span>
                                                     ) : (
                                                         <span className="font-extrabold text-[#2563EB]">Pending Confirmation</span>
                                                     )}
@@ -13007,7 +13101,7 @@ function FulfillmentPage({ role }) {
                                                 <div>
                                                     {counterpartyRole} status:{' '}
                                                     {isOtherConfirmed ? (
-                                                        <span className="font-extrabold text-[#22C55E]">âœ“ Confirmed</span>
+                                                        <span className="font-extrabold text-[#22C55E]">✓ Confirmed</span>
                                                     ) : (
                                                         <span className="font-extrabold text-[#2563EB]">Pending Confirmation</span>
                                                     )}
@@ -13753,7 +13847,7 @@ function HistoryPage({ role }) {
                                                 {x.item_name || title(x.category)}
                                             </h4>
                                             <p className="text-xs font-bold text-[#2563EB] uppercase opacity-75">
-                                                {x.category} â€¢ {x.quantity || x.quantity_needed} unit(s)
+                                                {x.category} • {x.quantity || x.quantity_needed} unit(s)
                                             </p>
                                             <p className="text-[11px] text-[#2563EB] mt-1">
                                                 Date: {formatDate(x.created_at)}
@@ -13786,7 +13880,7 @@ function HistoryPage({ role }) {
                         {totalPages > 1 && (
                             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#2563EB] pt-4 text-xs font-bold text-[#2563EB]">
                                 <div>
-                                    Showing {startIndex + 1}â€“{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length} records
+                                    Showing {startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length} records
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button
@@ -13972,7 +14066,7 @@ function HistoryPage({ role }) {
                             </div>
                             <div>
                                 <span className="text-[#2563EB] opacity-70 block">Completion Status</span>
-                                <span className="text-[#22C55E] font-extrabold uppercase">âœ“ FULFILLED</span>
+                                <span className="text-[#22C55E] font-extrabold uppercase">✓ FULFILLED</span>
                             </div>
                         </div>
 
@@ -14484,7 +14578,7 @@ function AdminCategories(){
                                 <div key={d.id} className="p-2.5 rounded-lg border border-[#2563EB]/20 bg-[#2563EB]/5 flex justify-between items-center">
                                     <div>
                                         <strong className="text-[#2563EB] block">{d.item_name}</strong>
-                                        <span className="text-[#2563EB]/70 font-semibold">Donor: {d.donor?.name || 'Campus Donor'} â€¢ {d.quantity || 1} units</span>
+                                        <span className="text-[#2563EB]/70 font-semibold">Donor: {d.donor?.name || 'Campus Donor'} • {d.quantity || 1} units</span>
                                     </div>
                                     <Badge status={d.status}/>
                                 </div>
@@ -14495,7 +14589,7 @@ function AdminCategories(){
                                 <div key={r.id} className="p-2.5 rounded-lg border border-[#2563EB]/20 bg-[#2563EB]/5 flex justify-between items-center">
                                     <div>
                                         <strong className="text-[#2563EB] block">{r.category}</strong>
-                                        <span className="text-[#2563EB]/70 font-semibold">Requester: {r.beneficiary?.name || 'Student'} â€¢ {r.quantity_needed} needed</span>
+                                        <span className="text-[#2563EB]/70 font-semibold">Requester: {r.beneficiary?.name || 'Student'} • {r.quantity_needed} needed</span>
                                     </div>
                                     <Badge status={r.status}/>
                                 </div>
@@ -14525,7 +14619,7 @@ function AdminCategories(){
                         </p>
                         {getItemCount(deletingCategory.slug) > 0 ? (
                             <p className="text-xs font-extrabold text-[#2563EB] bg-[#2563EB]/5 p-3 rounded-lg border border-[#2563EB]/20">
-                                âš ï¸ Warning: This category currently has {getItemCount(deletingCategory.slug)} active listing(s). You must reassign or clear these items before deletion.
+                                ⚠️ Warning: This category currently has {getItemCount(deletingCategory.slug)} active listing(s). You must reassign or clear these items before deletion.
                             </p>
                         ) : (
                             <p className="text-xs font-bold text-[#2563EB]/70">
@@ -16496,14 +16590,22 @@ function Profile(){
                                                         country:meta.country ? (findCountry(meta.country)?.name || prev.country) : prev.country,
                                                         country_code:meta.country || prev.country_code,
                                                     }))}
-                                                    placeholder="Enter contact number"
-                                                />
+                                                placeholder="Enter contact number"
+                                            />
                                             )}
                                         </div>
+                                        {user.role!=='beneficiary'&&<div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region</label>
+                                            <input
+                                                className="field w-full"
+                                                placeholder="Enter your country or region"
+                                                value={f.country}
+                                                onChange={e=>setF({...f,country:e.target.value})}
+                                            />
+                                        </div>}
                                     </div>
 
-                                    <div className="grid gap-5 sm:grid-cols-2">
-                                        {user.role==='beneficiary'&&<>
+                                    {user.role==='beneficiary'&&<div className="grid gap-5 sm:grid-cols-2">
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Student ID Number</label>
                                             <input className="field w-full" placeholder="Enter your student ID number" maxLength={9} value={f.student_id_number} onChange={e=>setF({...f,student_id_number:e.target.value})}/>
@@ -16539,17 +16641,7 @@ function Profile(){
                                                 ))}
                                             </DropdownSelect>
                                         </div>
-                                        </>}
-                                        {user.role!=='beneficiary'&&<div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region</label>
-                                            <input
-                                                className="field w-full"
-                                                placeholder="Enter your country or region"
-                                                value={f.country}
-                                                onChange={e=>setF({...f,country:e.target.value})}
-                                            />
-                                        </div>}
-                                    </div>
+                                    </div>}
                                 </>
                             )}
 
@@ -16595,7 +16687,7 @@ function Profile(){
                                             <Icon name="donation" size={20}/>
                                         </span>
                                         <p className="text-xs font-bold text-[#2563EB]">Click to upload a new photo</p>
-                                        <p className="text-[10px] font-semibold text-[#2563EB]/60 mt-1">JPG, PNG, or GIF â€” Max 2MB</p>
+                                        <p className="text-[10px] font-semibold text-[#2563EB]/60 mt-1">JPG, PNG, or GIF — Max 2MB</p>
                                     </div>
                                     <input
                                         ref={fileRef}
@@ -16727,9 +16819,9 @@ function Profile(){
 
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {[
-                                    {label:'Account ID',value:`#${user.id||'â€”'}`},
-                                    {label:'Full Name',value:user.name||'â€”'},
-                                    {label:'Email Address',value:user.email||'â€”'},
+                                    {label:'Account ID',value:`#${user.id||'—'}`},
+                                    {label:'Full Name',value:user.name||'—'},
+                                    {label:'Email Address',value:user.email||'—'},
                                     {label:'Country / Region',value:user.country||'Campus Resident'},
                                     {label:'Contact Number',value:user.contact_number||'Not provided'},
                                     {label:'Account Type',value:user.role==='beneficiary'?'Request Support (Beneficiary)':user.role==='donor'?'Make a Donation (Donor)':title(user.role)},
@@ -17378,7 +17470,7 @@ function Activities(){
                                     </div>
                                     <p className="text-xs font-semibold text-[#2563EB]/80">
                                         Executed by: <strong className="text-[#2563EB]">{x.user?.name || 'System Administrator'}</strong>
-                                        {x.subject_type && ` â€¢ Target: ${x.subject_type.split('\\').pop()} #${x.subject_id || ''}`}
+                                        {x.subject_type && ` • Target: ${x.subject_type.split('\\').pop()} #${x.subject_id || ''}`}
                                     </p>
                                     <p className="text-[11px] font-bold text-[#2563EB]/60">
                                         {new Date(x.created_at).toLocaleString()}
@@ -17723,7 +17815,7 @@ function NotificationsPage(){
 
             {loading?(
                 <div className="panel p-8 text-center font-bold text-[#2563EB]">
-                    Loading notificationsâ€¦
+                    Loading notifications…
                 </div>
             ):!filtered.length?(
                 <div className="panel p-12 text-center bg-white space-y-3">
@@ -17761,7 +17853,7 @@ function NotificationsPage(){
                                         </div>
                                         <p className="mt-1.5 font-bold text-[#2563EB] text-sm leading-relaxed line-clamp-2">{n.message}</p>
                                         <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/60">
-                                            {getRelativeTime(n.created_at)} â€¢ {n.created_at?new Date(n.created_at).toLocaleString():'Recent'}
+                                            {getRelativeTime(n.created_at)} • {n.created_at?new Date(n.created_at).toLocaleString():'Recent'}
                                         </p>
                                     </div>
                                 </div>

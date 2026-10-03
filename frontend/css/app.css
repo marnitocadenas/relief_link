@@ -350,6 +350,10 @@ select.field {
   transition: background-color 130ms ease, color 130ms ease;
 }
 
+.dropdown-select-option {
+  white-space: nowrap;
+}
+
 .dropdown-select-option:hover:not(:disabled),
 .dropdown-select-option:focus-visible {
   outline: none;
@@ -2938,5 +2942,18 @@ table[class*="border-collapse"]:not(.user-management-table):not(.data-table) td 
 table.data-table[class*="border-collapse"]:not(.user-management-table) td > .flex {
   justify-content: center;
   align-items: center;
+}
+
+table.data-table.donations-table {
+  table-layout: fixed;
+}
+
+table.data-table.donations-table tbody td:nth-child(1),
+table.data-table.donations-table tbody td:nth-child(4) {
+  text-align: left !important;
+}
+
+table.data-table.donations-table tbody td:last-child > .flex {
+  justify-content: flex-start !important;
 }
 
