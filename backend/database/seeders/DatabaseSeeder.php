@@ -22,5 +22,6 @@ class DatabaseSeeder extends Seeder
         $donors=User::factory(5)->create(['role'=>'donor']); $beneficiaries=User::factory(5)->create(['role'=>'beneficiary']);
         $categories=['food','clothing','school supplies','hygiene'];
         foreach(range(1,10) as $i){$donors[($i-1)%5]->donations()->create(['item_name'=>"Campus donation {$i}",'category'=>$categories[$i%4],'quantity'=>5+$i,'condition_notes'=>'Clean and ready to share','availability_window'=>'Weekdays 9am–5pm']);$beneficiaries[($i-1)%5]->aidRequests()->create(['category'=>$categories[$i%4],'quantity_needed'=>2+$i,'urgency'=>$i===1?'high':($i%2?'medium':'low'),'justification'=>'Support needed for student wellbeing and essential supplies.','status'=>$i<8?'approved':'pending_review']);}
+        $this->call(PreviewAdminTablesSeeder::class);
     }
 }

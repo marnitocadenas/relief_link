@@ -89,6 +89,7 @@ class AidRequestResource extends JsonResource
 
         if ($operations) {
             $data += [
+                'created_by_staff_id' => $this->created_by_staff_id,
                 'staff_internal_notes' => $this->staff_internal_notes,
                 'referral_destination' => $this->referral_destination,
                 'verification_checklist' => $this->verification_checklist,

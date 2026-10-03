@@ -97,6 +97,7 @@ textarea:focus-visible {
 
 .card:hover,
 .panel:hover {
+  transform: none;
   box-shadow:
     0 12px 30px rgba(37, 99, 235, 0.12),
     0 4px 10px rgba(37, 99, 235, 0.06);
@@ -1263,11 +1264,11 @@ table[class*="border-collapse"]:not(.data-table) tbody tr:hover {
 @keyframes modal-in {
   from {
     opacity: 0;
-    transform: translate(-50%, -48%) scale(0.95);
+    transform: translate(-50%, -50%);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -1329,6 +1330,74 @@ table[class*="border-collapse"]:not(.data-table) tbody tr:hover {
     0 2px 6px rgba(37, 99, 235, 0.05);
   padding: 1.5rem;
   transition: all 0.2s ease;
+}
+
+/* Status summary cards share one stable footprint and never lift on hover. */
+.status-summary-card {
+  position: relative;
+  display: flex;
+  min-height: 5.5rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 1.75rem 0.75rem 0.75rem;
+  transform: none;
+  transition: transform 140ms ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.status-summary-card-action {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  display: inline-flex;
+  min-height: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  color: var(--blue);
+  background: #fff;
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.status-summary-card-action:hover {
+  color: #fff;
+  background: var(--blue);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.status-summary-card-action:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+.status-summary-card--filled .status-summary-card-action {
+  color: var(--blue);
+}
+
+.status-summary-card:hover {
+  transform: none;
+}
+
+.status-summary-card:active,
+.status-summary-card:has(.status-summary-card-action:active) {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: 90ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-summary-card,
+  .status-summary-card:active,
+  .status-summary-card:has(.status-summary-card-action:active) {
+    transition: none;
+    transform: none;
+  }
 }
 
 .stat-card:hover {
@@ -2320,17 +2389,17 @@ body,
 }
 
 .admin-dashboard .admin-action-primary {
-  border: 1px solid var(--blue);
-  background: var(--blue);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.14);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  background: #fff;
+  color: var(--blue);
+  box-shadow: none;
 }
 
 .admin-dashboard .admin-action-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  border-color: var(--blue-dark);
-  background: var(--blue-dark);
-  color: #fff;
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.045);
+  color: var(--blue-dark);
 }
 
 .admin-dashboard .admin-action-secondary {
@@ -2582,7 +2651,7 @@ body,
 
 .admin-app main.page:not(.admin-dashboard) .panel:not(.no-hover):hover,
 .admin-app main.page:not(.admin-dashboard) .card:not(.no-hover):hover {
-  transform: translateY(-1px);
+  transform: none;
   border-color: rgba(37, 99, 235, 0.12);
   box-shadow: 0 10px 28px rgba(30, 80, 180, 0.09);
 }
@@ -2778,8 +2847,19 @@ body,
 .member-app main.page .card:not(.no-hover):hover,
 .member-app main.staff-workspace .panel:not(.no-hover):hover,
 .member-app main.staff-workspace .card:not(.no-hover):hover {
-  transform: translateY(-1px);
+  transform: none;
   box-shadow: 0 10px 28px rgba(30, 80, 180, 0.09);
+}
+
+/* Keep card and modal geometry steady; hover feedback is visual only. */
+.card:hover,
+.panel:hover,
+.stat-card:hover,
+.admin-app main.page .panel:hover,
+.admin-app main.page .card:hover,
+.member-app main.page .panel:hover,
+.member-app main.page .card:hover {
+  transform: none;
 }
 
 .member-app main.page .field,

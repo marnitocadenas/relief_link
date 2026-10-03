@@ -17,6 +17,17 @@ use Illuminate\Validation\ValidationException;
 
 class AidRequestController extends Controller
 {
+    public function show(Request $request, AidRequest $aidRequest)
+    {
+        abort_unless(
+            in_array($request->user()->role, ['admin', 'staff'], true) ||
+            $aidRequest->beneficiary_id === $request->user()->id,
+            403
+        );
+
+        return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy', 'matches.donation.donor']));
+    }
+
     public function index(Request $request)
     {
         $query = AidRequest::with(['beneficiary', 'verifiedBy', 'matches.donation.donor'])->filter($request->all());

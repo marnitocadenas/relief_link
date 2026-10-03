@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('donations', DonationController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::apiResource('requests', AidRequestController::class)->parameters(['requests' => 'aidRequest'])->only(['index', 'store', 'update', 'destroy']);
+    Route::get('requests/{aidRequest}', [AidRequestController::class, 'show']);
     Route::get('requests/{aidRequest}/document', [AidRequestController::class, 'document']);
     Route::match(['post', 'patch'], 'requests/{aidRequest}/cancel', [AidRequestController::class, 'cancel']);
 
@@ -51,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('donations/intake', [AdminController::class, 'storeStaffIntake']);
         Route::patch('donations/{donation}/stock', [AdminController::class, 'updateDonationStock']);
         Route::get('requests', [AdminController::class, 'requests']);
+        Route::get('requests/{aidRequest}', [AdminController::class, 'showRequest']);
         Route::post('requests/walk-in', [AdminController::class, 'storeWalkInRequest']);
         Route::patch('requests/{aidRequest}', [AdminController::class, 'updateRequest']);
         Route::put('requests/{aidRequest}/content', [AdminController::class, 'editRequestContent']);

@@ -469,6 +469,11 @@ class AdminController extends Controller
         return AidRequestResource::collection(AidRequest::with(['beneficiary', 'verifiedBy'])->filter($r->all())->latest()->paginate(50));
     }
 
+    public function showRequest(Request $r, AidRequest $aidRequest)
+    {
+        return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy', 'matches.donation.donor']));
+    }
+
     public function updateRequest(Request $r, AidRequest $aidRequest)
     {
         // Anti-Fraud Self Approval Check

@@ -7273,6 +7273,7 @@ function RequestManager(){
     const [deleting, setDeleting] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const [viewingRequestLoading, setViewingRequestLoading] = useState(false);
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
@@ -7283,6 +7284,20 @@ function RequestManager(){
         api.get(endpoint)
             .then(r => setState({loading: false, data: r.data.data || r.data || [], error: ''}))
             .catch(() => setState({loading: false, data: [], error: 'Could not load support requests.'}));
+    };
+
+    const openRequestDetails = async item => {
+        setViewingRequestLoading(true);
+        try {
+            const endpoint = user.role === 'admin' ? `/admin/requests/${item.id}` : `/requests/${item.id}`;
+            const response = await api.get(endpoint);
+            const record = response.data.data || response.data;
+            if (Number(record.id) === Number(item.id)) setViewingRequest(record);
+        } catch (e) {
+            setState(s => ({...s, error: e.response?.data?.message || 'Could not load the complete request record.'}));
+        } finally {
+            setViewingRequestLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -7553,78 +7568,40 @@ function RequestManager(){
                             <thead>
                                 <tr>
                                     <th>Request ID</th>
-                                    <th>Type</th>
-                                    <th>Assistance / Category</th>
-                                    <th>Needed & Remaining</th>
+                                    <th>Requester</th>
+                                    <th>Category / Item</th>
                                     <th>Priority</th>
-                                    <th>Preferred Date</th>
-                                    <th>Status & Progress</th>
-                                    <th>Actions</th>
+                                    <th>Needed By</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {paginated.map(item => {
                                     const isFin = item.request_type === 'financial';
-                                    const reqAmount = Number(item.amount_requested || 0);
-                                    const remAmount = Number(item.remaining_amount ?? reqAmount);
-                                    const reqQty = Number(item.quantity_needed || 1);
-                                    const remQty = Number(item.remaining_quantity ?? reqQty);
-                                    const progressPercent = isFin
-                                        ? (reqAmount > 0 ? Math.round(((reqAmount - remAmount) / reqAmount) * 100) : 0)
-                                        : (reqQty > 0 ? Math.round(((reqQty - remQty) / reqQty) * 100) : 0);
 
                                     return (
                                         <tr key={item.id}>
                                             <td className="font-extrabold text-[#2563EB]">
                                                 #REQ-{String(item.id).padStart(3, '0')}
                                             </td>
-                                            <td>
-                                                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${isFin ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-[#2563EB]'}`}>
-                                                    {isFin ? 'Financial' : 'Physical'}
-                                                </span>
-                                            </td>
+                                            <td className="text-xs font-semibold">{item.beneficiary?.name || 'N/A'}</td>
                                             <td className="max-w-[180px] truncate" title={item.item_details || item.purpose_of_funds || item.category}>
                                                 <strong className="block text-xs">{title(item.category)}</strong>
                                                 <span className="text-[11px] font-semibold text-[#2563EB]/70 truncate block">
                                                     {isFin ? (item.purpose_of_funds || 'Financial aid') : (item.item_details || 'Assistance item')}
                                                 </span>
                                             </td>
-                                            <td className="text-xs">
-                                                {isFin ? (
-                                                    <div>
-                                                        <span className="font-extrabold text-[#22C55E]">
-                                                            {item.currency || 'PHP'} {reqAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                        </span>
-                                                        <span className="block text-[10px] font-semibold text-[#2563EB]/70">
-                                                            Remaining: {item.currency || 'PHP'} {remAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                        </span>
-                                                    </div>
-                                                ) : (
-                                                    <div>
-                                                        <span className="font-extrabold text-[#2563EB]">
-                                                            {reqQty} {item.unit || 'unit(s)'}
-                                                        </span>
-                                                        <span className="block text-[10px] font-semibold text-[#2563EB]/70">
-                                                            Remaining: {remQty} {item.unit || 'unit(s)'}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </td>
                                             <td><Badge status={item.urgency}/></td>
                                             <td className="text-xs font-semibold text-[#2563EB]/80 max-w-[120px] truncate">
                                                 {item.preferred_assistance_date || 'Flexible'}
                                             </td>
                                             <td>
-                                                <div className="space-y-1">
-                                                    <Badge status={item.status}/>
-                                                    <div className="w-20 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                                        <div className="bg-[#22C55E] h-1.5 rounded-full" style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}></div>
-                                                    </div>
-                                                </div>
+                                                <Badge status={item.status}/>
                                             </td>
                                             <td>
                                                 <div className="flex flex-wrap gap-1.5">
-                                                    <Button title="View Request Details" variant="secondary" onClick={() => setViewingRequest(item)}>
+                                                    <Button title="View Request Details" variant="secondary" disabled={viewingRequestLoading} onClick={() => openRequestDetails(item)}>
                                                         <Icon name="eye"/>
                                                         <span className="ml-1 text-xs">View</span>
                                                     </Button>
@@ -7669,17 +7646,14 @@ function RequestManager(){
 
                     {/* Mobile Card Layout */}
                     <div className="grid gap-3 sm:hidden">
-                        {paginated.map(item => {
-                            const isFin = item.request_type === 'financial';
-                            return (
+                        {paginated.map(item => (
                                 <article key={item.id} className="panel no-hover p-4 space-y-3 bg-white">
                                     <div className="flex items-start justify-between gap-2">
                                         <div>
                                             <span className="text-xs font-black text-[#2563EB]">#REQ-{String(item.id).padStart(3, '0')}</span>
+                                            <span className="text-xs font-semibold text-[#2563EB]/80 block">Requester: {item.beneficiary?.name || 'N/A'}</span>
                                             <strong className="text-sm text-[#2563EB] block">{title(item.category)}</strong>
-                                            <span className="text-xs font-semibold text-[#2563EB]/80">
-                                                {isFin ? `${item.currency || 'PHP'} ${Number(item.amount_requested).toLocaleString()}` : `${item.quantity_needed} ${item.unit || 'unit(s)'} of ${item.item_details}`}
-                                            </span>
+                                            <span className="text-xs font-semibold text-[#2563EB]/80 block">{item.item_details || item.purpose_of_funds || 'N/A'}</span>
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
                                             <Badge status={item.status}/>
@@ -7687,11 +7661,10 @@ function RequestManager(){
                                         </div>
                                     </div>
                                     <div className="text-xs font-semibold text-[#2563EB]/70 border-t border-[#2563EB]/20 pt-2 flex items-center justify-between">
-                                        <span>Target: {item.preferred_assistance_date || 'Flexible'}</span>
-                                        <span>{item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}</span>
+                                        <span>Needed By: {item.preferred_assistance_date || 'Flexible'}</span>
                                     </div>
                                     <div className="flex flex-wrap gap-2 pt-1">
-                                        <Button title="View Details" variant="secondary" onClick={() => setViewingRequest(item)}>
+                                        <Button title="View Details" variant="secondary" disabled={viewingRequestLoading} onClick={() => openRequestDetails(item)}>
                                             <Icon name="eye"/>
                                             <span className="ml-1 text-xs">View</span>
                                         </Button>
@@ -7703,8 +7676,7 @@ function RequestManager(){
                                         )}
                                     </div>
                                 </article>
-                            );
-                        })}
+                            ))}
                     </div>
 
                     {/* Pagination */}
@@ -7775,6 +7747,22 @@ function RequestManager(){
                                 </div>
                             </div>
                         )}
+
+                        <div className="rounded-xl border border-[#2563EB]/20 p-3.5">
+                            <h3 className="mb-2 text-xs font-extrabold uppercase tracking-wider text-[#2563EB]">Complete Request Record</h3>
+                            <dl className="grid gap-2 sm:grid-cols-2">
+                                {Object.entries(viewingRequest).filter(([key]) => key !== 'id').map(([key, value]) => (
+                                    <div key={key} className="min-w-0 rounded-lg bg-gray-50 p-2 text-[11px]">
+                                        <dt className="font-bold uppercase tracking-wide text-[#2563EB]/70">{key.replaceAll('_', ' ')}</dt>
+                                        {value !== null && typeof value === 'object' ? (
+                                            <pre className="mt-0.5 whitespace-pre-wrap break-words font-sans font-semibold text-gray-800">{JSON.stringify(value, null, 2)}</pre>
+                                        ) : (
+                                            <dd className="mt-0.5 break-words font-semibold text-gray-800">{value === null || value === undefined || value === '' ? 'N/A' : String(value)}</dd>
+                                        )}
+                                    </div>
+                                ))}
+                            </dl>
+                        </div>
 
                         <div className="space-y-2.5 border-t border-b border-[#2563EB]/20 py-3 text-xs font-bold">
                             <div className="flex justify-between">
@@ -8752,9 +8740,6 @@ function Dashboard(){
                                 <strong className="text-3xl font-extrabold text-[#2563EB]">{s.pending_reviews}</strong>
                                 <div className="mt-1 flex items-center justify-between">
                                     <span className="text-xs font-semibold text-[#2563EB]/70">Awaiting approval</span>
-                                    {s.pending_reviews > 0 && (
-                                        <span className="rounded bg-[#22C55E] px-1.5 py-0.5 text-[10px] font-extrabold text-white">Action needed</span>
-                                    )}
                                 </div>
                             </div>
                         </article>
@@ -8971,7 +8956,7 @@ function Dashboard(){
                                                         <span className="text-xs font-semibold text-[#2563EB]/70">{x.quantity_needed} units required</span>
                                                     </div>
                                                 </div>
-                                                <NavLink to="/matches" className="text-xs font-extrabold text-[#2563EB] hover:underline">
+                                                <NavLink to="/matches" className="text-xs font-extrabold text-[#2563EB] no-underline">
                                                     Find Match
                                                 </NavLink>
                                             </div>
@@ -8985,7 +8970,7 @@ function Dashboard(){
                                 <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] gap-3">
                                     <Button className="admin-action-primary !flex min-h-12 w-full items-center justify-center gap-2" loading={runningMatch} onClick={handleRunMatches}>
                                         <Icon name="match"/>
-                                        <span>Run Match Engine</span>
+                                        <span className="whitespace-nowrap">Run Match Engine</span>
                                     </Button>
                                     <NavLink to="/requests" className="nav-link admin-action-secondary flex min-h-12 w-full items-center !justify-center gap-2 border border-[#2563EB] bg-white text-[#2563EB] transition hover:bg-[#2563EB] hover:text-white">
                                         <Icon name="request"/>
@@ -9005,7 +8990,7 @@ function Dashboard(){
                                     </NavLink>
                                     <NavLink to="/admin/announcements" className="nav-link admin-action-primary flex min-h-12 w-full items-center !justify-center gap-2 border border-[#2563EB] bg-white text-[#2563EB] transition hover:bg-[#2563EB] hover:text-white">
                                         <Icon name="announcements"/>
-                                        <span>Post Announcement</span>
+                                        <span className="whitespace-nowrap">Post Announcement</span>
                                     </NavLink>
                                 </div>
                             </section>
@@ -11395,7 +11380,8 @@ function BeneficiaryDashboard() {
 
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5 text-center text-xs font-bold">
                     {/* Pending */}
-                    <div className="rounded-xl border border-[#2563EB]/40 bg-white p-3">
+                    <div className="status-summary-card rounded-xl border border-[#2563EB]/40 bg-white">
+                        <Link to="/requests" className="status-summary-card-action" aria-label="View requests under review">View</Link>
                         <span className="text-[#2563EB] opacity-70 block text-[11px]">Under Review</span>
                         <span className="mt-1 block text-lg font-extrabold text-[#2563EB]">
                             {statusCounts.pending_review}
@@ -11403,7 +11389,8 @@ function BeneficiaryDashboard() {
                     </div>
 
                     {/* Approved */}
-                    <div className="rounded-xl border border-[#22C55E] bg-white p-3">
+                    <div className="status-summary-card rounded-xl border border-[#22C55E] bg-white">
+                        <Link to="/requests" className="status-summary-card-action" aria-label="View approved requests">View</Link>
                         <span className="text-[#22C55E] opacity-80 block text-[11px]">Approved</span>
                         <span className="mt-1 block text-lg font-extrabold text-[#22C55E]">
                             {statusCounts.approved}
@@ -11411,19 +11398,22 @@ function BeneficiaryDashboard() {
                     </div>
 
                     {/* Matched */}
-                    <div className="rounded-xl border border-[#2563EB] bg-[#2563EB] p-3 text-white">
+                    <div className="status-summary-card status-summary-card--filled rounded-xl border border-[#2563EB] bg-[#2563EB] text-white">
+                        <Link to="/matches" className="status-summary-card-action" aria-label="View matched requests">View</Link>
                         <span className="opacity-90 block text-[11px]">Matched</span>
                         <span className="mt-1 block text-lg font-extrabold">{statusCounts.matched}</span>
                     </div>
 
                     {/* Fulfilled */}
-                    <div className="rounded-xl border border-[#22C55E] bg-[#22C55E] p-3 text-white">
+                    <div className="status-summary-card status-summary-card--filled rounded-xl border border-[#22C55E] bg-[#22C55E] text-white">
+                        <Link to="/matches" className="status-summary-card-action" aria-label="View fulfilled requests">View</Link>
                         <span className="opacity-90 block text-[11px]">Fulfilled</span>
                         <span className="mt-1 block text-lg font-extrabold">{statusCounts.fulfilled}</span>
                     </div>
 
                     {/* Rejected */}
-                    <div className="rounded-xl border border-[#2563EB]/30 bg-white p-3">
+                    <div className="status-summary-card rounded-xl border border-[#2563EB]/30 bg-white">
+                        <Link to="/requests" className="status-summary-card-action" aria-label="View rejected or cancelled requests">View</Link>
                         <span className="text-[#2563EB] opacity-70 block text-[11px]">Rejected / Cancelled</span>
                         <span className="mt-1 block text-lg font-extrabold text-[#2563EB]">
                             {statusCounts.rejected}
@@ -16895,7 +16885,7 @@ function Profile(){
                     <div className="relative max-h-[90vh] max-w-[90vw]" onMouseDown={event=>event.stopPropagation()}>
                         <button
                             type="button"
-                            className="absolute -right-3 -top-3 z-10 grid h-9 w-9 place-items-center rounded-full border-2 border-[#2563EB] bg-white text-[#2563EB] shadow-sm"
+                            className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border-2 border-[#2563EB] bg-white text-[#2563EB] shadow-sm"
                             onClick={()=>setIsPhotoViewerOpen(false)}
                             aria-label="Close photo preview"
                         >
