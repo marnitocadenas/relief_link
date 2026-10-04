@@ -310,7 +310,7 @@ const getModulesForRole = (role) => {
             { name: 'Category Management', path: '/admin/categories', icon: 'categories' },
             { name: 'Approval Management', path: '/admin/approvals', icon: 'approvals' },
             { name: 'Announcements', path: '/admin/announcements', icon: 'announcements' },
-            { name: 'Activity Logs', path: '/activities', icon: 'activity' },
+            { name: 'Activity & Reports', path: '/admin/activity-reports', icon: 'activity' },
             { name: 'Reports & Analytics', path: '/reports', icon: 'report' },
         ];
     }
@@ -321,7 +321,7 @@ const getModulesForRole = (role) => {
             { name: 'Warehouse & Inventory', path: '/staff/inventory', icon: 'donation' },
             { name: 'Walk-In Relief Desk', path: '/staff/desk', icon: 'request' },
             { name: 'Support & Fulfillment', path: '/staff/handoffs', icon: 'fulfillment' },
-            { name: 'Activity & Reports', path: '/staff/activity', icon: 'activity' },
+            { name: 'Activity Log', path: '/staff/activity-log', icon: 'activity' },
         ];
     }
     if (role === 'donor') {
@@ -6155,7 +6155,7 @@ function PeopleManager(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">ADMINISTRATOR WORKSPACE</p>
                     <h1 className="page-title">Members & Accounts</h1>
@@ -6668,7 +6668,7 @@ function DonationManager(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">{user.role === 'admin' ? 'ADMINISTRATOR WORKSPACE' : 'DONOR WORKSPACE'}</p>
                     <h1 className="page-title">Donations & Listed Resources</h1>
@@ -7407,7 +7407,7 @@ function RequestManager(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">{user.role === 'admin' ? 'ADMINISTRATOR WORKSPACE' : 'BENEFICIARY WORKSPACE'}</p>
                     <h1 className="page-title">Support Requests & Needs</h1>
@@ -8149,7 +8149,7 @@ function Matches(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">CONNECTION PROGRESS</p>
                     <h1 className="page-title">Matches with Meaning</h1>
@@ -8681,7 +8681,7 @@ function Dashboard(){
 
     return (
         <main className="admin-dashboard page space-y-8">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <p className="eyebrow">ADMINISTRATOR WORKSPACE</p>
                     <h1 className="page-title admin-dashboard-title">Campus Impact & Overview</h1>
@@ -9036,7 +9036,7 @@ function Dashboard(){
                                         <h2 className="text-base font-extrabold text-[#2563EB]">Recent System Activity</h2>
                                         <p className="text-xs text-[#2563EB]/70 font-semibold">Audit logs & administrative operations</p>
                                     </div>
-                                    <NavLink className="text-xs font-extrabold text-[#2563EB] no-underline" to="/activities">View Log &rarr;</NavLink>
+                                    <NavLink className="text-xs font-extrabold text-[#2563EB] no-underline" to="/admin/activity-reports">View Log &rarr;</NavLink>
                                 </div>
 
                                 <div className="mt-4 space-y-3 flex-1 overflow-y-auto max-h-[500px] pr-1">
@@ -9162,9 +9162,9 @@ function StaffDashboard() {
     };
 
     return (
-        <main className="shell staff-workspace py-6 sm:py-8 space-y-5 text-[#2563EB]">
+        <main className="shell staff-workspace staff-dashboard-page py-6 sm:py-8 space-y-5 text-[#2563EB]">
             {/* Header Banner */}
-            <div className="panel p-6 sm:p-7 bg-[#2563EB] text-white flex flex-wrap items-center justify-between gap-6 shadow-md">
+            <div className="panel staff-dashboard-banner p-6 sm:p-7 bg-[#2563EB] text-white flex flex-wrap items-center justify-between gap-6 shadow-md">
                 <div className="space-y-2 max-w-xl">
                     <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white">
                         CAMPUS OPERATIONAL PORTAL
@@ -9191,7 +9191,7 @@ function StaffDashboard() {
             {error && <Error>{error}</Error>}
 
             {/* Operational Metrics Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="staff-dashboard-metrics grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div
                     onClick={() => navigate('/staff/verifications')}
                     className="panel no-hover p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
@@ -9278,7 +9278,7 @@ function StaffDashboard() {
                     <div><p className="eyebrow">LIVE OPERATIONS ANALYTICS</p><h2 className="mt-1 text-xl font-extrabold">Staff operations at a glance</h2></div>
                     <p className="text-xs font-semibold text-[#2563EB]/65">Current data from the staff workspace feed</p>
                 </div>
-                <div className="grid gap-4 xl:grid-cols-2">
+                <div className="staff-dashboard-analytics grid gap-4 xl:grid-cols-2">
                     <AnalyticsChart title="Verification activity trend" description="Requests submitted and completed reviews over the last seven days." ariaLabel="Line chart showing verification activity over the last seven days" hasData={verificationTrend.some((point) => point.submitted || point.reviewed)}><ResponsiveContainer width="100%" height="100%"><LineChart data={verificationTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Legend wrapperStyle={{ color: '#2563EB', fontSize: '12px', fontWeight: 700 }}/><Line type="monotone" dataKey="submitted" name="Submitted" stroke="#2563EB" strokeWidth={3} dot={{ r: 3, fill: '#2563EB' }}/><Line type="monotone" dataKey="reviewed" name="Reviewed" stroke="#22C55E" strokeWidth={3} dot={{ r: 3, fill: '#22C55E' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
                     <AnalyticsChart title="Warehouse inventory overview" description="Current quantity by operational stock stage." ariaLabel="Bar chart showing available, reserved, and dispatched inventory" hasData={warehouseOverview.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={warehouseOverview} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Items" radius={[8, 8, 0, 0]}>{warehouseOverview.map((entry, index) => <Cell key={entry.name} fill={index === 1 ? '#22C55E' : '#2563EB'} fillOpacity={index === 2 ? 0.55 : 1}/>)}</Bar></BarChart></ResponsiveContainer></AnalyticsChart>
                     <AnalyticsChart title="Handoff & dispatch status" description="Track handoffs through the physical release workflow." ariaLabel="Bar chart showing proposed, confirmed, and completed handoffs" hasData={handoffOverview.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={handoffOverview} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Handoffs" fill="#22C55E" radius={[8, 8, 0, 0]}/></BarChart></ResponsiveContainer></AnalyticsChart>
@@ -9286,24 +9286,24 @@ function StaffDashboard() {
                 </div>
             </section>
 
-            <section className="grid gap-5 xl:grid-cols-5" aria-label="Operational worklist and audit trail">
+            <section className="staff-dashboard-worklist grid gap-5 xl:grid-cols-5" aria-label="Operational worklist and audit trail">
                 <div className="panel overflow-hidden xl:col-span-3">
                     <div className="flex items-center justify-between border-b border-[#2563EB]/15 p-5">
                         <div>
                             <h2 className="font-extrabold text-[#2563EB]">Priority verification queue</h2>
                             <p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Highest-priority pending requests, ordered for review.</p>
                         </div>
-                        <button onClick={() => navigate('/staff/verifications')} className="text-xs font-extrabold text-[#2563EB]">View all</button>
+                        <button onClick={() => navigate('/staff/verifications')} className="staff-priority-view-all text-xs font-extrabold text-[#2563EB]">View all <span aria-hidden="true">→</span></button>
                     </div>
                     {loading ? (
                         <div className="space-y-3 p-5"><div className="h-14 animate-pulse rounded-lg bg-[#2563EB]/10"/><div className="h-14 animate-pulse rounded-lg bg-[#2563EB]/10"/></div>
                     ) : priorityRequests.length ? (
-                        <div className="divide-y divide-[#2563EB]/10">
+                        <div className="space-y-2 p-4">
                             {priorityRequests.map((request) => (
-                                <button key={request.id} onClick={() => navigate('/staff/verifications')} className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-[#2563EB]/5">
-                                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${['high', 'critical'].includes(request.urgency) ? 'bg-[#22C55E]' : 'bg-[#2563EB]'}`}/>
+                                <button key={request.id} onClick={() => navigate('/staff/verifications')} className="staff-priority-request flex w-full items-center gap-3 rounded-xl border border-[#2563EB]/10 bg-white p-4 text-left transition">
+                                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${String(request.urgency || '').toLowerCase() === 'critical' ? 'bg-red-500' : String(request.urgency || '').toLowerCase() === 'high' ? 'bg-amber-500' : 'bg-[#2563EB]'}`} aria-hidden="true"/>
                                     <span className="min-w-0 flex-1"><span className="block truncate text-sm font-extrabold">{request.beneficiary?.name || 'Student request'} <span className="font-semibold text-[#2563EB]/55">· {request.category}</span></span><span className="mt-0.5 block text-xs font-semibold text-[#2563EB]/65">{request.quantity_needed} unit{request.quantity_needed === 1 ? '' : 's'} requested · {formatTime(request.created_at)}</span></span>
-                                    <span className="hidden rounded-full border border-[#2563EB]/20 px-2 py-1 text-[10px] font-extrabold capitalize sm:inline">{request.urgency || 'standard'}</span><Icon name="arrow" size={16}/>
+                                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-extrabold capitalize ${String(request.urgency || '').toLowerCase() === 'critical' ? 'bg-red-50 text-red-700' : String(request.urgency || '').toLowerCase() === 'high' ? 'bg-amber-50 text-amber-700' : 'bg-[#2563EB]/5 text-[#2563EB]'}`}>{request.urgency || 'standard'}</span><span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#2563EB]/5 text-[#2563EB]"><Icon name="arrow" size={15}/></span>
                                 </button>
                             ))}
                         </div>
@@ -9315,14 +9315,14 @@ function StaffDashboard() {
                 </div>
             </section>
 
-            <section className="grid gap-4 lg:grid-cols-3" aria-label="Operational status">
-                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="mt-4 text-xs font-extrabold text-[#2563EB]">Manage inventory →</button></div>
-                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="mt-4 text-xs font-extrabold text-[#2563EB]">Open dispatch hub →</button></div>
+            <section className="staff-status-grid grid gap-4 lg:grid-cols-3" aria-label="Operational status">
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="staff-dashboard-plain-action mt-4 text-xs font-extrabold text-[#2563EB]">Manage inventory →</button></div>
+                <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="staff-dashboard-plain-action mt-4 text-xs font-extrabold text-[#2563EB]">Open dispatch hub →</button></div>
                 <div className="rounded-2xl bg-[#2563EB] p-5 text-white"><div className="flex items-start justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-white/70">Walk-in relief desk</p><h2 className="mt-1 font-extrabold">Ready to serve</h2></div><span className="grid h-9 w-9 place-items-center rounded-lg bg-white text-[#22C55E]"><Icon name="check"/></span></div><p className="mt-4 text-sm font-semibold leading-relaxed text-white/85">Log verified in-person needs and make an immediate allocation when stock is available.</p><button onClick={() => navigate('/staff/desk')} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-extrabold text-[#2563EB]">Launch desk <Icon name="arrow" size={15}/></button></div>
             </section>
 
             {/* Quick Operational Navigation Hub */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="staff-dashboard-modules grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div
                     onClick={() => navigate('/staff/verifications')}
                     className="panel no-hover p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
@@ -9526,9 +9526,9 @@ function StaffVerificationDesk() {
     const categories = [...new Set(requests.map((r) => r.category).filter(Boolean))];
 
     return (
-        <main className="shell staff-workspace py-8 space-y-6 text-[#2563EB]">
-            <div className="panel no-hover p-6 bg-white space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
+        <main className="shell staff-workspace staff-verification-page py-8 space-y-6 text-[#2563EB]">
+            <div className="staff-module-sections">
+                <div className="staff-module-hero staff-verification-hero flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                     <div>
                         <span className="eyebrow">MODULE 1: ELIGIBILITY & PROOF</span>
                         <h1 className="text-2xl font-extrabold text-[#2563EB]">Student Request Verifications Desk</h1>
@@ -9542,7 +9542,7 @@ function StaffVerificationDesk() {
                     </Button>
                 </div>
 
-                <section aria-label="Verification summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                <section aria-label="Verification summary" className="staff-verification-summary grid grid-cols-2 gap-3 lg:grid-cols-5">
                     {[
                         ['Pending', summary.pending, 'Awaiting first review', 'approvals', 'blue'],
                         ['Under review', summary.review, 'Currently being checked', 'clock', 'blue'],
@@ -9553,7 +9553,7 @@ function StaffVerificationDesk() {
                 </section>
 
                 {/* Filters Bar */}
-                <div className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4">
+                <div className="staff-verification-filters rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4">
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h2 className="text-sm font-extrabold">Find and triage requests</h2><p className="mt-0.5 text-[11px] font-semibold text-[#2563EB]/65">{filtered.length} request{filtered.length === 1 ? '' : 's'} match the current view.</p></div><button onClick={() => { setSearch(''); setStatusFilter('pending_review'); setTierFilter('all'); setCategoryFilter('all'); setUrgencyFilter('all'); setDateFilter('all'); }} className="text-xs font-extrabold underline">Reset filters</button></div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
                     <div>
@@ -9609,7 +9609,7 @@ function StaffVerificationDesk() {
                 </div>
 
                 {/* Requests Table */}
-                <div className="overflow-x-auto">
+                <div className="staff-workspace-table overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
@@ -9917,9 +9917,9 @@ function StaffWarehouseInventory() {
     };
 
     return (
-        <main className="shell staff-workspace py-8 space-y-6 text-[#2563EB]">
-            <div className="panel no-hover p-6 bg-white space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
+        <main className="shell staff-workspace staff-inventory-page py-8 space-y-6 text-[#2563EB]">
+            <div className="staff-module-sections">
+                <div className="staff-module-hero staff-inventory-hero flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                     <div>
                         <span className="eyebrow">MODULE 2: PHYSICAL STORAGE</span>
                         <h1 className="text-2xl font-extrabold text-[#2563EB]">Warehouse & Inventory Control</h1>
@@ -9927,7 +9927,7 @@ function StaffWarehouseInventory() {
                             Track physical storage bin tagging, shelf locations, item condition grades, and physical intake.
                         </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="staff-inventory-hero-actions flex items-center gap-2">
                         <Button onClick={() => setShowIntakeModal(true)}>
                             <Icon name="plus" />
                             <span className="ml-1 text-xs">+ Intake Physical Stock</span>
@@ -9940,7 +9940,7 @@ function StaffWarehouseInventory() {
 
                 <Error>{error}</Error>
 
-                <section aria-label="Inventory summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                <section aria-label="Inventory summary" className="staff-inventory-summary grid grid-cols-2 gap-3 lg:grid-cols-5">
                     {[
                         ['Stocked items', stockSummary.total, 'Unique inventory records', 'box', 'all'],
                         ['Available units', stockSummary.available, 'Ready for matching', 'check', 'all'],
@@ -9951,7 +9951,7 @@ function StaffWarehouseInventory() {
                 </section>
 
                 {/* Filters */}
-                <div className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h2 className="text-sm font-extrabold">Stock overview</h2><p className="mt-0.5 text-[11px] font-semibold text-[#2563EB]/65">{filtered.length} inventory item{filtered.length === 1 ? '' : 's'} match the current view.</p></div><button onClick={() => { setSearch(''); setCategoryFilter('all'); setGradeFilter('all'); setStockFilter('all'); }} className="text-xs font-extrabold underline">Reset filters</button></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="staff-inventory-filters rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h2 className="text-sm font-extrabold">Stock overview</h2><p className="mt-0.5 text-[11px] font-semibold text-[#2563EB]/65">{filtered.length} inventory item{filtered.length === 1 ? '' : 's'} match the current view.</p></div><button onClick={() => { setSearch(''); setCategoryFilter('all'); setGradeFilter('all'); setStockFilter('all'); }} className="text-xs font-extrabold underline">Reset filters</button></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Search Item or Shelf Bin</label>
                         <input
@@ -10000,7 +10000,7 @@ function StaffWarehouseInventory() {
                 </div>
 
                 {/* Stock Table */}
-                <div className="overflow-x-auto">
+                <div className="staff-workspace-table overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
@@ -10324,9 +10324,9 @@ function StaffWalkInDesk() {
     };
 
     return (
-        <main className="shell staff-workspace py-8 space-y-6 text-[#2563EB]">
-            <div className="panel no-hover w-full max-w-6xl mx-auto p-6 sm:p-8 bg-white space-y-6">
-                <div className="border-b border-[#2563EB]/20 pb-4 space-y-1">
+        <main className="shell staff-workspace staff-walkin-page py-8 space-y-6 text-[#2563EB]">
+            <div className="staff-module-sections mx-auto w-full max-w-6xl">
+                <div className="staff-module-hero staff-walkin-hero border-b border-[#2563EB]/20 pb-4 space-y-1">
                     <span className="eyebrow">MODULE 3: ON-SITE ASSISTANCE</span>
                     <h1 className="text-2xl font-extrabold text-[#2563EB]">Walk-In Student Relief Desk</h1>
                     <p className="text-xs font-semibold text-[#2563EB]/80">
@@ -10334,7 +10334,7 @@ function StaffWalkInDesk() {
                     </p>
                 </div>
 
-                <section aria-label="Walk-in desk summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                <section aria-label="Walk-in desk summary" className="staff-walkin-summary grid grid-cols-2 gap-3 lg:grid-cols-5">
                     {[
                         ['Waiting', deskSummary.waiting, 'Queued for aid', 'clock', 'blue'],
                         ['In progress', deskSummary.processing, 'Being assisted now', 'activity', 'blue'],
@@ -10344,7 +10344,7 @@ function StaffWalkInDesk() {
                     ].map(([label, value, detail, icon, tone]) => <article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex items-start justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}
                 </section>
 
-                <section aria-label="Walk-in assistance steps" className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Identify student', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-[10px] font-extrabold"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#2563EB] text-white">{index + 1}</span>{step}</div>)}</div></section>
+                <section aria-label="Walk-in assistance steps" className="staff-walkin-steps rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Identify student', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex min-w-0 items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-xs font-extrabold"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB] text-[10px] text-white">{index + 1}</span><span className="min-w-0 leading-snug">{step}</span></div>)}</div></section>
 
                 {successMessage && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
@@ -10358,7 +10358,7 @@ function StaffWalkInDesk() {
 
                 {existingStudentRequests.length > 0 && <div className="rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-4"><div className="flex items-start gap-3"><Icon name="info" className="mt-0.5"/><div><p className="text-xs font-extrabold">Existing request found for this student</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Review the active record before creating another request to avoid duplicate assistance.</p><div className="mt-2 flex flex-wrap gap-2">{existingStudentRequests.map((request) => <span key={request.id} className="rounded-full border border-[#2563EB]/20 bg-white px-2 py-1 text-[10px] font-extrabold">#{request.id} · {request.category} · {request.status.replace('_', ' ')}</span>)}</div></div></div></div>}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="staff-walkin-form staff-module-form-sections">
                     <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">1</span><div><h2 className="text-sm font-extrabold">Identify and verify the student</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Check campus details before recording a new request.</p></div></div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
@@ -10565,12 +10565,12 @@ function StaffHandoffDispatch() {
     const dispatchSummary = { pending: activeMatches.filter((match) => match.status === 'proposed').length, ready: activeMatches.filter((match) => match.status === 'confirmed').length, inProgress: verifyingMatch ? 1 : 0, completed: matches.filter((match) => match.status === 'fulfilled').length, expired: matches.filter((match) => match.pin_expires_at && new Date(match.pin_expires_at) < new Date() && match.status !== 'fulfilled').length };
 
     return (
-        <main className="shell staff-workspace py-8 space-y-6 text-[#2563EB]">
-            <div className="panel no-hover p-6 bg-white space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
+        <main className="shell staff-workspace staff-dispatch-page py-8 space-y-6 text-[#2563EB]">
+            <div className="staff-module-sections">
+                <div className="staff-module-hero flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                     <div>
                         <span className="eyebrow">MODULE 4: DISPATCH & 2FA CLEARANCE</span>
-                        <h1 className="text-2xl font-extrabold text-[#2563EB]">Handoff & Physical Dispatch Desk</h1>
+                        <h1 className="staff-dispatch-page-title text-2xl font-extrabold text-[#2563EB]">Handoff & Physical Dispatch Desk</h1>
                         <p className="text-xs font-semibold text-[#2563EB]/80 mt-1">
                             Verify physical item handoffs at campus pickup depots using student 6-digit PIN codes.
                         </p>
@@ -10581,7 +10581,7 @@ function StaffHandoffDispatch() {
                 </div>
 
                 <section aria-label="Dispatch summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">{[['Pending',dispatchSummary.pending,'Awaiting pickup','clock','blue'],['Ready',dispatchSummary.ready,'Ready for release','check','green'],['In progress',dispatchSummary.inProgress,'PIN verification open','activity','blue'],['Completed',dispatchSummary.completed,'Fulfilled handoffs','check','green'],['Expired',dispatchSummary.expired,'Require reschedule','alert','green']].map(([label,value,detail,icon,tone])=><article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone==='green'?'text-[#22C55E]':''}/></div><p className={`mt-2 text-2xl font-black ${tone==='green'?'text-[#22C55E]':'text-[#2563EB]'}`}>{loading?'—':value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}</section>
-                <section className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Locate handoff','Review recipient & item','Verify identity','Enter PIN','Confirm quantity','Complete release','Record audit'].map((step,index)=><div key={step} className="flex items-center gap-2 rounded-lg bg-white px-2 py-2 text-[10px] font-extrabold"><span className="grid h-5 w-5 place-items-center rounded-full bg-[#2563EB] text-white">{index+1}</span>{step}</div>)}</div></section>
+                <section aria-label="Dispatch process steps" className="staff-dispatch-steps rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Locate handoff','Review recipient & item','Verify identity','Enter PIN','Confirm quantity','Complete release','Record audit'].map((step,index)=><div key={step} className="flex min-w-0 items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-xs font-extrabold"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB] text-[10px] text-white">{index+1}</span><span className="min-w-0 leading-snug">{step}</span></div>)}</div></section>
 
                 {successMessage && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
@@ -10589,7 +10589,7 @@ function StaffHandoffDispatch() {
                     </div>
                 )}
 
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="staff-dispatch-filters grid gap-3 sm:grid-cols-3">
                     <input
                         type="text"
                         placeholder="Search by student recipient, item name, or 6-digit PIN..."
@@ -10601,7 +10601,7 @@ function StaffHandoffDispatch() {
                     <DropdownSelect value={hubFilter} onChange={(e)=>setHubFilter(e.target.value)} className="input text-xs w-full"><option value="all">All pickup locations</option>{hubs.map((hub)=><option key={hub} value={hub}>{hub}</option>)}</DropdownSelect>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="staff-workspace-table overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
@@ -10655,7 +10655,7 @@ function StaffHandoffDispatch() {
             {/* PIN Verification Modal */}
             {verifyingMatch && (
                 <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
-                    <form onSubmit={handleVerifyPin} className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
+                    <form onSubmit={handleVerifyPin} className="staff-dispatch-modal panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">PIN Handoff Clearance</h3>
                             <button type="button" className="nav-link p-1" onClick={() => setVerifyingMatch(null)}>
@@ -14280,7 +14280,7 @@ function AdminCategories(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">SYSTEM MANAGEMENT</p>
                     <h1 className="page-title">Resource Categories</h1>
@@ -14753,7 +14753,7 @@ function AdminApprovals(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">MODERATION QUEUE</p>
                     <h1 className="page-title">Approvals & Verification</h1>
@@ -15247,7 +15247,7 @@ function AdminAnnouncements(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">COMMUNICATION CENTER</p>
                     <h1 className="page-title">Campus Announcements</h1>
@@ -15754,7 +15754,7 @@ function AdminSettings(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">SYSTEM CONFIGURATION</p>
                     <h1 className="page-title">Platform Settings</h1>
@@ -16994,7 +16994,7 @@ function Reports(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">REPORTS AND ANALYTICS</p>
                     <h1 className="page-title">Performance Report</h1>
@@ -17364,16 +17364,16 @@ function Activities(){
     };
 
     return (
-        <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+        <main className="page space-y-6 staff-activity-page">
+            <div className="admin-module-hero staff-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">ACCOUNTABILITY & AUDIT TRAIL</p>
-                    <h1 className="page-title">Activity Log</h1>
+                    <h1 className="page-title">{user?.role === 'admin' ? 'Activity & Reports' : 'Activity Log'}</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Monitor system operations, administrative actions, account changes, and authorization records.
                     </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="staff-activity-actions flex flex-wrap items-center gap-3">
                     <Button variant="secondary" onClick={load} loading={loading}>
                         <Icon name="activity"/>
                         <span className="ml-1 text-xs">Refresh Logs</span>
@@ -17387,7 +17387,7 @@ function Activities(){
 
             <Error>{error}</Error>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="staff-activity-summary grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Audit Logs</p>
@@ -17429,8 +17429,8 @@ function Activities(){
                 </article>
             </div>
 
-            <div className="panel no-hover p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex-1 min-w-[220px]">
+            <div className="staff-activity-filters panel no-hover p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+                <div className="staff-activity-search flex-1 min-w-[220px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Audit Trail</label>
                     <input
                         type="text"
@@ -17441,7 +17441,7 @@ function Activities(){
                     />
                 </div>
 
-                <div className="min-w-[160px]">
+                <div className="staff-activity-filter-control min-w-[160px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Filter by Module</label>
                     <DropdownSelect
                         className="field w-full text-sm"
@@ -17456,7 +17456,7 @@ function Activities(){
                     </DropdownSelect>
                 </div>
 
-                <div className="min-w-[150px]">
+                <div className="staff-activity-filter-control min-w-[150px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Sort Order</label>
                     <DropdownSelect
                         className="field w-full text-sm"
@@ -18061,6 +18061,7 @@ export default function App() {
                         <Route path="/dashboard" element={<RouteGuard roles={['admin']}><Dashboard/></RouteGuard>}/>
                         <Route path="/users" element={<RouteGuard roles={['admin']}><List kind="users"/></RouteGuard>}/>
                         <Route path="/reports" element={<RouteGuard roles={['admin']}><Reports/></RouteGuard>}/>
+                        <Route path="/admin/activity-reports" element={<RouteGuard roles={['admin']}><Activities/></RouteGuard>}/>
                         <Route path="/activities" element={<RouteGuard roles={['admin']}><Activities/></RouteGuard>}/>
                         <Route path="/admin/categories" element={<RouteGuard roles={['admin']}><AdminCategories/></RouteGuard>}/>
                         <Route path="/admin/approvals" element={<RouteGuard roles={['admin']}><AdminApprovals/></RouteGuard>}/>
@@ -18086,6 +18087,7 @@ export default function App() {
                         <Route path="/staff/inventory" element={<RouteGuard roles={['staff', 'admin']}><StaffWarehouseInventory/></RouteGuard>}/>
                         <Route path="/staff/desk" element={<RouteGuard roles={['staff', 'admin']}><StaffWalkInDesk/></RouteGuard>}/>
                         <Route path="/staff/handoffs" element={<RouteGuard roles={['staff', 'admin']}><StaffHandoffDispatch/></RouteGuard>}/>
+                        <Route path="/staff/activity-log" element={<RouteGuard roles={['staff', 'admin']}><Activities/></RouteGuard>}/>
                         <Route path="/staff/activity" element={<RouteGuard roles={['staff', 'admin']}><Activities/></RouteGuard>}/>
                         <Route path="/staff/approvals" element={<RouteGuard roles={['staff', 'admin']}><StaffVerificationDesk/></RouteGuard>}/>
                         <Route path="/staff/fulfillments" element={<RouteGuard roles={['staff', 'admin']}><StaffHandoffDispatch/></RouteGuard>}/>

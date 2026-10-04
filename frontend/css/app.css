@@ -123,6 +123,91 @@ textarea:focus-visible {
   padding: 2rem;
 }
 
+/* Staff Activity & Reports summary cards and page actions. */
+.staff-activity-page {
+  min-width: 0;
+}
+
+.staff-activity-actions {
+  flex-shrink: 0;
+}
+
+.staff-activity-actions .btn {
+  width: 9.5rem;
+  min-width: 9.5rem;
+  height: 2.75rem;
+  padding-inline: 0.75rem;
+  gap: 0.45rem;
+  flex: 0 0 9.5rem;
+  transform: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.staff-activity-actions .btn:hover:not(:disabled),
+.staff-activity-actions .btn:active:not(:disabled) {
+  transform: none;
+}
+
+.staff-activity-actions .btn > span {
+  margin-left: 0 !important;
+  font-size: 0.8125rem;
+}
+
+.staff-activity-actions .btn-primary {
+  border: 1px solid #FFFFFF;
+  background: #FFFFFF;
+  color: #1D4ED8;
+}
+
+.staff-activity-actions .btn-primary:hover:not(:disabled) {
+  border-color: #DBEAFE;
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
+.staff-activity-summary > article {
+  min-width: 0;
+  min-height: 7.25rem;
+  padding: 1.25rem clamp(1rem, 1.6vw, 1.5rem);
+  gap: 1rem;
+}
+
+.staff-activity-summary > article > div {
+  min-width: 0;
+}
+
+.staff-activity-summary > article > div > p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  letter-spacing: 0.055em;
+  overflow-wrap: anywhere;
+}
+
+.staff-activity-summary > article > div > strong {
+  margin-top: 0.5rem;
+  font-size: clamp(1.75rem, 2vw, 2rem);
+  line-height: 1;
+}
+
+.staff-activity-summary > article > span {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 2.75rem;
+}
+
+@media (max-width: 640px) {
+  .staff-activity-actions {
+    width: 100%;
+  }
+
+  .staff-activity-actions .btn {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+}
+
 .card-sm {
   padding: 1rem 1.25rem;
 }
@@ -434,6 +519,13 @@ textarea.field {
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.05),
     0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.btn > .animate-spin {
+  position: absolute;
+  left: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .btn:focus-visible {
@@ -1499,20 +1591,20 @@ table[class*="border-collapse"]:not(.data-table) tbody tr:hover {
   .panel {
     border-radius: 12px;
   }
-  
+
   .stat-card {
     padding: 1.25rem;
   }
-  
+
   .stat-card-value {
     font-size: 1.75rem;
   }
-  
+
   .table-container,
   .table-wrap {
     border-radius: 12px;
   }
-  
+
   .table-container th,
   .table-container td,
   .data-table th,
@@ -2440,6 +2532,14 @@ body,
   line-height: 1;
 }
 
+.admin-dashboard .admin-stat-card:not(.admin-stat-fulfillment) > div:last-child > strong {
+  transform: translateY(1.25rem);
+}
+
+.admin-dashboard .admin-stat-card:not(.admin-stat-fulfillment) > div:last-child > p {
+  transform: translateY(1rem);
+}
+
 .admin-dashboard .admin-stat-card p,
 .admin-dashboard .admin-stat-card > div:last-child > div > span:first-child {
   font-size: clamp(0.75rem, 0.2vw + 0.7rem, 0.875rem);
@@ -2829,6 +2929,678 @@ body,
   font-family: inherit;
 }
 
+.member-app main.staff-workspace .staff-dashboard-banner {
+  background-color: #2563EB;
+}
+
+.member-app main.staff-verification-page {
+  min-width: 0;
+}
+
+.member-app main.staff-verification-page .staff-module-sections {
+  min-width: 0;
+}
+
+.member-app main.staff-verification-page .staff-verification-hero {
+  gap: 1.5rem;
+  padding-bottom: 1.25rem;
+}
+
+.member-app main.staff-verification-page .staff-verification-hero h1 {
+  max-width: 100%;
+  font-size: clamp(1.85rem, 3vw, 2.65rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-verification-page .staff-verification-hero p {
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.member-app main.staff-verification-page .staff-verification-summary {
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.member-app main.staff-verification-page .staff-module-sections > .staff-verification-summary {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.member-app main.staff-verification-page .staff-verification-summary > button {
+  display: flex;
+  min-width: 0;
+  min-height: 9rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  transition-property: background-color, border-color, box-shadow, color;
+}
+
+.member-app main.staff-verification-page .staff-verification-summary > button:hover {
+  transform: none;
+  border-color: rgba(37, 99, 235, 0.5);
+  background-color: #F8FAFF;
+  box-shadow: 0 5px 14px rgba(37, 99, 235, 0.09);
+}
+
+.member-app main.staff-verification-page .staff-verification-summary > button:active {
+  transform: none;
+}
+
+.member-app main.staff-verification-page .staff-verification-summary > button > div:first-child > span {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-verification-page .staff-verification-summary > button > p:nth-child(2) {
+  margin-top: 0.65rem;
+  font-size: 1.8rem;
+  line-height: 1.1;
+}
+
+.member-app main.staff-verification-page .staff-verification-summary > button > p:last-child {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-verification-page .staff-verification-filters {
+  min-width: 0;
+  background: #F8FAFF;
+  padding: 1.25rem;
+}
+
+.member-app main.staff-verification-page .staff-verification-filters h2 {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-verification-page .staff-verification-filters label {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-verification-page .staff-verification-filters > .grid > div {
+  min-width: 0;
+}
+
+.member-app main.staff-verification-page .staff-verification-filters .input,
+.member-app main.staff-verification-page .staff-verification-filters .dropdown-select-trigger {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.member-app main.staff-verification-page .staff-verification-hero button,
+.member-app main.staff-verification-page .staff-verification-summary button,
+.member-app main.staff-verification-page .staff-verification-filters button {
+  box-sizing: border-box;
+  min-width: 0;
+  transition-property: background-color, border-color, color, box-shadow;
+}
+
+.member-app main.staff-verification-page .staff-verification-hero button:hover,
+.member-app main.staff-verification-page .staff-verification-hero button:active,
+.member-app main.staff-verification-page .staff-verification-summary button:hover,
+.member-app main.staff-verification-page .staff-verification-summary button:active,
+.member-app main.staff-verification-page .staff-verification-filters button:hover,
+.member-app main.staff-verification-page .staff-verification-filters button:active {
+  transform: none;
+}
+
+.member-app main.staff-verification-page .staff-verification-filters > div:first-child > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 0.625rem;
+  background: rgba(37, 99, 235, 0.06);
+  padding: 0.55rem 0.85rem;
+  color: #2563EB;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.member-app main.staff-verification-page .staff-verification-filters > div:first-child > button:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.11);
+}
+
+@media (max-width: 640px) {
+  .member-app main.staff-verification-page .staff-verification-hero {
+    align-items: flex-start;
+  }
+
+  .member-app main.staff-verification-page .staff-verification-hero > div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .member-app main.staff-verification-page .staff-verification-hero button {
+    align-self: flex-start;
+  }
+
+  .member-app main.staff-verification-page .staff-verification-summary > button {
+    padding: 0.85rem;
+  }
+
+  .member-app main.staff-verification-page .staff-verification-filters {
+    padding: 1rem;
+  }
+}
+
+.member-app main.staff-inventory-page {
+  min-width: 0;
+}
+
+.member-app main.staff-inventory-page .staff-module-sections {
+  min-width: 0;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-hero {
+  gap: 1.5rem;
+  padding-bottom: 1.25rem;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-hero > div:first-child {
+  min-width: 0;
+  flex: 1 1 36rem;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-hero h1 {
+  max-width: 100%;
+  font-size: clamp(1.85rem, 3vw, 2.65rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-hero p {
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-summary {
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-summary > button {
+  display: flex;
+  min-width: 0;
+  min-height: 9rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  transition-property: background-color, border-color, box-shadow, color;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-summary > button:hover {
+  transform: none;
+  border-color: rgba(37, 99, 235, 0.5);
+  background-color: #F8FAFF;
+  box-shadow: 0 5px 14px rgba(37, 99, 235, 0.09);
+}
+
+.member-app main.staff-inventory-page .staff-inventory-summary > button:active {
+  transform: none;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-summary > button > div:first-child > span {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-summary > button > p:nth-child(2) {
+  margin-top: 0.65rem;
+  font-size: 1.8rem;
+  line-height: 1.1;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-summary > button > p:last-child {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-filters {
+  min-width: 0;
+  background: #F8FAFF;
+  padding: 1.25rem;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-filters h2 {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-filters label {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-filters > div:first-child > div {
+  min-width: 0;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-filters > div:last-child > div {
+  min-width: 0;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-filters .input,
+.member-app main.staff-inventory-page .staff-inventory-filters .dropdown-select-trigger {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-hero button,
+.member-app main.staff-inventory-page .staff-inventory-summary button,
+.member-app main.staff-inventory-page .staff-inventory-filters button {
+  box-sizing: border-box;
+  min-width: 0;
+  transition-property: background-color, border-color, color, box-shadow;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-hero button:hover,
+.member-app main.staff-inventory-page .staff-inventory-hero button:active,
+.member-app main.staff-inventory-page .staff-inventory-summary button:hover,
+.member-app main.staff-inventory-page .staff-inventory-summary button:active,
+.member-app main.staff-inventory-page .staff-inventory-filters button:hover,
+.member-app main.staff-inventory-page .staff-inventory-filters button:active {
+  transform: none;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-filters > div:first-child > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 0.625rem;
+  background: rgba(37, 99, 235, 0.06);
+  padding: 0.55rem 0.85rem;
+  color: #2563EB;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-filters > div:first-child > button:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.11);
+}
+
+@media (max-width: 640px) {
+  .member-app main.staff-inventory-page .staff-inventory-hero {
+    align-items: flex-start;
+  }
+
+  .member-app main.staff-inventory-page .staff-inventory-hero > div:first-child {
+    flex-basis: 100%;
+  }
+
+  .member-app main.staff-inventory-page .staff-inventory-hero-actions {
+    width: 100%;
+  }
+
+  .member-app main.staff-inventory-page .staff-inventory-hero-actions > button:first-child {
+    flex: 1 1 auto;
+  }
+
+  .member-app main.staff-inventory-page .staff-inventory-summary > button {
+    padding: 0.85rem;
+  }
+
+  .member-app main.staff-inventory-page .staff-inventory-filters {
+    padding: 1rem;
+  }
+}
+
+.member-app main.staff-walkin-page,
+.member-app main.staff-walkin-page .staff-module-sections {
+  min-width: 0;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-hero {
+  min-width: 0;
+  padding-bottom: 1.25rem;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-hero h1 {
+  max-width: 100%;
+  font-size: clamp(1.85rem, 3vw, 2.65rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-hero p {
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-summary {
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-summary > article {
+  display: flex;
+  min-width: 0;
+  min-height: 8.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-summary > article > div:first-child > span {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-summary > article > p:nth-child(2) {
+  margin-top: 0.65rem;
+  font-size: 1.8rem;
+  line-height: 1.1;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-summary > article > p:last-child {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-steps > div > div {
+  min-width: 0;
+  min-height: 2.75rem;
+  align-items: flex-start;
+  padding: 0.65rem 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-form {
+  min-width: 0;
+  gap: 1rem;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-form > * {
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-form h2 {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-form label {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-form > .grid,
+.member-app main.staff-walkin-page .staff-walkin-form > .grid > div {
+  min-width: 0;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-form input,
+.member-app main.staff-walkin-page .staff-walkin-form textarea,
+.member-app main.staff-walkin-page .staff-walkin-form .dropdown-select-trigger {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-form textarea {
+  resize: vertical;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-form > .flex:last-child {
+  justify-content: flex-end;
+}
+
+.member-app main.staff-walkin-page button.btn:not(:disabled):hover,
+.member-app main.staff-walkin-page button.btn:not(:disabled):active {
+  transform: none;
+}
+
+.member-app main.staff-workspace.staff-walkin-page button.btn:not(:disabled):hover,
+.member-app main.staff-workspace.staff-walkin-page button.btn:not(:disabled):active {
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .member-app main.staff-walkin-page .staff-walkin-form > * {
+    padding: 1rem;
+  }
+
+  .member-app main.staff-walkin-page .staff-walkin-form > .flex:last-child > button {
+    width: 100%;
+  }
+}
+
+.member-app main.staff-dashboard-page,
+.member-app main.staff-dashboard-page > * {
+  min-width: 0;
+}
+
+.member-app main.staff-dashboard-page .panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-dashboard-page button {
+  box-sizing: border-box;
+  min-width: 0;
+  transition-property: background-color, border-color, color, box-shadow;
+}
+
+.member-app main.staff-dashboard-page button:hover,
+.member-app main.staff-dashboard-page button:active {
+  transform: none;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-banner h1 {
+  font-size: clamp(1.75rem, 2.6vw, 2.5rem);
+  line-height: 1.12;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-banner p {
+  font-size: clamp(0.9rem, 1vw, 1rem);
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-metrics > .panel {
+  padding: 1.25rem;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-metrics > .panel > div:first-child {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-metrics > .panel > p:last-child {
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-analytics article h3 {
+  font-size: 1.125rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-analytics article > p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-analytics article > div[role="img"] {
+  min-width: 0;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-worklist > .panel h2 {
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-worklist > .panel p {
+  line-height: 1.5;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-worklist > .panel button.staff-priority-request {
+  min-width: 0;
+  transition-property: background-color, border-color, color, box-shadow;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-worklist > .panel button.staff-priority-request:hover {
+  transform: none;
+}
+
+.member-app main.staff-dashboard-page .staff-status-grid > .panel h2 {
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-dashboard-page .staff-status-grid > .panel p {
+  line-height: 1.5;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-modules > .panel {
+  min-width: 0;
+  padding: 1.25rem;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-modules h3 {
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-modules p {
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 520px) {
+  .member-app main.staff-dashboard-page .staff-dashboard-banner {
+    padding: 1.25rem;
+  }
+
+  .member-app main.staff-dashboard-page .staff-dashboard-banner > div:last-child {
+    width: 100%;
+  }
+
+  .member-app main.staff-dashboard-page .staff-dashboard-banner > div:last-child > button {
+    flex: 1 1 auto;
+    white-space: normal;
+  }
+
+  .member-app main.staff-dashboard-page .staff-dashboard-worklist > .panel > div:first-child {
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .member-app main.staff-dashboard-page .staff-dashboard-worklist .staff-priority-request {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+}
+
+.member-app main.staff-workspace .staff-dashboard-plain-action {
+  background-color: transparent;
+}
+
+.member-app main.staff-workspace .staff-status-grid > .panel:nth-child(-n + 2) {
+  display: flex;
+  flex-direction: column;
+}
+
+.member-app main.staff-workspace .staff-status-grid > .panel:nth-child(-n + 2) > button {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.35rem;
+  margin-top: auto;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 0.625rem;
+  background: rgba(37, 99, 235, 0.06);
+  padding: 0.5rem 0.75rem;
+  line-height: 1.25;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.member-app main.staff-workspace .staff-status-grid > .panel:nth-child(-n + 2) > button:hover {
+  border-color: rgba(37, 99, 235, 0.25);
+  background: rgba(37, 99, 235, 0.11);
+}
+
+.member-app main.staff-workspace .staff-priority-request {
+  box-shadow: 0 2px 8px rgba(30, 80, 180, 0.045);
+}
+
+.member-app main.staff-workspace .staff-priority-request:hover {
+  border-color: rgba(37, 99, 235, 0.28);
+  background-color: #F8FAFF;
+  box-shadow: 0 6px 16px rgba(30, 80, 180, 0.1);
+  transform: translateY(-1px);
+}
+
+.member-app main.staff-workspace .staff-priority-request:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.member-app main.staff-workspace .staff-priority-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: rgba(37, 99, 235, 0.06);
+  padding: 0.5rem 0.7rem;
+  transition: background-color 150ms ease;
+}
+
+.member-app main.staff-workspace .staff-priority-view-all:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.staff-module-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.staff-module-sections > *,
+.staff-module-form-sections > * {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 7px 24px rgba(30, 80, 180, 0.065);
+}
+
+.staff-module-form-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .member-app main.page .page-title,
 .member-app main.staff-workspace h1 {
   max-width: 100%;
@@ -2908,6 +3680,173 @@ body,
 .member-app main.staff-workspace .btn:not(:disabled):hover,
 .member-app main.staff-workspace .nav-link:hover {
   transform: translateY(-1px);
+}
+
+.member-app main.staff-workspace.staff-verification-page .staff-verification-hero button.btn:not(:disabled):hover {
+  transform: none;
+}
+
+.member-app main.staff-workspace.staff-inventory-page .staff-inventory-hero button.btn:not(:disabled):hover {
+  transform: none;
+}
+
+.member-app main.staff-workspace.staff-walkin-page button:not(:disabled):hover,
+.member-app main.staff-workspace.staff-walkin-page button:not(:disabled):active {
+  box-sizing: border-box;
+  transform: none;
+}
+
+.member-app main.staff-workspace.staff-dispatch-page .staff-module-sections > div:first-child button:hover,
+.member-app main.staff-workspace.staff-dispatch-page .staff-module-sections > div:first-child button:active,
+.member-app main.staff-workspace.staff-dispatch-page .modal-overlay button:not(:disabled):hover,
+.member-app main.staff-workspace.staff-dispatch-page .modal-overlay button:not(:disabled):active {
+  box-sizing: border-box;
+  transform: none;
+}
+
+.member-app main.staff-dispatch-page,
+.member-app main.staff-dispatch-page .staff-module-sections {
+  min-width: 0;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > div:first-child {
+  min-width: 0;
+  gap: 1.5rem;
+  padding-bottom: 1.25rem;
+}
+
+.member-app main.staff-dispatch-page .staff-dispatch-page-title {
+  max-width: 100%;
+  font-size: clamp(1.85rem, 3vw, 2.65rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > div:first-child p {
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"] {
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"] > article {
+  display: flex;
+  min-width: 0;
+  min-height: 8.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"] > article > div:first-child > span {
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"] > article > p:nth-child(2) {
+  margin-top: 0.65rem;
+  font-size: 1.8rem;
+  line-height: 1.1;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"] > article > p:last-child {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"] + section {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"] + section > div {
+  min-width: 0;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"] + section > div > div {
+  min-width: 0;
+  min-height: 2.75rem;
+  align-items: flex-start;
+  padding: 0.65rem 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > .grid.gap-3 {
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > .grid.gap-3 > * {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > div:first-child button,
+.member-app main.staff-dispatch-page .staff-module-sections > .grid.gap-3 button,
+.member-app main.staff-dispatch-page .modal-overlay button {
+  box-sizing: border-box;
+  min-width: 0;
+  transition-property: background-color, border-color, color, box-shadow;
+}
+
+.member-app main.staff-dispatch-page .staff-module-sections > div:first-child button:hover,
+.member-app main.staff-dispatch-page .staff-module-sections > div:first-child button:active,
+.member-app main.staff-dispatch-page .staff-module-sections > .grid.gap-3 button:hover,
+.member-app main.staff-dispatch-page .staff-module-sections > .grid.gap-3 button:active,
+.member-app main.staff-dispatch-page .modal-overlay button:hover,
+.member-app main.staff-dispatch-page .modal-overlay button:active {
+  transform: none;
+}
+
+.member-app main.staff-dispatch-page .modal-overlay form {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.member-app main.staff-dispatch-page .modal-overlay form input,
+.member-app main.staff-dispatch-page .modal-overlay form textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .member-app main.staff-dispatch-page .staff-module-sections > div:first-child {
+    align-items: flex-start;
+  }
+
+  .member-app main.staff-dispatch-page .staff-module-sections > div:first-child > div:first-child {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .member-app main.staff-dispatch-page .staff-module-sections > .grid.gap-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .member-app main.staff-dispatch-page .staff-dispatch-modal {
+    padding: 1rem;
+  }
+
+  .member-app main.staff-dispatch-page .staff-dispatch-modal > div:last-child {
+    flex-wrap: wrap;
+  }
+
+  .member-app main.staff-dispatch-page .staff-dispatch-modal > div:last-child > button {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
 }
 
 .member-app main.page .table-wrap,
@@ -3090,4 +4029,261 @@ table.data-table.donations-table tbody td:last-child > .flex {
 .announcement-history-card .badge {
   font-size: 0.8125rem;
 }
+.member-app main.staff-workspace .staff-module-hero,
+.member-app main.staff-activity-page .staff-module-hero {
+  min-width: 0;
+  border: 0;
+  border-radius: 1rem;
+  background: #2563EB;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  color: #FFFFFF;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.16);
+}
 
+.member-app main.staff-workspace .staff-module-hero h1,
+.member-app main.staff-activity-page .staff-module-hero h1 {
+  color: #FFFFFF;
+  line-height: 1.12;
+}
+
+.member-app main.staff-workspace .staff-module-hero p,
+.member-app main.staff-activity-page .staff-module-hero p,
+.member-app main.staff-workspace .staff-module-hero .eyebrow,
+.member-app main.staff-activity-page .staff-module-hero .eyebrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 640px) {
+  .member-app main.staff-workspace .staff-module-hero,
+  .member-app main.staff-activity-page .staff-module-hero {
+    align-items: flex-start;
+    border-radius: 0.875rem;
+    padding: 1.125rem;
+  }
+
+  .member-app main.staff-workspace .staff-module-hero > div:first-child,
+  .member-app main.staff-activity-page .staff-module-hero > div:first-child {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.admin-app main.page .admin-module-hero {
+  min-width: 0;
+  border: 0;
+  border-radius: 1rem;
+  background: #2563EB;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  color: #FFFFFF;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.16);
+}
+
+.admin-app main.page .admin-module-hero h1,
+.admin-app main.page .admin-module-hero h1.page-title {
+  color: #FFFFFF;
+}
+
+.admin-app main.page .admin-module-hero p,
+.admin-app main.page .admin-module-hero .eyebrow {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.admin-app main.page .admin-module-hero .btn-primary {
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: #FFFFFF;
+  color: #1D4ED8;
+}
+
+.admin-app main.page .admin-module-hero .btn-primary:hover:not(:disabled) {
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.admin-app main.page .admin-module-hero .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.8);
+  background: #FFFFFF;
+  color: #1D4ED8;
+}
+
+.admin-app main.admin-dashboard .admin-module-hero .admin-status {
+  color: #FFFFFF;
+}
+
+@media (max-width: 640px) {
+  .admin-app main.page .admin-module-hero {
+    align-items: flex-start;
+    border-radius: 0.875rem;
+    padding: 1.125rem;
+  }
+
+  .admin-app main.page .admin-module-hero > div:first-child {
+    min-width: 0;
+  }
+}
+
+.member-app main.staff-inventory-page .staff-inventory-hero-actions > .btn-primary {
+  border: 1px solid #FFFFFF;
+  background: #FFFFFF;
+  color: #1D4ED8;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-hero-actions > .btn-primary:hover:not(:disabled) {
+  border-color: #DBEAFE;
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
+/* Staff modules use the same clean card and control surfaces as Admin. */
+.member-app main.staff-workspace,
+.member-app main.staff-activity-page {
+  color: #1E293B;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.member-app main.staff-workspace .panel:not(.staff-module-hero):not(.staff-dashboard-banner),
+.member-app main.staff-workspace .card,
+.member-app main.staff-activity-page .panel:not(.staff-module-hero),
+.member-app main.staff-activity-page .card {
+  min-width: 0;
+  border: 1px solid rgba(37, 99, 235, 0.075);
+  border-radius: 16px;
+  background-color: #FFFFFF;
+  box-shadow: 0 7px 24px rgba(30, 80, 180, 0.065);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.member-app main.staff-workspace .panel:not(.no-hover):not(.staff-module-hero):not(.staff-dashboard-banner):hover,
+.member-app main.staff-workspace .card:not(.no-hover):hover,
+.member-app main.staff-activity-page .panel:not(.no-hover):not(.staff-module-hero):hover,
+.member-app main.staff-activity-page .card:not(.no-hover):hover {
+  transform: none;
+  border-color: rgba(37, 99, 235, 0.12);
+  box-shadow: 0 10px 28px rgba(30, 80, 180, 0.09);
+}
+
+.member-app main.staff-workspace .panel.no-hover:not(.staff-module-hero):not(.staff-dashboard-banner):hover,
+.member-app main.staff-workspace .card.no-hover:hover,
+.member-app main.staff-activity-page .panel.no-hover:not(.staff-module-hero):hover,
+.member-app main.staff-activity-page .card.no-hover:hover {
+  transform: none;
+  box-shadow: 0 7px 24px rgba(30, 80, 180, 0.065);
+}
+
+.member-app main.staff-workspace .btn,
+.member-app main.staff-workspace .nav-link,
+.member-app main.staff-activity-page .btn,
+.member-app main.staff-activity-page .nav-link {
+  border-radius: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.member-app main.staff-workspace .field,
+.member-app main.staff-workspace .input,
+.member-app main.staff-workspace .dropdown-select-trigger,
+.member-app main.staff-activity-page .field,
+.member-app main.staff-activity-page .input,
+.member-app main.staff-activity-page .dropdown-select-trigger {
+  min-height: 2.75rem;
+  border: 1px solid #DBE3F0;
+  border-radius: 11px;
+  background-color: #FFFFFF;
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.member-app main.staff-workspace .field:focus,
+.member-app main.staff-workspace .input:focus,
+.member-app main.staff-workspace .dropdown-select-trigger:focus-visible,
+.member-app main.staff-activity-page .field:focus,
+.member-app main.staff-activity-page .input:focus,
+.member-app main.staff-activity-page .dropdown-select-trigger:focus-visible {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.11);
+}
+
+.member-app main.staff-workspace .staff-verification-summary > button,
+.member-app main.staff-workspace .staff-inventory-summary > button,
+.member-app main.staff-workspace .staff-walkin-summary > article,
+.member-app main.staff-workspace .staff-dispatch-page [aria-label="Dispatch summary"] > article,
+.member-app main.staff-workspace .staff-priority-request {
+  border-color: rgba(37, 99, 235, 0.09);
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(30, 80, 180, 0.045);
+}
+
+.member-app main.staff-workspace .staff-verification-filters,
+.member-app main.staff-workspace .staff-inventory-filters,
+.member-app main.staff-workspace .staff-dispatch-filters {
+  border: 1px solid rgba(37, 99, 235, 0.075);
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 7px 24px rgba(30, 80, 180, 0.065);
+  padding: clamp(1rem, 1.6vw, 1.5rem);
+}
+
+.member-app main.staff-workspace .staff-walkin-form {
+  border: 1px solid rgba(37, 99, 235, 0.075);
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 7px 24px rgba(30, 80, 180, 0.065);
+  padding: clamp(1rem, 1.6vw, 1.5rem);
+}
+
+.member-app main.staff-workspace .staff-workspace-table {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid rgba(37, 99, 235, 0.08);
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
+}
+
+.member-app main.staff-workspace .staff-workspace-table table {
+  min-width: 42rem;
+  font-family: inherit;
+}
+
+.member-app main.staff-workspace .staff-workspace-table thead tr {
+  background: #F8FAFC;
+  color: #475569;
+}
+
+.member-app main.staff-workspace .staff-workspace-table tbody tr:hover {
+  background: rgba(37, 99, 235, 0.035);
+}
+
+.member-app main.staff-workspace .staff-dashboard-plain-action,
+.member-app main.staff-workspace .staff-priority-view-all {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  border-radius: 10px;
+  background: #FFFFFF;
+  padding: 0.45rem 0.75rem;
+  box-shadow: 0 1px 3px rgba(30, 80, 180, 0.035);
+  text-decoration: none;
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.member-app main.staff-workspace .staff-dashboard-plain-action:hover,
+.member-app main.staff-workspace .staff-priority-view-all:hover {
+  border-color: rgba(37, 99, 235, 0.3);
+  background: #F8FAFF;
+  box-shadow: 0 4px 12px rgba(30, 80, 180, 0.08);
+}
+
+@media (max-width: 640px) {
+  .member-app main.staff-workspace .staff-verification-filters,
+  .member-app main.staff-workspace .staff-inventory-filters,
+  .member-app main.staff-workspace .staff-dispatch-filters,
+  .member-app main.staff-workspace .staff-walkin-form {
+    padding: 1rem;
+  }
+}
