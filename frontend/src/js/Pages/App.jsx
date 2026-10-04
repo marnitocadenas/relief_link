@@ -6157,7 +6157,7 @@ function PeopleManager(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">ADMINISTRATOR WORKSPACE</p>
+                    <p className="eyebrow staff-module-badge">ADMINISTRATOR WORKSPACE</p>
                     <h1 className="page-title">Members & Accounts</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Manage user roles, inspect account profiles, and authorize campus accounts.
@@ -6670,7 +6670,7 @@ function DonationManager(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">{user.role === 'admin' ? 'ADMINISTRATOR WORKSPACE' : 'DONOR WORKSPACE'}</p>
+                    <p className="eyebrow staff-module-badge">{user.role === 'admin' ? 'ADMINISTRATOR WORKSPACE' : 'DONOR WORKSPACE'}</p>
                     <h1 className="page-title">Donations & Listed Resources</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         View, track, inspect, and manage community resource contributions.
@@ -7409,7 +7409,7 @@ function RequestManager(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">{user.role === 'admin' ? 'ADMINISTRATOR WORKSPACE' : 'BENEFICIARY WORKSPACE'}</p>
+                    <p className="eyebrow staff-module-badge">{user.role === 'admin' ? 'ADMINISTRATOR WORKSPACE' : 'BENEFICIARY WORKSPACE'}</p>
                     <h1 className="page-title">Support Requests & Needs</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Review, track, manage, and monitor status updates for campus support requests.
@@ -8151,7 +8151,7 @@ function Matches(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">CONNECTION PROGRESS</p>
+                    <p className="eyebrow staff-module-badge">CONNECTION PROGRESS</p>
                     <h1 className="page-title">Matches with Meaning</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Authorize, schedule, and track matches connecting campus resource donations with student needs.
@@ -8683,7 +8683,7 @@ function Dashboard(){
         <main className="admin-dashboard page space-y-8">
             <div className="admin-module-hero flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <p className="eyebrow">ADMINISTRATOR WORKSPACE</p>
+                    <p className="eyebrow staff-module-badge">ADMINISTRATOR WORKSPACE</p>
                     <h1 className="page-title admin-dashboard-title">Campus Impact & Overview</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Real-time monitoring, priority queues, pending approvals, and administrative controls.
@@ -8901,8 +8901,8 @@ function Dashboard(){
                         </article>
                     </section>
 
-                    <div className="admin-directory-panel panel no-hover p-5 sm:p-6">
-                        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
+                    <div className="admin-directory-panel">
+                        <div className="panel no-hover flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
                             <div>
                                 <h3 className="text-base font-extrabold text-[#2563EB]">Community Directory Overview</h3>
                                 <p className="text-xs text-[#2563EB]/70 font-semibold mt-0.5">Active user distribution across roles</p>
@@ -9166,7 +9166,7 @@ function StaffDashboard() {
             {/* Header Banner */}
             <div className="panel staff-dashboard-banner p-6 sm:p-7 bg-[#2563EB] text-white flex flex-wrap items-center justify-between gap-6 shadow-md">
                 <div className="space-y-2 max-w-xl">
-                    <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white">
+                    <span className="staff-module-badge inline-block rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white">
                         CAMPUS OPERATIONAL PORTAL
                     </span>
                     <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
@@ -9274,8 +9274,8 @@ function StaffDashboard() {
             )}
 
             <section className="space-y-4" aria-label="Staff operations analytics">
-                <div className="flex flex-wrap items-end justify-between gap-2">
-                    <div><p className="eyebrow">LIVE OPERATIONS ANALYTICS</p><h2 className="mt-1 text-xl font-extrabold">Staff operations at a glance</h2></div>
+                <div className="staff-dashboard-analytics-header panel no-hover flex flex-wrap items-end justify-between gap-3">
+                    <div className="min-w-0"><p className="eyebrow">LIVE OPERATIONS ANALYTICS</p><h2 className="mt-1 text-xl font-extrabold">Staff operations at a glance</h2></div>
                     <p className="text-xs font-semibold text-[#2563EB]/65">Current data from the staff workspace feed</p>
                 </div>
                 <div className="staff-dashboard-analytics grid gap-4 xl:grid-cols-2">
@@ -9529,10 +9529,10 @@ function StaffVerificationDesk() {
         <main className="shell staff-workspace staff-verification-page py-8 space-y-6 text-[#2563EB]">
             <div className="staff-module-sections">
                 <div className="staff-module-hero staff-verification-hero flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
-                    <div>
-                        <span className="eyebrow">MODULE 1: ELIGIBILITY & PROOF</span>
+                    <div className="space-y-2">
+                        <span className="eyebrow staff-module-badge">MODULE 1: ELIGIBILITY & PROOF</span>
                         <h1 className="text-2xl font-extrabold text-[#2563EB]">Student Request Verifications Desk</h1>
-                        <p className="text-xs font-semibold text-[#2563EB]/80 mt-1">
+                        <p className="text-xs font-semibold text-[#2563EB]/80">
                             Review student credentials, check anti-fraud guards, set verification tiers, and approve aid.
                         </p>
                     </div>
@@ -9557,7 +9557,7 @@ function StaffVerificationDesk() {
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h2 className="text-sm font-extrabold">Find and triage requests</h2><p className="mt-0.5 text-[11px] font-semibold text-[#2563EB]/65">{filtered.length} request{filtered.length === 1 ? '' : 's'} match the current view.</p></div><button onClick={() => { setSearch(''); setStatusFilter('pending_review'); setTierFilter('all'); setCategoryFilter('all'); setUrgencyFilter('all'); setDateFilter('all'); }} className="text-xs font-extrabold underline">Reset filters</button></div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
                     <div>
-                        <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Search Student / Justification</label>
+                        <label className="staff-verification-search-label text-[10px] font-extrabold uppercase text-[#2563EB]/70">Search Student / Justification</label>
                         <input
                             type="text"
                             placeholder="Search by student name, ID, or text..."
@@ -9920,17 +9920,17 @@ function StaffWarehouseInventory() {
         <main className="shell staff-workspace staff-inventory-page py-8 space-y-6 text-[#2563EB]">
             <div className="staff-module-sections">
                 <div className="staff-module-hero staff-inventory-hero flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
-                    <div>
-                        <span className="eyebrow">MODULE 2: PHYSICAL STORAGE</span>
+                    <div className="space-y-2">
+                        <span className="eyebrow staff-module-badge">MODULE 2: PHYSICAL STORAGE</span>
                         <h1 className="text-2xl font-extrabold text-[#2563EB]">Warehouse & Inventory Control</h1>
-                        <p className="text-xs font-semibold text-[#2563EB]/80 mt-1">
+                        <p className="text-xs font-semibold text-[#2563EB]/80">
                             Track physical storage bin tagging, shelf locations, item condition grades, and physical intake.
                         </p>
                     </div>
                     <div className="staff-inventory-hero-actions flex items-center gap-2">
                         <Button onClick={() => setShowIntakeModal(true)}>
                             <Icon name="plus" />
-                            <span className="ml-1 text-xs">+ Intake Physical Stock</span>
+                            <span className="text-xs">Intake Physical Stock</span>
                         </Button>
                         <Button variant="secondary" onClick={loadData} loading={loading}>
                             <Icon name="refresh" />
@@ -9951,7 +9951,16 @@ function StaffWarehouseInventory() {
                 </section>
 
                 {/* Filters */}
-                <div className="staff-inventory-filters rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4"><div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div><h2 className="text-sm font-extrabold">Stock overview</h2><p className="mt-0.5 text-[11px] font-semibold text-[#2563EB]/65">{filtered.length} inventory item{filtered.length === 1 ? '' : 's'} match the current view.</p></div><button onClick={() => { setSearch(''); setCategoryFilter('all'); setGradeFilter('all'); setStockFilter('all'); }} className="text-xs font-extrabold underline">Reset filters</button></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="staff-inventory-overview panel no-hover flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div>
+                        <h2 className="text-sm font-extrabold">Stock overview</h2>
+                        <p className="mt-0.5 text-[11px] font-semibold text-[#2563EB]/65">{filtered.length} inventory item{filtered.length === 1 ? '' : 's'} match the current view.</p>
+                    </div>
+                    <button onClick={() => { setSearch(''); setCategoryFilter('all'); setGradeFilter('all'); setStockFilter('all'); }} className="text-xs font-extrabold underline">Reset filters</button>
+                </div>
+
+                <div className="staff-inventory-filters rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Search Item or Shelf Bin</label>
                         <input
@@ -10325,9 +10334,9 @@ function StaffWalkInDesk() {
 
     return (
         <main className="shell staff-workspace staff-walkin-page py-8 space-y-6 text-[#2563EB]">
-            <div className="staff-module-sections mx-auto w-full max-w-6xl">
-                <div className="staff-module-hero staff-walkin-hero border-b border-[#2563EB]/20 pb-4 space-y-1">
-                    <span className="eyebrow">MODULE 3: ON-SITE ASSISTANCE</span>
+            <div className="staff-module-sections w-full">
+                <div className="staff-module-hero staff-walkin-hero border-b border-[#2563EB]/20 pb-4 space-y-2">
+                    <span className="eyebrow staff-module-badge">MODULE 3: ON-SITE ASSISTANCE</span>
                     <h1 className="text-2xl font-extrabold text-[#2563EB]">Walk-In Student Relief Desk</h1>
                     <p className="text-xs font-semibold text-[#2563EB]/80">
                         Process offline student requests on behalf of beneficiaries visiting the campus relief office in person.
@@ -10344,7 +10353,7 @@ function StaffWalkInDesk() {
                     ].map(([label, value, detail, icon, tone]) => <article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex items-start justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}
                 </section>
 
-                <section aria-label="Walk-in assistance steps" className="staff-walkin-steps rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Identify student', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex min-w-0 items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-xs font-extrabold"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB] text-[10px] text-white">{index + 1}</span><span className="min-w-0 leading-snug">{step}</span></div>)}</div></section>
+                <section aria-label="Walk-in assistance steps" className="staff-walkin-steps"><div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">{['Identify student', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex min-w-0 items-center gap-2 rounded-xl border border-[#2563EB]/15 bg-white px-3 py-3 text-xs font-extrabold shadow-[0_6px_20px_rgba(30,80,180,0.055)]"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB] text-[10px] text-white">{index + 1}</span><span className="min-w-0 leading-snug">{step}</span></div>)}</div></section>
 
                 {successMessage && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
@@ -10568,10 +10577,10 @@ function StaffHandoffDispatch() {
         <main className="shell staff-workspace staff-dispatch-page py-8 space-y-6 text-[#2563EB]">
             <div className="staff-module-sections">
                 <div className="staff-module-hero flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
-                    <div>
-                        <span className="eyebrow">MODULE 4: DISPATCH & 2FA CLEARANCE</span>
+                    <div className="space-y-2">
+                        <span className="eyebrow staff-module-badge">MODULE 4: DISPATCH & 2FA CLEARANCE</span>
                         <h1 className="staff-dispatch-page-title text-2xl font-extrabold text-[#2563EB]">Handoff & Physical Dispatch Desk</h1>
-                        <p className="text-xs font-semibold text-[#2563EB]/80 mt-1">
+                        <p className="text-xs font-semibold text-[#2563EB]/80">
                             Verify physical item handoffs at campus pickup depots using student 6-digit PIN codes.
                         </p>
                     </div>
@@ -14282,7 +14291,7 @@ function AdminCategories(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">SYSTEM MANAGEMENT</p>
+                    <p className="eyebrow staff-module-badge">SYSTEM MANAGEMENT</p>
                     <h1 className="page-title">Resource Categories</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Configure, create, and organize campus donation and aid request categories.
@@ -14755,7 +14764,7 @@ function AdminApprovals(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">MODERATION QUEUE</p>
+                    <p className="eyebrow staff-module-badge">MODERATION QUEUE</p>
                     <h1 className="page-title">Approvals & Verification</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Review, verify, authorize, or decline submitted beneficiary aid requests.
@@ -15249,7 +15258,7 @@ function AdminAnnouncements(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">COMMUNICATION CENTER</p>
+                    <p className="eyebrow staff-module-badge">COMMUNICATION CENTER</p>
                     <h1 className="page-title">Campus Announcements</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Broadcast urgent notifications, emergency drives, and updates to campus members.
@@ -15756,7 +15765,7 @@ function AdminSettings(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">SYSTEM CONFIGURATION</p>
+                    <p className="eyebrow staff-module-badge">SYSTEM CONFIGURATION</p>
                     <h1 className="page-title">Platform Settings</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Configure ReliefLink system parameters, matching weights, notification rules, and platform behavior.
@@ -16996,7 +17005,7 @@ function Reports(){
         <main className="page space-y-6">
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">REPORTS AND ANALYTICS</p>
+                    <p className="eyebrow staff-module-badge">REPORTS AND ANALYTICS</p>
                     <h1 className="page-title">Performance Report</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         System metrics, authorization rates, category balances, and fulfillment throughput.
@@ -17364,12 +17373,12 @@ function Activities(){
     };
 
     return (
-        <main className="page space-y-6 staff-activity-page">
+        <main className="page space-y-5 staff-activity-page">
             <div className="admin-module-hero staff-module-hero flex flex-wrap items-end justify-between gap-4">
-                <div>
-                    <p className="eyebrow">ACCOUNTABILITY & AUDIT TRAIL</p>
+                <div className="space-y-2">
+                    <p className="eyebrow staff-module-badge">ACCOUNTABILITY & AUDIT TRAIL</p>
                     <h1 className="page-title">{user?.role === 'admin' ? 'Activity & Reports' : 'Activity Log'}</h1>
-                    <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
+                    <p className="text-sm font-semibold text-[#2563EB]/80">
                         Monitor system operations, administrative actions, account changes, and authorization records.
                     </p>
                 </div>

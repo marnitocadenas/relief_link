@@ -2592,7 +2592,11 @@ body,
 }
 
 .admin-dashboard .admin-directory-panel {
-  padding: clamp(1rem, 1.6vw, 1.5rem);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
 }
 
 .admin-dashboard .admin-directory-card {
@@ -2930,7 +2934,45 @@ body,
 }
 
 .member-app main.staff-workspace .staff-dashboard-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   background-color: #2563EB;
+  background-image:
+    radial-gradient(ellipse at 15% 95%, rgba(255, 255, 255, 0.06), transparent 42%),
+    radial-gradient(ellipse at 85% 5%, rgba(255, 255, 255, 0.055), transparent 34%);
+}
+
+.member-app main.staff-workspace .staff-dashboard-banner::before,
+.member-app main.staff-workspace .staff-dashboard-banner::after {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.035);
+  content: '';
+  pointer-events: none;
+}
+
+.member-app main.staff-workspace .staff-dashboard-banner::before {
+  top: -18rem;
+  right: -8rem;
+  width: clamp(22rem, 43vw, 42rem);
+  aspect-ratio: 1;
+}
+
+.member-app main.staff-workspace .staff-dashboard-banner::after {
+  bottom: -25rem;
+  left: -13rem;
+  width: clamp(28rem, 58vw, 56rem);
+  aspect-ratio: 1;
+  box-shadow: 32rem -4rem 0 -9rem rgba(255, 255, 255, 0.025);
+}
+
+.member-app main.staff-workspace .staff-dashboard-banner > * {
+  position: relative;
+  z-index: 1;
 }
 
 .member-app main.staff-verification-page {
@@ -2969,6 +3011,14 @@ body,
   background: transparent;
   padding: 0;
   box-shadow: none;
+}
+
+.member-app main.staff-verification-page .staff-module-sections > .staff-workspace-table {
+  border: 1px solid #E8EEF7;
+  border-radius: 16px;
+  background: #FFFFFF;
+  padding: 0;
+  box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
 }
 
 .member-app main.staff-verification-page .staff-verification-summary > button {
@@ -3024,6 +3074,23 @@ body,
   display: block;
   font-size: 0.75rem;
   line-height: 1.4;
+}
+
+/* Keep the search label on one line so every control in the filter row aligns. */
+.member-app main.staff-verification-page .staff-verification-filters .staff-verification-search-label {
+  white-space: nowrap;
+}
+
+@media (min-width: 1280px) {
+  .member-app main.staff-verification-page .staff-verification-filters > .grid {
+    grid-template-columns:
+      minmax(max-content, 1.5fr)
+      minmax(0, 1fr)
+      minmax(11.5rem, 1.25fr)
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      minmax(0, 1.25fr);
+  }
 }
 
 .member-app main.staff-verification-page .staff-verification-filters > .grid > div {
@@ -3182,6 +3249,15 @@ body,
   line-height: 1.35;
 }
 
+.member-app main.staff-inventory-page .staff-inventory-overview {
+  min-width: 0;
+}
+
+.member-app main.staff-inventory-page .staff-inventory-overview h2 {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
 .member-app main.staff-inventory-page .staff-inventory-filters label {
   display: block;
   font-size: 0.75rem;
@@ -3206,6 +3282,7 @@ body,
 
 .member-app main.staff-inventory-page .staff-inventory-hero button,
 .member-app main.staff-inventory-page .staff-inventory-summary button,
+.member-app main.staff-inventory-page .staff-inventory-overview button,
 .member-app main.staff-inventory-page .staff-inventory-filters button {
   box-sizing: border-box;
   min-width: 0;
@@ -3216,12 +3293,14 @@ body,
 .member-app main.staff-inventory-page .staff-inventory-hero button:active,
 .member-app main.staff-inventory-page .staff-inventory-summary button:hover,
 .member-app main.staff-inventory-page .staff-inventory-summary button:active,
+.member-app main.staff-inventory-page .staff-inventory-overview button:hover,
+.member-app main.staff-inventory-page .staff-inventory-overview button:active,
 .member-app main.staff-inventory-page .staff-inventory-filters button:hover,
 .member-app main.staff-inventory-page .staff-inventory-filters button:active {
   transform: none;
 }
 
-.member-app main.staff-inventory-page .staff-inventory-filters > div:first-child > button {
+.member-app main.staff-inventory-page .staff-inventory-overview > button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3236,7 +3315,7 @@ body,
   white-space: nowrap;
 }
 
-.member-app main.staff-inventory-page .staff-inventory-filters > div:first-child > button:hover {
+.member-app main.staff-inventory-page .staff-inventory-overview > button:hover {
   border-color: rgba(37, 99, 235, 0.3);
   background: rgba(37, 99, 235, 0.11);
 }
@@ -3267,10 +3346,28 @@ body,
   }
 }
 
+/* The inventory summary sits flush on the page — no module-section card. */
+.member-app main.staff-inventory-page .staff-module-sections > .staff-inventory-summary {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.member-app main.staff-inventory-page .staff-module-sections > .staff-workspace-table {
+  border: 1px solid #E8EEF7;
+  border-radius: 16px;
+  background: #FFFFFF;
+  padding: 0;
+  box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
+}
+
 .member-app main.staff-walkin-page,
 .member-app main.staff-walkin-page .staff-module-sections {
   min-width: 0;
 }
+
 
 .member-app main.staff-walkin-page .staff-walkin-hero {
   min-width: 0;
@@ -3292,6 +3389,14 @@ body,
 .member-app main.staff-walkin-page .staff-walkin-summary {
   min-width: 0;
   gap: 0.75rem;
+}
+
+.member-app main.staff-walkin-page .staff-walkin-steps {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
 }
 
 .member-app main.staff-walkin-page .staff-walkin-summary > article {
@@ -3323,9 +3428,9 @@ body,
 
 .member-app main.staff-walkin-page .staff-walkin-steps > div > div {
   min-width: 0;
-  min-height: 2.75rem;
-  align-items: flex-start;
-  padding: 0.65rem 0.6rem;
+  min-height: 4.25rem;
+  align-items: center;
+  padding: 0.75rem;
   font-size: 0.8rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -3395,6 +3500,16 @@ body,
   }
 }
 
+/* The summary row and the request form sit flush on the page — no module-section card. */
+.member-app main.staff-walkin-page .staff-module-sections > .staff-walkin-summary,
+.member-app main.staff-walkin-page .staff-module-sections > .staff-walkin-form {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
 .member-app main.staff-dashboard-page,
 .member-app main.staff-dashboard-page > * {
   min-width: 0;
@@ -3453,6 +3568,20 @@ body,
   min-width: 0;
 }
 
+/* Section header card for the Live Operations Analytics block. */
+.member-app main.staff-dashboard-page .staff-dashboard-analytics-header {
+  padding: 1.25rem 1.5rem;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-analytics-header h2 {
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.member-app main.staff-dashboard-page .staff-dashboard-analytics-header > p {
+  line-height: 1.5;
+}
+
 .member-app main.staff-dashboard-page .staff-dashboard-worklist > .panel h2 {
   font-size: 1.2rem;
   line-height: 1.35;
@@ -3496,6 +3625,11 @@ body,
 }
 
 @media (max-width: 520px) {
+  .member-app main.staff-dashboard-page .staff-dashboard-analytics-header {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
   .member-app main.staff-dashboard-page .staff-dashboard-banner {
     padding: 1.25rem;
   }
@@ -3604,6 +3738,7 @@ body,
 .member-app main.page .page-title,
 .member-app main.staff-workspace h1 {
   max-width: 100%;
+  margin: 0;
   font-size: clamp(1.9rem, 3vw, 3rem);
   font-weight: 700;
   line-height: 1.08;
@@ -3849,6 +3984,24 @@ body,
   }
 }
 
+/* The summary row, process steps and handoff table sit flush on the page — no module-section card. */
+.member-app main.staff-workspace.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"],
+.member-app main.staff-workspace.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch process steps"] {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.member-app main.staff-workspace.staff-dispatch-page .staff-module-sections > .staff-workspace-table {
+  border: 1px solid #E8EEF7;
+  border-radius: 16px;
+  background: #FFFFFF;
+  padding: 0;
+  box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
+}
+
 .member-app main.page .table-wrap,
 .member-app main.page .table-container,
 .member-app main.staff-workspace .table-wrap,
@@ -4031,13 +4184,61 @@ table.data-table.donations-table tbody td:last-child > .flex {
 }
 .member-app main.staff-workspace .staff-module-hero,
 .member-app main.staff-activity-page .staff-module-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-width: 0;
   border: 0;
   border-radius: 1rem;
   background: #2563EB;
+  background-image:
+    radial-gradient(ellipse at 15% 95%, rgba(255, 255, 255, 0.06), transparent 42%),
+    radial-gradient(ellipse at 85% 5%, rgba(255, 255, 255, 0.055), transparent 34%);
   padding: clamp(1.25rem, 2.5vw, 2rem);
   color: #FFFFFF;
   box-shadow: 0 8px 22px rgba(37, 99, 235, 0.16);
+}
+
+.member-app main.staff-workspace .staff-module-hero::before,
+.member-app main.staff-workspace .staff-module-hero::after,
+.member-app main.staff-activity-page .staff-module-hero::before,
+.member-app main.staff-activity-page .staff-module-hero::after,
+.admin-app main.page .admin-module-hero::before,
+.admin-app main.page .admin-module-hero::after {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.035);
+  content: '';
+  pointer-events: none;
+}
+
+.member-app main.staff-workspace .staff-module-hero::before,
+.member-app main.staff-activity-page .staff-module-hero::before,
+.admin-app main.page .admin-module-hero::before {
+  top: -18rem;
+  right: -8rem;
+  width: clamp(22rem, 43vw, 42rem);
+  aspect-ratio: 1;
+}
+
+.member-app main.staff-workspace .staff-module-hero::after,
+.member-app main.staff-activity-page .staff-module-hero::after,
+.admin-app main.page .admin-module-hero::after {
+  bottom: -25rem;
+  left: -13rem;
+  width: clamp(28rem, 58vw, 56rem);
+  aspect-ratio: 1;
+  box-shadow: 32rem -4rem 0 -9rem rgba(255, 255, 255, 0.025);
+}
+
+.member-app main.staff-workspace .staff-module-hero > *,
+.member-app main.staff-activity-page .staff-module-hero > *,
+.admin-app main.page .admin-module-hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .member-app main.staff-workspace .staff-module-hero h1,
@@ -4051,6 +4252,23 @@ table.data-table.donations-table tbody td:last-child > .flex {
 .member-app main.staff-workspace .staff-module-hero .eyebrow,
 .member-app main.staff-activity-page .staff-module-hero .eyebrow {
   color: rgba(255, 255, 255, 0.9);
+}
+
+.member-app main.staff-workspace .staff-module-badge,
+.member-app main.staff-activity-page .staff-module-badge,
+.admin-app main.page .admin-module-hero p.staff-module-badge,
+.admin-app main.page .admin-module-hero span.staff-module-badge {
+  display: inline-block;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.75rem;
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+  text-transform: uppercase;
 }
 
 @media (max-width: 640px) {
@@ -4069,10 +4287,16 @@ table.data-table.donations-table tbody td:last-child > .flex {
 }
 
 .admin-app main.page .admin-module-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-width: 0;
   border: 0;
   border-radius: 1rem;
   background: #2563EB;
+  background-image:
+    radial-gradient(ellipse at 15% 95%, rgba(255, 255, 255, 0.06), transparent 42%),
+    radial-gradient(ellipse at 85% 5%, rgba(255, 255, 255, 0.055), transparent 34%);
   padding: clamp(1.25rem, 2.5vw, 2rem);
   color: #FFFFFF;
   box-shadow: 0 8px 22px rgba(37, 99, 235, 0.16);
@@ -4235,7 +4459,7 @@ table.data-table.donations-table tbody td:last-child > .flex {
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  border: 1px solid rgba(37, 99, 235, 0.08);
+  border: 1px solid #E8EEF7;
   border-radius: 16px;
   background: #FFFFFF;
   box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
@@ -4246,11 +4470,42 @@ table.data-table.donations-table tbody td:last-child > .flex {
 .member-app main.staff-workspace .staff-workspace-table table {
   min-width: 42rem;
   font-family: inherit;
+  font-size: 0.8125rem;
 }
 
 .member-app main.staff-workspace .staff-workspace-table thead tr {
   background: #F8FAFC;
   color: #475569;
+}
+
+.member-app main.staff-workspace .staff-workspace-table th {
+  height: 3.25rem;
+  padding: 0.875rem 1rem;
+  border-right: 1px solid #E8EEF7;
+  border-bottom: 1px solid #E2E8F0;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.member-app main.staff-workspace .staff-workspace-table td {
+  height: 4.25rem;
+  padding: 0.875rem 1rem;
+  border-right: 1px solid #F1F5F9;
+  border-bottom: 1px solid #F1F5F9;
+  vertical-align: middle;
+}
+
+.member-app main.staff-workspace .staff-workspace-table th:last-child,
+.member-app main.staff-workspace .staff-workspace-table td:last-child {
+  border-right: 0;
+}
+
+.member-app main.staff-workspace .staff-workspace-table tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 .member-app main.staff-workspace .staff-workspace-table tbody tr:hover {
