@@ -1859,6 +1859,7 @@ body,
 .landing-page .category-section > .shell > div:first-child > a {
   font-size: 0.875rem;
   line-height: 1.5;
+  text-decoration: none;
 }
 
 .landing-page footer .shell > div:first-child > p {
@@ -1997,6 +1998,53 @@ body,
 
 .auth-page > * {
   min-width: 0;
+}
+
+.auth-reset-footer {
+  transform: none;
+}
+
+@media (min-width: 1024px) {
+  .auth-reset-page {
+    height: 100vh;
+    height: 100svh;
+    max-height: 100svh;
+    min-height: 0;
+    overflow: hidden;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .auth-reset-page > * {
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .auth-reset-page .auth-brand-panel {
+    padding: clamp(1.25rem, 2.5vh, 2.5rem) clamp(1.5rem, 2.5vw, 2.5rem);
+    overflow: hidden;
+  }
+
+  .auth-reset-page .auth-brand-copy {
+    margin-top: clamp(0.75rem, 2.5vh, 2.5rem);
+  }
+
+  .auth-reset-page .auth-form-area {
+    padding: clamp(0.75rem, 2vh, 1.5rem) clamp(1rem, 2vw, 2rem);
+    overflow-y: auto;
+  }
+
+  .auth-reset-page .auth-content {
+    margin-block: auto;
+  }
+
+  .auth-reset-page .auth-content > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.75rem;
+  }
+
+  .auth-reset-page form.panel {
+    padding: clamp(1.15rem, 2vh, 1.75rem) clamp(1.25rem, 2vw, 2rem);
+  }
 }
 
 .auth-brand-panel {

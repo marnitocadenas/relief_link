@@ -1793,7 +1793,7 @@ function Auth({ register = false }) {
     };
 
     return (
-        <main className="auth-page grid min-h-screen lg:grid-cols-2 text-[#2563EB]">
+        <main className={`auth-page grid min-h-[100svh] lg:grid-cols-2 text-[#2563EB] ${mode === 'forgot-reset' ? 'auth-reset-page' : ''}`}>
             {/* Left Hero Side Banner */}
             <aside className="auth-brand-panel bg-[#2563EB] p-12 text-white lg:flex lg:flex-col lg:justify-between">
                 <div>
@@ -1824,7 +1824,7 @@ function Auth({ register = false }) {
                     </div>
                 </div>
 
-                <div className="border-t border-white pt-6 text-xs font-extrabold text-white flex items-center justify-between">
+                <div className={`border-t border-white pt-6 text-xs font-extrabold text-white flex items-center justify-between ${mode === 'forgot-reset' ? 'auth-reset-footer' : ''}`}>
                     <span>© {new Date().getFullYear()} ReliefLink System</span>
                     <span>100% Campus Verified</span>
                 </div>
@@ -1832,7 +1832,7 @@ function Auth({ register = false }) {
 
             {/* Right Auth Form Section */}
             <section className="auth-form-area flex items-center justify-center p-6 sm:p-12 bg-white">
-                <div className="auth-content w-full max-w-md space-y-6">
+                <div className={`auth-content w-full max-w-md ${mode === 'forgot-reset' ? 'space-y-3 sm:space-y-4' : 'space-y-6'}`}>
                     {/* Success Banner */}
                     {successMessage && (
                         <div className="rounded-xl border border-[#22C55E] bg-white p-3.5 text-xs font-extrabold text-[#22C55E] flex items-center gap-2">
@@ -1899,7 +1899,7 @@ function Auth({ register = false }) {
                                         </label>
                                         <button
                                             type="button"
-                                            className="text-xs font-bold text-[#2563EB] hover:text-[#22C55E] transition no-underline bg-transparent border-0 p-0 cursor-pointer"
+                                            className="font-bold text-[#2563EB] hover:text-[#22C55E] transition no-underline bg-transparent border-0 p-0 cursor-pointer"
                                             onClick={() => {
                                                 setMode('forgot-email');
                                                 setError('');
@@ -3088,7 +3088,7 @@ function Auth({ register = false }) {
 
                     {/* Mode 5: FORGOT PASSWORD STEP 3 - Reset Password */}
                     {mode === 'forgot-reset' && (
-                        <form className="panel no-hover space-y-4 bg-white p-6 shadow-lg sm:p-8" onSubmit={handleResetPassword}>
+                        <form className="panel no-hover space-y-4 bg-white p-5 shadow-lg sm:p-7" onSubmit={handleResetPassword}>
                             <div>
                                 <p className="eyebrow">PASSWORD RESET STEP 3 OF 3</p>
                                 <h1 className="page-title text-2xl font-extrabold text-[#2563EB]">
