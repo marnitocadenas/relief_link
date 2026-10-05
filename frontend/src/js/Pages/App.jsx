@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { Routes, Route, Navigate, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useTheme } from '../context/ThemeContext';
+import { SunMoon } from 'lucide-react';
 import api from '../api/axios';
 import { Icon, Button, Badge, Error, Empty } from '../Components/UI';
 import InternationalPhoneInput, { COUNTRY_LIST, findCountry } from '../Components/InternationalPhoneInput';
@@ -368,24 +370,30 @@ function NotificationsNavButton() {
 
 function Sidebar() {
     const { user } = useAuth();
+    const { isDark, toggleTheme } = useTheme();
     const location = useLocation();
 
     if (!user) return null;
 
     const modules = getModulesForRole(user.role);
+    const isDarkActive = isDark && ['admin', 'staff'].includes(user.role);
 
     return (
-        <aside className={`fixed left-0 top-0 flex h-screen w-64 shrink-0 flex-col border-r border-blue-100 bg-blue-600 z-30 overflow-hidden ${['admin', 'staff'].includes(user.role) ? 'admin-sidebar' : ''}`}>
+        <aside className={`fixed left-0 top-0 flex h-screen w-64 shrink-0 flex-col border-r z-30 overflow-hidden ${
+            isDarkActive ? 'border-white/10 bg-[#152238] text-white' : 'border-blue-100 bg-blue-600'
+        } ${['admin', 'staff'].includes(user.role) ? 'admin-sidebar' : ''}`}>
             <SidebarContent
                 modules={modules}
                 user={user}
                 location={location}
+                isDark={isDarkActive}
+                toggleTheme={toggleTheme}
             />
         </aside>
     );
 }
 
-function SidebarContent({ modules, user, location }) {
+function SidebarContent({ modules, user, location, isDark, toggleTheme }) {
     const getRoleDashboard = (role) => {
         if (role === 'admin') return '/dashboard';
         if (role === 'staff') return '/staff/dashboard';
@@ -422,8 +430,12 @@ function SidebarContent({ modules, user, location }) {
                             to={m.path}
                             className={`flex items-center gap-2 rounded-xl py-2 text-base font-medium no-underline transition-colors ${['admin', 'staff'].includes(user.role) ? 'admin-sidebar-link' : ''} px-2 ${
                                 isActive
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-white/90 hover:bg-white/10 hover:text-white'
+                                    ? isDark
+                                        ? 'bg-white/15 text-white shadow-sm ring-1 ring-white/10'
+                                        : 'bg-white text-blue-600 shadow-sm'
+                                    : isDark
+                                        ? 'text-slate-300 hover:bg-white/10 hover:text-white'
+                                        : 'text-white/90 hover:bg-white/10 hover:text-white'
                             }`}
                         >
                             <Icon name={m.icon} size={20} />
@@ -432,6 +444,32 @@ function SidebarContent({ modules, user, location }) {
                     );
                 })}
             </nav>
+
+            {['admin', 'staff'].includes(user.role) && (
+                <div className="mt-auto pt-3 border-t border-white/15">
+                    <button
+                        type="button"
+                        onClick={toggleTheme}
+                        className={`w-full rounded-2xl border-2 py-2.5 px-3 flex items-center gap-3 transition-all duration-200 cursor-pointer select-none ${
+                            isDark
+                                ? 'border-[#8B9BB4] bg-[#162232] hover:bg-[#1E2E44] hover:border-white text-white shadow-lg shadow-black/25'
+                                : 'border-white/40 bg-white/10 hover:bg-white/20 hover:border-white/80 text-white shadow-sm'
+                        }`}
+                        aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                    >
+                        <SunMoon className="h-6 w-6 shrink-0 text-white stroke-[2.2]" />
+                        <div className="flex flex-col text-left overflow-hidden">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-white/80 leading-none">
+                                SWITCH TO
+                            </span>
+                            <span className="text-xs font-black uppercase tracking-wide text-white leading-tight mt-0.5">
+                                {isDark ? 'LIGHT MODE' : 'DARK MODE'}
+                            </span>
+                        </div>
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
@@ -535,8 +573,10 @@ const publicNavigation = [
 
 function Header() {
     const { user } = useAuth();
+    const { isDark } = useTheme();
     const location = useLocation();
     const [publicMenuOpen, setPublicMenuOpen] = useState(false);
+    const isDarkActive = isDark && ['admin', 'staff'].includes(user?.role);
 
     // Hide top navigation header section on all authentication pages
     const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
@@ -544,7 +584,11 @@ function Header() {
 
     return (
         <header
-            className={`sticky top-0 z-40 flex h-16 items-center justify-between bg-white border-b border-gray-300 shadow-sm shadow-gray-900/5 px-4 lg:px-8 transition-all duration-300 ease-in-out ${user?.role === 'admin' ? 'admin-header' : ''} ${
+            className={`sticky top-0 z-40 flex h-16 items-center justify-between border-b shadow-sm px-4 lg:px-8 transition-all duration-300 ease-in-out ${
+                isDarkActive
+                    ? 'bg-[#101722] border-white/10 shadow-black/20 text-white'
+                    : 'bg-white border-gray-300 shadow-gray-900/5'
+            } ${['admin', 'staff'].includes(user?.role) ? 'admin-header' : ''} ${
                 user ? 'ml-64 w-[calc(100%-16rem)]' : 'public-header w-full'
             }`}
         >
@@ -8605,6 +8649,8 @@ function Matches(){
 
 function Dashboard(){
     const {user} = useAuth();
+    const { isDark } = useTheme();
+    const isDarkActive = isDark && user?.role === 'admin';
     const [s, setS] = useState();
     const [activities, setActivities] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
@@ -8657,7 +8703,11 @@ function Dashboard(){
         return found ? found.total : 0;
     };
 
-    const chartTooltip = { contentStyle: { background: '#FFFFFF', border: '1px solid #2563EB', borderRadius: '12px', color: '#2563EB' }, labelStyle: { color: '#2563EB', fontWeight: 700 } };
+    const chartTooltip = isDarkActive ? {
+        contentStyle: { background: '#1A2434', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', color: '#FFFFFF', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' },
+        labelStyle: { color: '#93C5FD', fontWeight: 700 },
+        itemStyle: { color: '#FFFFFF' }
+    } : { contentStyle: { background: '#FFFFFF', border: '1px solid #2563EB', borderRadius: '12px', color: '#2563EB' }, labelStyle: { color: '#2563EB', fontWeight: 700 } };
     const today = new Date();
     const weekStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - ((today.getUTCDay() + 6) % 7)));
     const donationTrend = Array.from({ length: 7 }, (_, index) => {
@@ -8669,7 +8719,12 @@ function Dashboard(){
     const requestStatusData = ['pending_review', 'approved', 'fulfilled', 'rejected'].map(status => ({
         name: title(status), total: Number(s?.request_statuses?.find(item => item.status === status)?.total || 0),
     }));
-    const communityData = [
+    const communityData = isDarkActive ? [
+        { name: 'Donors', value: getRoleTotal('donor'), color: '#3971e2' },
+        { name: 'Beneficiaries', value: getRoleTotal('beneficiary'), color: '#22C55E' },
+        { name: 'Staff', value: getRoleTotal('staff'), color: '#01c0da' },
+        { name: 'Administrators', value: getRoleTotal('admin'), color: '#5eecb4' },
+    ] : [
         { name: 'Donors', value: getRoleTotal('donor'), color: '#2563EB' },
         { name: 'Beneficiaries', value: getRoleTotal('beneficiary'), color: '#22C55E' },
         { name: 'Staff', value: getRoleTotal('staff'), color: '#2563EB99' },
@@ -8818,11 +8873,11 @@ function Dashboard(){
                             <div className="mt-5 h-[220px]" role="img" aria-label="Line chart showing donations submitted over the last seven days">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={donationTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                                        <CartesianGrid stroke="#2563EB" strokeOpacity={0.15} vertical={false}/>
-                                        <XAxis dataKey="day" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={{ stroke: '#2563EB' }} tickLine={false}/>
-                                        <YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/>
+                                        <CartesianGrid stroke={isDarkActive ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDarkActive ? 1 : 0.15} vertical={false}/>
+                                        <XAxis dataKey="day" tick={{ fill: isDarkActive ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={{ stroke: isDarkActive ? 'rgba(255, 255, 255, 0.12)' : '#2563EB' }} tickLine={false}/>
+                                        <YAxis allowDecimals={false} tick={{ fill: isDarkActive ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/>
                                         <Tooltip {...chartTooltip}/>
-                                        <Line type="monotone" dataKey="donations" name="Donations" stroke="#2563EB" strokeWidth={3} dot={{ fill: '#22C55E', stroke: '#FFFFFF', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#22C55E' }}/>
+                                        <Line type="monotone" dataKey="donations" name="Donations" stroke={isDarkActive ? "#4ADE80" : "#2563EB"} strokeWidth={3} dot={{ fill: '#22C55E', stroke: isDarkActive ? '#141C28' : '#FFFFFF', strokeWidth: 2, r: 4 }} activeDot={{ r: 6, fill: '#22C55E' }}/>
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>
@@ -8839,12 +8894,12 @@ function Dashboard(){
                             <div className="mt-5 h-[220px]" role="img" aria-label="Bar chart showing support requests by status">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={requestStatusData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                                        <CartesianGrid stroke="#2563EB" strokeOpacity={0.15} vertical={false}/>
-                                        <XAxis dataKey="name" tick={{ fill: '#2563EB', fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: '#2563EB' }} tickLine={false}/>
-                                        <YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/>
+                                        <CartesianGrid stroke={isDarkActive ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDarkActive ? 1 : 0.15} vertical={false}/>
+                                        <XAxis dataKey="name" tick={{ fill: isDarkActive ? '#8E9DB2' : '#2563EB', fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: isDarkActive ? 'rgba(255, 255, 255, 0.12)' : '#2563EB' }} tickLine={false}/>
+                                        <YAxis allowDecimals={false} tick={{ fill: isDarkActive ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/>
                                         <Tooltip {...chartTooltip}/>
-                                        <Bar dataKey="total" name="Requests" radius={[8, 8, 0, 0]} fill="#2563EB">
-                                            {requestStatusData.map((entry, index) => <Cell key={entry.name} fill={index === 2 ? '#22C55E' : '#2563EB'} fillOpacity={index === 1 ? 0.8 : 1}/>) }
+                                        <Bar dataKey="total" name="Requests" radius={[8, 8, 0, 0]} fill={isDarkActive ? "#3971e2" : "#2563EB"}>
+                                            {requestStatusData.map((entry, index) => <Cell key={entry.name} fill={isDarkActive ? (index === 0 ? '#3971e2' : index === 1 ? '#5eecb4' : index === 2 ? '#01c0da' : '#3971e2') : (index === 2 ? '#22C55E' : '#2563EB')} fillOpacity={isDarkActive ? 1 : (index === 1 ? 0.8 : 1)}/>) }
                                         </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
@@ -8864,7 +8919,7 @@ function Dashboard(){
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Tooltip {...chartTooltip}/>
-                                            <Pie data={communityData} dataKey="value" nameKey="name" innerRadius="56%" outerRadius="80%" paddingAngle={3} stroke="#FFFFFF" strokeWidth={3}>
+                                            <Pie data={communityData} dataKey="value" nameKey="name" innerRadius="56%" outerRadius="80%" paddingAngle={3} stroke={isDarkActive ? "#141C28" : "#FFFFFF"} strokeWidth={3}>
                                                 {communityData.map(item => <Cell key={item.name} fill={item.color}/>) }
                                             </Pie>
                                         </PieChart>
@@ -8887,13 +8942,13 @@ function Dashboard(){
                             <div className="mt-5 h-[220px]" role="img" aria-label="Bar chart showing proposed, confirmed, fulfilled, and rejected matches">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={matchStatusData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                                        <CartesianGrid stroke="#2563EB" strokeOpacity={0.15} vertical={false}/>
-                                        <XAxis dataKey="name" tick={{ fill: '#2563EB', fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: '#2563EB' }} tickLine={false}/>
-                                        <YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/>
+                                        <CartesianGrid stroke={isDarkActive ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDarkActive ? 1 : 0.15} vertical={false}/>
+                                        <XAxis dataKey="name" tick={{ fill: isDarkActive ? '#8E9DB2' : '#2563EB', fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: isDarkActive ? 'rgba(255, 255, 255, 0.12)' : '#2563EB' }} tickLine={false}/>
+                                        <YAxis allowDecimals={false} tick={{ fill: isDarkActive ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/>
                                         <Tooltip {...chartTooltip}/>
-                                        <Legend wrapperStyle={{ color: '#2563EB', fontSize: 11, fontWeight: 700 }}/>
+                                        <Legend wrapperStyle={{ color: isDarkActive ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }}/>
                                         <Bar dataKey="total" name="Matches" radius={[8, 8, 0, 0]} fill="#22C55E">
-                                            {matchStatusData.map((entry, index) => <Cell key={entry.name} fill={index === 2 ? '#22C55E' : '#2563EB'} fillOpacity={index === 0 ? 0.85 : 1}/>) }
+                                            {matchStatusData.map((entry, index) => <Cell key={entry.name} fill={isDarkActive ? (index === 0 ? '#3971e2' : index === 1 ? '#5eecb4' : index === 2 ? '#01c0da' : '#3971e2') : (index === 2 ? '#22C55E' : '#2563EB')} fillOpacity={index === 0 ? (isDarkActive ? 1 : 0.85) : 1}/>) }
                                         </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
@@ -9084,6 +9139,7 @@ function AnalyticsChart({ title, description, ariaLabel, hasData = true, childre
 
 function StaffDashboard() {
     const { user } = useAuth();
+    const { isDark } = useTheme();
     const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [requests, setRequests] = useState([]);
@@ -9155,7 +9211,11 @@ function StaffDashboard() {
         day: dayLabel(date),
         assisted: requests.filter((request) => request.is_walk_in && sameDay(request.created_at, date)).length,
     }));
-    const chartTooltip = {
+    const chartTooltip = isDark ? {
+        contentStyle: { backgroundColor: '#1A2434', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', color: '#FFFFFF', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', fontSize: '12px', fontWeight: 700 },
+        labelStyle: { color: '#93C5FD', fontWeight: 800 },
+        itemStyle: { color: '#FFFFFF' },
+    } : {
         contentStyle: { backgroundColor: '#FFFFFF', border: '1px solid #2563EB', borderRadius: '12px', color: '#2563EB', fontSize: '12px', fontWeight: 700 },
         labelStyle: { color: '#2563EB', fontWeight: 800 },
         itemStyle: { color: '#2563EB' },
@@ -9279,10 +9339,10 @@ function StaffDashboard() {
                     <p className="text-xs font-semibold text-[#2563EB]/65">Current data from the staff workspace feed</p>
                 </div>
                 <div className="staff-dashboard-analytics grid gap-4 xl:grid-cols-2">
-                    <AnalyticsChart title="Verification activity trend" description="Requests submitted and completed reviews over the last seven days." ariaLabel="Line chart showing verification activity over the last seven days" hasData={verificationTrend.some((point) => point.submitted || point.reviewed)}><ResponsiveContainer width="100%" height="100%"><LineChart data={verificationTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Legend wrapperStyle={{ color: '#2563EB', fontSize: '12px', fontWeight: 700 }}/><Line type="monotone" dataKey="submitted" name="Submitted" stroke="#2563EB" strokeWidth={3} dot={{ r: 3, fill: '#2563EB' }}/><Line type="monotone" dataKey="reviewed" name="Reviewed" stroke="#22C55E" strokeWidth={3} dot={{ r: 3, fill: '#22C55E' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
-                    <AnalyticsChart title="Warehouse inventory overview" description="Current quantity by operational stock stage." ariaLabel="Bar chart showing available, reserved, and dispatched inventory" hasData={warehouseOverview.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={warehouseOverview} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Items" radius={[8, 8, 0, 0]}>{warehouseOverview.map((entry, index) => <Cell key={entry.name} fill={index === 1 ? '#22C55E' : '#2563EB'} fillOpacity={index === 2 ? 0.55 : 1}/>)}</Bar></BarChart></ResponsiveContainer></AnalyticsChart>
-                    <AnalyticsChart title="Handoff & dispatch status" description="Track handoffs through the physical release workflow." ariaLabel="Bar chart showing proposed, confirmed, and completed handoffs" hasData={handoffOverview.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={handoffOverview} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Handoffs" fill="#22C55E" radius={[8, 8, 0, 0]}/></BarChart></ResponsiveContainer></AnalyticsChart>
-                    <AnalyticsChart title="Walk-in relief desk activity" description="In-person assistance logged by day during the last seven days." ariaLabel="Line chart showing daily walk-in assistance" hasData={walkInTrend.some((point) => point.assisted)}><ResponsiveContainer width="100%" height="100%"><LineChart data={walkInTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Line type="monotone" dataKey="assisted" name="Assisted" stroke="#22C55E" strokeWidth={3} dot={{ r: 3, fill: '#22C55E' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
+                    <AnalyticsChart title="Verification activity trend" description="Requests submitted and completed reviews over the last seven days." ariaLabel="Line chart showing verification activity over the last seven days" hasData={verificationTrend.some((point) => point.submitted || point.reviewed)}><ResponsiveContainer width="100%" height="100%"><LineChart data={verificationTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Legend wrapperStyle={{ color: isDark ? '#8E9DB2' : '#2563EB', fontSize: '12px', fontWeight: 700 }}/><Line type="monotone" dataKey="submitted" name="Submitted" stroke="#2563EB" strokeWidth={3} dot={{ r: 3, fill: '#2563EB' }}/><Line type="monotone" dataKey="reviewed" name="Reviewed" stroke="#22C55E" strokeWidth={3} dot={{ r: 3, fill: '#22C55E' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
+                    <AnalyticsChart title="Warehouse inventory overview" description="Current quantity by operational stock stage." ariaLabel="Bar chart showing available, reserved, and dispatched inventory" hasData={warehouseOverview.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={warehouseOverview} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Items" radius={[8, 8, 0, 0]}>{warehouseOverview.map((entry, index) => <Cell key={entry.name} fill={index === 1 ? '#22C55E' : '#2563EB'} fillOpacity={index === 2 ? 0.55 : 1}/>)}</Bar></BarChart></ResponsiveContainer></AnalyticsChart>
+                    <AnalyticsChart title="Handoff & dispatch status" description="Track handoffs through the physical release workflow." ariaLabel="Bar chart showing proposed, confirmed, and completed handoffs" hasData={handoffOverview.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={handoffOverview} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Handoffs" fill="#22C55E" radius={[8, 8, 0, 0]}/></BarChart></ResponsiveContainer></AnalyticsChart>
+                    <AnalyticsChart title="Walk-in relief desk activity" description="In-person assistance logged by day during the last seven days." ariaLabel="Line chart showing daily walk-in assistance" hasData={walkInTrend.some((point) => point.assisted)}><ResponsiveContainer width="100%" height="100%"><LineChart data={walkInTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Line type="monotone" dataKey="assisted" name="Assisted" stroke="#22C55E" strokeWidth={3} dot={{ r: 3, fill: '#22C55E' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
                 </div>
             </section>
 
@@ -9609,8 +9669,8 @@ function StaffVerificationDesk() {
                 </div>
 
                 {/* Requests Table */}
-                <div className="staff-workspace-table overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
+                <div className="staff-verification-table-wrap overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-left text-xs border-collapse">
                         <thead>
                             <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
                                 <th className="p-3">Student / Beneficiary</th>
@@ -10009,8 +10069,8 @@ function StaffWarehouseInventory() {
                 </div>
 
                 {/* Stock Table */}
-                <div className="staff-workspace-table overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
+                <div className="staff-inventory-table-wrap overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-left text-xs border-collapse">
                         <thead>
                             <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
                                 <th className="p-3">Donated Item Name</th>
@@ -10576,7 +10636,7 @@ function StaffHandoffDispatch() {
     return (
         <main className="shell staff-workspace staff-dispatch-page py-8 space-y-6 text-[#2563EB]">
             <div className="staff-module-sections">
-                <div className="staff-module-hero flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
+                <div className="staff-module-hero staff-dispatch-hero flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB]/20 pb-4">
                     <div className="space-y-2">
                         <span className="eyebrow staff-module-badge">MODULE 4: DISPATCH & 2FA CLEARANCE</span>
                         <h1 className="staff-dispatch-page-title text-2xl font-extrabold text-[#2563EB]">Handoff & Physical Dispatch Desk</h1>
@@ -10589,7 +10649,7 @@ function StaffHandoffDispatch() {
                     </Button>
                 </div>
 
-                <section aria-label="Dispatch summary" className="grid grid-cols-2 gap-3 lg:grid-cols-5">{[['Pending',dispatchSummary.pending,'Awaiting pickup','clock','blue'],['Ready',dispatchSummary.ready,'Ready for release','check','green'],['In progress',dispatchSummary.inProgress,'PIN verification open','activity','blue'],['Completed',dispatchSummary.completed,'Fulfilled handoffs','check','green'],['Expired',dispatchSummary.expired,'Require reschedule','alert','green']].map(([label,value,detail,icon,tone])=><article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone==='green'?'text-[#22C55E]':''}/></div><p className={`mt-2 text-2xl font-black ${tone==='green'?'text-[#22C55E]':'text-[#2563EB]'}`}>{loading?'—':value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}</section>
+                <section aria-label="Dispatch summary" className="staff-dispatch-summary grid grid-cols-2 gap-3 lg:grid-cols-5">{[['Pending',dispatchSummary.pending,'Awaiting pickup','clock','blue'],['Ready',dispatchSummary.ready,'Ready for release','check','green'],['In progress',dispatchSummary.inProgress,'PIN verification open','activity','blue'],['Completed',dispatchSummary.completed,'Fulfilled handoffs','check','green'],['Expired',dispatchSummary.expired,'Require reschedule','alert','green']].map(([label,value,detail,icon,tone])=><article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone==='green'?'text-[#22C55E]':''}/></div><p className={`mt-2 text-2xl font-black ${tone==='green'?'text-[#22C55E]':'text-[#2563EB]'}`}>{loading?'—':value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}</section>
                 <section aria-label="Dispatch process steps" className="staff-dispatch-steps rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-3"><div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-7">{['Locate handoff','Review recipient & item','Verify identity','Enter PIN','Confirm quantity','Complete release','Record audit'].map((step,index)=><div key={step} className="flex min-w-0 items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-xs font-extrabold"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB] text-[10px] text-white">{index+1}</span><span className="min-w-0 leading-snug">{step}</span></div>)}</div></section>
 
                 {successMessage && (
@@ -10610,8 +10670,8 @@ function StaffHandoffDispatch() {
                     <DropdownSelect value={hubFilter} onChange={(e)=>setHubFilter(e.target.value)} className="input text-xs w-full"><option value="all">All pickup locations</option>{hubs.map((hub)=><option key={hub} value={hub}>{hub}</option>)}</DropdownSelect>
                 </div>
 
-                <div className="staff-workspace-table overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
+                <div className="staff-dispatch-table-wrap overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-left text-xs border-collapse">
                         <thead>
                             <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
                                 <th className="p-3">Match ID & Item</th>
@@ -10894,7 +10954,7 @@ function DonorDashboard(){
                 <div className="grid gap-4 xl:grid-cols-3">
                     <AnalyticsChart title="Donation activity trend" description="Resources you listed during the last seven days." ariaLabel="Line chart showing donation activity over the last seven days" hasData={donationTrend.some((point) => point.donations)}><ResponsiveContainer width="100%" height="100%"><LineChart data={donationTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Line type="monotone" dataKey="donations" name="Donations" stroke="#2563EB" strokeWidth={3} dot={{ r: 3, fill: '#2563EB' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
                     <AnalyticsChart title="Donation status distribution" description="Where your listed resources are in the fulfillment workflow." ariaLabel="Donut chart showing donation status distribution" hasData={statusDistribution.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip {...chartTooltip}/><Legend wrapperStyle={{ color: '#2563EB', fontSize: '11px', fontWeight: 700 }}/><Pie data={statusDistribution} dataKey="value" nameKey="name" innerRadius="48%" outerRadius="76%" paddingAngle={3}>{statusDistribution.map((entry) => <Cell key={entry.name} fill={entry.color} fillOpacity={entry.opacity}/>)}</Pie></PieChart></ResponsiveContainer></AnalyticsChart>
-                    <AnalyticsChart title="Fulfillment performance" description="Listed resources progressing through matching and delivery." ariaLabel="Bar chart showing donation fulfillment performance" hasData={fulfillmentPerformance.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={fulfillmentPerformance} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Resources" radius={[8, 8, 0, 0]}>{fulfillmentPerformance.map((entry) => <Cell key={entry.name} fill={entry.color}/>)}</Bar></BarChart></ResponsiveContainer></AnalyticsChart>
+                    <AnalyticsChart title="Fulfillment performance" description="Listed resources progressing through matching and delivery." ariaLabel="Bar chart showing donation fulfillment performance" hasData={fulfillmentPerformance.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={fulfillmentPerformance} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Resources" radius={[8, 8, 0, 0]}>{fulfillmentPerformance.map((entry) => <Cell key={entry.name} fill={entry.color}/>)}</Bar></BarChart></ResponsiveContainer></AnalyticsChart>
                 </div>
             </section>
 
@@ -11399,7 +11459,7 @@ function BeneficiaryDashboard() {
                     <AnalyticsChart title="Request activity trend" description="Requests you submitted over the last seven days." ariaLabel="Line chart showing request activity over the last seven days" hasData={requestTrend.some((point) => point.requests)}><ResponsiveContainer width="100%" height="100%"><LineChart data={requestTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Line type="monotone" dataKey="requests" name="Requests" stroke="#2563EB" strokeWidth={3} dot={{ r: 3, fill: '#2563EB' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
                     <AnalyticsChart title="Request status distribution" description="A clear view of where your requests are in the support process." ariaLabel="Donut chart showing request status distribution" hasData={statusDistribution.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip {...chartTooltip}/><Legend wrapperStyle={{ color: '#2563EB', fontSize: '12px', fontWeight: 700 }}/><Pie data={statusDistribution} dataKey="value" nameKey="name" innerRadius="52%" outerRadius="78%" paddingAngle={3}>{statusDistribution.map((entry) => <Cell key={entry.name} fill={entry.color} fillOpacity={entry.opacity}/>)}</Pie></PieChart></ResponsiveContainer></AnalyticsChart>
                     <AnalyticsChart title="Support & fulfillment progress" description="Follow the steps from request to completed assistance." ariaLabel="Bar chart showing support and fulfillment progress" hasData={totalRequestsCount > 0}><ResponsiveContainer width="100%" height="100%"><BarChart data={[{ stage: 'Review', value: statusCounts.pending_review }, { stage: 'Approved', value: statusCounts.approved }, { stage: 'Matched', value: statusCounts.matched }, { stage: 'Fulfilled', value: statusCounts.fulfilled }]} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="stage" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Requests" fill="#22C55E" radius={[8, 8, 0, 0]}/></BarChart></ResponsiveContainer></AnalyticsChart>
-                    <AnalyticsChart title="Received supplies overview" description="Completed support grouped by category." ariaLabel="Bar chart showing received supplies by category" hasData={receivedByCategory.length > 0}><ResponsiveContainer width="100%" height="100%"><BarChart data={receivedByCategory} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke="#2563EB" strokeOpacity={0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Units received" fill="#2563EB" radius={[8, 8, 0, 0]}/></BarChart></ResponsiveContainer></AnalyticsChart>
+                    <AnalyticsChart title="Received supplies overview" description="Completed support grouped by category." ariaLabel="Bar chart showing received supplies by category" hasData={receivedByCategory.length > 0}><ResponsiveContainer width="100%" height="100%"><BarChart data={receivedByCategory} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Units received" fill="#2563EB" radius={[8, 8, 0, 0]}/></BarChart></ResponsiveContainer></AnalyticsChart>
                 </div>
             </section>
 
@@ -17374,7 +17434,7 @@ function Activities(){
 
     return (
         <main className="page space-y-5 staff-activity-page">
-            <div className="admin-module-hero staff-module-hero flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero staff-module-hero staff-activity-hero flex flex-wrap items-end justify-between gap-4">
                 <div className="space-y-2">
                     <p className="eyebrow staff-module-badge">ACCOUNTABILITY & AUDIT TRAIL</p>
                     <h1 className="page-title">{user?.role === 'admin' ? 'Activity & Reports' : 'Activity Log'}</h1>
@@ -18053,10 +18113,12 @@ function NotificationsPage(){
 
 export default function App() {
     const { user, loading } = useAuth();
+    const { isDark } = useTheme();
     const location = useLocation();
+    const isDarkActive = isDark && ['admin', 'staff'].includes(user?.role);
 
     return (
-        <div className={`min-h-screen bg-white ${user?.role === 'admin' ? 'admin-app' : user ? 'member-app' : ''}`}>
+        <div className={`min-h-screen ${isDarkActive ? 'dark theme-dark bg-[#0F141C] text-[#E2E8F0]' : 'bg-white text-[#1E293B]'} ${user?.role === 'admin' ? 'admin-app' : user ? 'member-app' : ''}`}>
             <Sidebar />
             <Header />
             <div className={`${user ? 'ml-64' : 'w-full'} min-h-screen`}>

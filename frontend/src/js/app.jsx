@@ -4,6 +4,7 @@ import { Component } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import App from './pages/App';
 
 class AppErrorBoundary extends Component {
@@ -22,5 +23,5 @@ class AppErrorBoundary extends Component {
 
 const rootElement = document.getElementById('app');
 if (rootElement) {
-    createRoot(rootElement).render(<AppErrorBoundary><BrowserRouter><AuthProvider><NotificationProvider><App /></NotificationProvider></AuthProvider></BrowserRouter></AppErrorBoundary>);
+    createRoot(rootElement).render(<AppErrorBoundary><BrowserRouter><AuthProvider><NotificationProvider><ThemeProvider><App /></ThemeProvider></NotificationProvider></AuthProvider></BrowserRouter></AppErrorBoundary>);
 }

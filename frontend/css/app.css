@@ -3048,26 +3048,70 @@ body,
   line-height: 1.55;
 }
 
-.member-app main.staff-verification-page .staff-verification-summary {
+.member-app main.staff-verification-page .staff-verification-summary,
+.admin-app main.staff-verification-page .staff-verification-summary,
+main.staff-verification-page .staff-verification-summary,
+main.staff-verification-page .staff-module-sections > .staff-verification-summary {
   min-width: 0;
   gap: 0.75rem;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
-.member-app main.staff-verification-page .staff-module-sections > .staff-verification-summary {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-  box-shadow: none;
+main.staff-verification-page .staff-verification-table-wrap,
+.member-app main.staff-verification-page .staff-verification-table-wrap,
+.admin-app main.staff-verification-page .staff-verification-table-wrap,
+main.staff-verification-page .staff-module-sections > .staff-verification-table-wrap,
+main.staff-verification-page .staff-workspace-table,
+.member-app main.staff-verification-page .staff-workspace-table,
+.admin-app main.staff-verification-page .staff-workspace-table,
+main.staff-verification-page .staff-module-sections > .staff-workspace-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
 }
 
-.member-app main.staff-verification-page .staff-module-sections > .staff-workspace-table {
-  border: 1px solid #E8EEF7;
-  border-radius: 16px;
-  background: #FFFFFF;
-  padding: 0;
-  box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
+main.staff-verification-page .staff-verification-table-wrap table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 0.8125rem;
 }
+
+main.staff-verification-page .staff-verification-table-wrap thead tr {
+  background: rgba(37, 99, 235, 0.05);
+  color: #2563EB;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+main.staff-verification-page .staff-verification-table-wrap th {
+  padding: 0.75rem 0.875rem;
+  color: #2563EB;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+main.staff-verification-page .staff-verification-table-wrap td {
+  padding: 0.75rem 0.875rem;
+  vertical-align: middle;
+}
+
 
 .member-app main.staff-verification-page .staff-verification-summary > button {
   display: flex;
@@ -3395,20 +3439,66 @@ body,
 }
 
 /* The inventory summary sits flush on the page — no module-section card. */
-.member-app main.staff-inventory-page .staff-module-sections > .staff-inventory-summary {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-  box-shadow: none;
+.member-app main.staff-inventory-page .staff-inventory-summary,
+.admin-app main.staff-inventory-page .staff-inventory-summary,
+main.staff-inventory-page .staff-inventory-summary,
+main.staff-inventory-page .staff-module-sections > .staff-inventory-summary {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
-.member-app main.staff-inventory-page .staff-module-sections > .staff-workspace-table {
-  border: 1px solid #E8EEF7;
-  border-radius: 16px;
-  background: #FFFFFF;
-  padding: 0;
-  box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
+main.staff-inventory-page .staff-inventory-table-wrap,
+.member-app main.staff-inventory-page .staff-inventory-table-wrap,
+.admin-app main.staff-inventory-page .staff-inventory-table-wrap,
+main.staff-inventory-page .staff-module-sections > .staff-inventory-table-wrap,
+main.staff-inventory-page .staff-workspace-table,
+.member-app main.staff-inventory-page .staff-workspace-table,
+.admin-app main.staff-inventory-page .staff-workspace-table,
+main.staff-inventory-page .staff-module-sections > .staff-workspace-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
+}
+
+main.staff-inventory-page .staff-inventory-table-wrap table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 0.8125rem;
+}
+
+main.staff-inventory-page .staff-inventory-table-wrap thead tr {
+  background: rgba(37, 99, 235, 0.05);
+  color: #2563EB;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+main.staff-inventory-page .staff-inventory-table-wrap th {
+  padding: 0.75rem 0.875rem;
+  color: #2563EB;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+main.staff-inventory-page .staff-inventory-table-wrap td {
+  padding: 0.75rem 0.875rem;
+  vertical-align: middle;
 }
 
 .member-app main.staff-walkin-page,
@@ -3548,14 +3638,26 @@ body,
   }
 }
 
-/* The summary row and the request form sit flush on the page — no module-section card. */
-.member-app main.staff-walkin-page .staff-module-sections > .staff-walkin-summary,
-.member-app main.staff-walkin-page .staff-module-sections > .staff-walkin-form {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-  box-shadow: none;
+/* The summary row, step indicators, and walk-in request form sit flush on the page — no surrounding container card. */
+.member-app main.staff-walkin-page .staff-walkin-summary,
+.admin-app main.staff-walkin-page .staff-walkin-summary,
+main.staff-walkin-page .staff-walkin-summary,
+main.staff-walkin-page .staff-module-sections > .staff-walkin-summary,
+.member-app main.staff-walkin-page .staff-walkin-steps,
+.admin-app main.staff-walkin-page .staff-walkin-steps,
+main.staff-walkin-page .staff-walkin-steps,
+main.staff-walkin-page .staff-module-sections > .staff-walkin-steps,
+.member-app main.staff-walkin-page .staff-walkin-form,
+.admin-app main.staff-walkin-page .staff-walkin-form,
+main.staff-walkin-page .staff-walkin-form,
+main.staff-walkin-page .staff-module-sections > .staff-walkin-form,
+.member-app main.staff-workspace.staff-walkin-page .staff-walkin-form,
+.admin-app main.staff-workspace.staff-walkin-page .staff-walkin-form {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
 .member-app main.staff-dashboard-page,
@@ -3767,8 +3869,8 @@ body,
   gap: 1rem;
 }
 
-.staff-module-sections > *,
-.staff-module-form-sections > * {
+.staff-module-sections > :not(.staff-module-hero):not(.staff-dashboard-banner):not(.admin-module-hero):not(.staff-verification-hero):not(.staff-inventory-hero):not(.staff-walkin-hero):not(.staff-dispatch-hero):not(.staff-activity-hero):not(.staff-verification-summary):not(.staff-verification-table-wrap):not(.staff-inventory-summary):not(.staff-inventory-table-wrap):not(.staff-walkin-summary):not(.staff-walkin-steps):not(.staff-walkin-form):not(.staff-dispatch-summary):not(.staff-dispatch-steps):not(.staff-dispatch-table-wrap),
+.staff-module-form-sections > :not(.staff-module-hero):not(.staff-dashboard-banner):not(.admin-module-hero):not(.staff-verification-hero):not(.staff-inventory-hero):not(.staff-walkin-hero):not(.staff-dispatch-hero):not(.staff-activity-hero):not(.staff-verification-summary):not(.staff-verification-table-wrap):not(.staff-inventory-summary):not(.staff-inventory-table-wrap):not(.staff-dispatch-summary):not(.staff-dispatch-steps):not(.staff-dispatch-table-wrap) {
   min-width: 0;
   padding: 1.25rem;
   border: 1px solid rgba(37, 99, 235, 0.12);
@@ -4032,22 +4134,74 @@ body,
   }
 }
 
-/* The summary row, process steps and handoff table sit flush on the page — no module-section card. */
-.member-app main.staff-workspace.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"],
-.member-app main.staff-workspace.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch process steps"] {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  padding: 0;
-  box-shadow: none;
+/* The dispatch summary row, process steps and handoff table sit flush on the page — no module-section card. */
+.member-app main.staff-dispatch-page .staff-dispatch-summary,
+.admin-app main.staff-dispatch-page .staff-dispatch-summary,
+main.staff-dispatch-page .staff-dispatch-summary,
+main.staff-dispatch-page .staff-module-sections > .staff-dispatch-summary,
+.member-app main.staff-dispatch-page section[aria-label="Dispatch summary"],
+main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch summary"],
+.member-app main.staff-dispatch-page .staff-dispatch-steps,
+main.staff-dispatch-page .staff-dispatch-steps,
+main.staff-dispatch-page .staff-module-sections > .staff-dispatch-steps,
+.member-app main.staff-dispatch-page section[aria-label="Dispatch process steps"],
+main.staff-dispatch-page .staff-module-sections > section[aria-label="Dispatch process steps"] {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
-.member-app main.staff-workspace.staff-dispatch-page .staff-module-sections > .staff-workspace-table {
-  border: 1px solid #E8EEF7;
-  border-radius: 16px;
-  background: #FFFFFF;
-  padding: 0;
-  box-shadow: 0 6px 20px rgba(30, 80, 180, 0.055);
+main.staff-dispatch-page .staff-dispatch-table-wrap,
+.member-app main.staff-dispatch-page .staff-dispatch-table-wrap,
+.admin-app main.staff-dispatch-page .staff-dispatch-table-wrap,
+main.staff-dispatch-page .staff-module-sections > .staff-dispatch-table-wrap,
+main.staff-dispatch-page .staff-workspace-table,
+.member-app main.staff-dispatch-page .staff-workspace-table,
+.admin-app main.staff-dispatch-page .staff-workspace-table,
+main.staff-dispatch-page .staff-module-sections > .staff-workspace-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.35) transparent;
+}
+
+main.staff-dispatch-page .staff-dispatch-table-wrap table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 0.8125rem;
+}
+
+main.staff-dispatch-page .staff-dispatch-table-wrap thead tr {
+  background: rgba(37, 99, 235, 0.05);
+  color: #2563EB;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+main.staff-dispatch-page .staff-dispatch-table-wrap th {
+  padding: 0.75rem 0.875rem;
+  color: #2563EB;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+main.staff-dispatch-page .staff-dispatch-table-wrap td {
+  padding: 0.75rem 0.875rem;
+  vertical-align: middle;
 }
 
 .member-app main.page .table-wrap,
@@ -4478,7 +4632,8 @@ table.data-table.donations-table tbody td:last-child > .flex {
 .member-app main.staff-workspace .staff-verification-summary > button,
 .member-app main.staff-workspace .staff-inventory-summary > button,
 .member-app main.staff-workspace .staff-walkin-summary > article,
-.member-app main.staff-workspace .staff-dispatch-page [aria-label="Dispatch summary"] > article,
+.member-app main.staff-workspace.staff-dispatch-page [aria-label="Dispatch summary"] > article,
+.member-app main.staff-workspace.staff-dispatch-page .staff-dispatch-summary > article,
 .member-app main.staff-workspace .staff-priority-request {
   border-color: rgba(37, 99, 235, 0.09);
   border-radius: 14px;
@@ -4590,3 +4745,1069 @@ table.data-table.donations-table tbody td:last-child > .flex {
     padding: 1rem;
   }
 }
+
+/* ==========================================================================
+   DARK MODE THEME (Admin Panel & Staff Panel)
+   ========================================================================== */
+
+html.dark,
+html.dark body {
+  background-color: #0F141C !important;
+  color: #E2E8F0 !important;
+  color-scheme: dark;
+}
+
+html.dark .admin-app,
+html.dark .staff-app,
+html.dark .member-app,
+html.dark .min-h-screen {
+  background-color: #0F141C !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark main.page,
+html.dark main.staff-workspace,
+html.dark .admin-dashboard.page,
+html.dark .shell {
+  background-color: #0F141C !important;
+  color: #E2E8F0 !important;
+}
+
+/* ==========================================================================
+   SIDEBAR & NAVIGATION (Dark Mode)
+   ========================================================================== */
+
+html.dark .admin-sidebar,
+html.dark aside.admin-sidebar {
+  background-color: #152238 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+html.dark .admin-sidebar-link {
+  color: #94A3B8 !important;
+}
+
+html.dark .admin-sidebar-link:not([aria-current='page']):hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-sidebar-link[aria-current='page'],
+html.dark .admin-sidebar-link.active {
+  color: #FFFFFF !important;
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: inset 3px 0 0 #60A5FA !important;
+}
+
+/* ==========================================================================
+   HEADER & USER MENU (Dark Mode)
+   ========================================================================== */
+
+html.dark .admin-header,
+html.dark header.admin-header {
+  background-color: #101722 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-header a[aria-label="View notifications page"] {
+  color: #94A3B8 !important;
+}
+
+html.dark .admin-header a[aria-label="View notifications page"]:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .user-menu-btn {
+  background-color: #16202E !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #E2E8F0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.dark .user-menu-btn:hover:not(:disabled) {
+  background-color: #1E2B3E !important;
+  border-color: #60A5FA !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .dropdown,
+html.dark .user-dropdown-menu {
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .dropdown-item {
+  color: #CBD5E1 !important;
+}
+
+html.dark .dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ==========================================================================
+   DROPDOWN SELECT PORTAL & TRIGGERS (Dark Mode)
+   ========================================================================== */
+
+html.dark .dropdown-select-trigger {
+  background-color: #16202E !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .dropdown-select-trigger:focus-visible,
+html.dark .dropdown-select-open {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22) !important;
+}
+
+html.dark .dropdown-select-menu {
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark .dropdown-select-option {
+  color: #CBD5E1 !important;
+}
+
+html.dark .dropdown-select-option:hover:not(:disabled),
+html.dark .dropdown-select-option:focus-visible {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .dropdown-select-option-selected {
+  background: rgba(37, 99, 235, 0.25) !important;
+  color: #60A5FA !important;
+  font-weight: 700 !important;
+}
+
+html.dark .dropdown-select-chevron {
+  color: #8E9DB2 !important;
+}
+
+/* ==========================================================================
+   HERO BANNERS (Admin & Staff Modules)
+   ========================================================================== */
+
+html.dark .admin-module-hero,
+html.dark .staff-module-hero,
+html.dark .staff-dashboard-banner,
+html.dark .staff-verification-hero,
+html.dark .staff-inventory-hero,
+html.dark .staff-walkin-hero,
+html.dark .staff-dispatch-hero,
+html.dark .staff-activity-hero,
+html.dark .member-app main.staff-workspace .staff-module-hero,
+html.dark .member-app main.staff-workspace .staff-dashboard-banner,
+html.dark .member-app main.staff-workspace .staff-verification-hero,
+html.dark .member-app main.staff-workspace .staff-inventory-hero,
+html.dark .member-app main.staff-workspace .staff-walkin-hero,
+html.dark .member-app main.staff-workspace .staff-dispatch-hero,
+html.dark .member-app main.staff-activity-page .staff-module-hero,
+html.dark .member-app main.staff-activity-page .staff-activity-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-module-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-verification-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-inventory-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-walkin-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-dispatch-hero,
+html.dark .admin-app main.page .admin-module-hero {
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  background-color: #17253D !important;
+  background-image:
+    radial-gradient(ellipse at 15% 95%, rgba(59, 130, 246, 0.15), transparent 42%),
+    radial-gradient(ellipse at 85% 5%, rgba(59, 130, 246, 0.12), transparent 34%),
+    linear-gradient(135deg, #1C2C4A 0%, #121E32 100%) !important;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.4) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-module-hero h1,
+html.dark .staff-module-hero h1,
+html.dark .staff-dashboard-banner h1,
+html.dark .admin-dashboard-title,
+html.dark .staff-dispatch-page-title {
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-module-hero p,
+html.dark .staff-module-hero p,
+html.dark .staff-dashboard-banner p {
+  color: #94A3B8 !important;
+}
+
+html.dark .staff-module-badge,
+html.dark .admin-module-hero p.staff-module-badge,
+html.dark .staff-dashboard-banner span.staff-module-badge {
+  background: rgba(30, 58, 138, 0.55) !important;
+  border: 1px solid rgba(96, 165, 250, 0.35) !important;
+  color: #93C5FD !important;
+}
+
+html.dark .admin-status {
+  background: rgba(34, 197, 94, 0.12) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  color: #4ADE80 !important;
+}
+
+/* ==========================================================================
+   STAFF MODULE SECTIONS & FORM SECTIONS (Dark Mode Override)
+   ========================================================================== */
+
+html.dark .staff-module-sections > :not(.staff-module-hero):not(.staff-dashboard-banner):not(.admin-module-hero):not(.staff-verification-hero):not(.staff-inventory-hero):not(.staff-walkin-hero):not(.staff-dispatch-hero):not(.staff-activity-hero):not(.staff-verification-summary):not(.staff-verification-table-wrap):not(.staff-inventory-summary):not(.staff-inventory-table-wrap):not(.staff-walkin-summary):not(.staff-walkin-steps):not(.staff-walkin-form):not(.staff-dispatch-summary):not(.staff-dispatch-steps):not(.staff-dispatch-table-wrap),
+html.dark .staff-module-form-sections > :not(.staff-module-hero):not(.staff-dashboard-banner):not(.admin-module-hero):not(.staff-verification-hero):not(.staff-inventory-hero):not(.staff-walkin-hero):not(.staff-dispatch-hero):not(.staff-activity-hero):not(.staff-verification-summary):not(.staff-verification-table-wrap):not(.staff-inventory-summary):not(.staff-inventory-table-wrap):not(.staff-dispatch-summary):not(.staff-dispatch-steps):not(.staff-dispatch-table-wrap),
+html.dark .member-app main.staff-workspace .staff-module-sections > :not(.staff-module-hero):not(.staff-dashboard-banner):not(.admin-module-hero):not(.staff-verification-hero):not(.staff-inventory-hero):not(.staff-walkin-hero):not(.staff-dispatch-hero):not(.staff-activity-hero):not(.staff-verification-summary):not(.staff-verification-table-wrap):not(.staff-inventory-summary):not(.staff-inventory-table-wrap):not(.staff-walkin-summary):not(.staff-walkin-steps):not(.staff-walkin-form):not(.staff-dispatch-summary):not(.staff-dispatch-steps):not(.staff-dispatch-table-wrap),
+html.dark .member-app main.staff-workspace .staff-module-form-sections > :not(.staff-module-hero):not(.staff-dashboard-banner):not(.admin-module-hero):not(.staff-verification-hero):not(.staff-inventory-hero):not(.staff-walkin-hero):not(.staff-dispatch-hero):not(.staff-activity-hero):not(.staff-verification-summary):not(.staff-verification-table-wrap):not(.staff-inventory-summary):not(.staff-inventory-table-wrap):not(.staff-dispatch-summary):not(.staff-dispatch-steps):not(.staff-dispatch-table-wrap) {
+  min-width: 0;
+  background: #141C28 !important;
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .member-app main.staff-workspace .staff-module-hero,
+html.dark .member-app main.staff-workspace .staff-dashboard-banner,
+html.dark .member-app main.staff-workspace .staff-verification-hero,
+html.dark .member-app main.staff-workspace .staff-inventory-hero,
+html.dark .member-app main.staff-workspace .staff-walkin-hero,
+html.dark .member-app main.staff-workspace .staff-dispatch-hero,
+html.dark .member-app main.staff-activity-page .staff-module-hero,
+html.dark .member-app main.staff-activity-page .staff-activity-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-module-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-verification-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-inventory-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-walkin-hero,
+html.dark .member-app main.staff-workspace .staff-module-sections > .staff-dispatch-hero {
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  background-color: #17253D !important;
+  background-image:
+    radial-gradient(ellipse at 15% 95%, rgba(59, 130, 246, 0.15), transparent 42%),
+    radial-gradient(ellipse at 85% 5%, rgba(59, 130, 246, 0.12), transparent 34%),
+    linear-gradient(135deg, #1C2C4A 0%, #121E32 100%) !important;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.4) !important;
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   STAFF STAT & SUMMARY CARDS (Dark Mode)
+   ========================================================================== */
+
+html.dark .staff-verification-summary > button,
+html.dark .staff-inventory-summary > button,
+html.dark .staff-walkin-summary > article,
+html.dark .staff-walkin-summary > button,
+html.dark [aria-label="Dispatch summary"] > article,
+html.dark .staff-activity-summary > article,
+html.dark .staff-dashboard-metrics > div,
+html.dark .staff-dashboard-modules > div,
+html.dark .staff-status-grid > div,
+html.dark .staff-priority-request,
+html.dark .member-app main.staff-workspace .staff-walkin-summary > article,
+html.dark .member-app main.staff-workspace [aria-label="Dispatch summary"] > article,
+html.dark .member-app main.staff-workspace .staff-priority-request {
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .staff-verification-summary > button:hover,
+html.dark .staff-inventory-summary > button:hover,
+html.dark .staff-dashboard-metrics > div:hover,
+html.dark .staff-dashboard-modules > div:hover,
+html.dark .staff-priority-request:hover {
+  background-color: #1A2434 !important;
+  border-color: rgba(96, 165, 250, 0.35) !important;
+}
+
+html.dark .staff-verification-summary p.text-2xl,
+html.dark .staff-inventory-summary p.text-2xl,
+html.dark .staff-walkin-summary p.text-2xl,
+html.dark [aria-label="Dispatch summary"] p.text-2xl,
+html.dark .staff-activity-summary strong,
+html.dark .staff-dashboard-metrics p.text-3xl {
+  color: #FFFFFF !important;
+}
+
+html.dark .staff-verification-summary span,
+html.dark .staff-inventory-summary span,
+html.dark .staff-walkin-summary span,
+html.dark [aria-label="Dispatch summary"] span,
+html.dark .staff-activity-summary p,
+html.dark .staff-dashboard-metrics span {
+  color: #8E9DB2 !important;
+}
+
+html.dark .staff-verification-summary p.text-\[10px\],
+html.dark .staff-inventory-summary p.text-\[10px\],
+html.dark .staff-walkin-summary p.text-\[10px\],
+html.dark [aria-label="Dispatch summary"] p.text-\[10px\] {
+  color: #64748B !important;
+}
+
+/* ==========================================================================
+   STEP PILLS (Walk-In Desk & Dispatch Desk)
+   ========================================================================== */
+
+html.dark .staff-walkin-steps div,
+html.dark .staff-dispatch-steps,
+html.dark .staff-dispatch-steps div {
+  background: #16202E !important;
+  background-color: #16202E !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark .staff-walkin-steps div span.bg-\[\#2563EB\],
+html.dark .staff-dispatch-steps div span.bg-\[\#2563EB\] {
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   FILTER BARS & OVERVIEW BARS (Dark Mode)
+   ========================================================================== */
+
+html.dark .staff-verification-filters,
+html.dark .staff-inventory-filters,
+html.dark .staff-dispatch-filters,
+html.dark .staff-inventory-overview,
+html.dark .staff-activity-filters,
+html.dark .member-app main.staff-workspace .staff-verification-filters,
+html.dark .member-app main.staff-workspace .staff-inventory-filters,
+html.dark .member-app main.staff-workspace .staff-dispatch-filters {
+  background: #141C28 !important;
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .staff-verification-filters h2,
+html.dark .staff-inventory-overview h2,
+html.dark .staff-activity-filters h2 {
+  color: #FFFFFF !important;
+}
+
+html.dark .staff-verification-filters label,
+html.dark .staff-inventory-filters label,
+html.dark .staff-dispatch-filters label,
+html.dark .staff-activity-filters label {
+  color: #8E9DB2 !important;
+}
+
+html.dark .staff-verification-filters p,
+html.dark .staff-inventory-overview p,
+html.dark .staff-activity-filters p {
+  color: #8E9DB2 !important;
+}
+
+html.dark .staff-verification-filters button.underline,
+html.dark .staff-inventory-overview button.underline {
+  color: #60A5FA !important;
+}
+
+/* ==========================================================================
+   TABLES (Staff & Admin Modules)
+   ========================================================================== */
+
+html.dark .staff-workspace-table,
+html.dark .member-app main.staff-workspace .staff-workspace-table,
+html.dark .table-wrap,
+html.dark .table-container {
+  background: #141C28 !important;
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .staff-workspace-table thead tr,
+html.dark .member-app main.staff-workspace .staff-workspace-table thead tr,
+html.dark .data-table thead tr,
+html.dark table thead tr {
+  background: #182232 !important;
+  background-color: #182232 !important;
+  color: #8E9DB2 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .staff-workspace-table th,
+html.dark .member-app main.staff-workspace .staff-workspace-table th,
+html.dark .data-table th,
+html.dark table th {
+  background: #182232 !important;
+  background-color: #182232 !important;
+  color: #8E9DB2 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  font-weight: 700 !important;
+}
+
+html.dark .staff-workspace-table td,
+html.dark .member-app main.staff-workspace .staff-workspace-table td,
+html.dark .data-table td,
+html.dark table td {
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark .staff-workspace-table tbody tr:hover,
+html.dark .member-app main.staff-workspace .staff-workspace-table tbody tr:hover,
+html.dark .data-table tbody tr:hover,
+html.dark table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+html.dark .staff-workspace-table td strong,
+html.dark .staff-workspace-table td .font-extrabold,
+html.dark .data-table td strong {
+  color: #FFFFFF !important;
+}
+
+html.dark .staff-workspace-table td .text-\[10px\],
+html.dark .staff-workspace-table td .text-\[11px\],
+html.dark .data-table td span {
+  color: #8E9DB2 !important;
+}
+
+/* Staff Request Verifications Desk (Dark Mode - No surrounding container) */
+html.dark main.staff-verification-page .staff-verification-summary,
+html.dark .member-app main.staff-workspace.staff-verification-page .staff-verification-summary,
+html.dark .admin-app main.staff-workspace.staff-verification-page .staff-verification-summary,
+html.dark .staff-module-sections > .staff-verification-summary {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+html.dark main.staff-verification-page .staff-verification-table-wrap,
+html.dark .member-app main.staff-workspace.staff-verification-page .staff-verification-table-wrap,
+html.dark .admin-app main.staff-workspace.staff-verification-page .staff-verification-table-wrap,
+html.dark main.staff-verification-page .staff-workspace-table,
+html.dark .member-app main.staff-workspace.staff-verification-page .staff-workspace-table,
+html.dark .admin-app main.staff-workspace.staff-verification-page .staff-workspace-table,
+html.dark .staff-module-sections > .staff-verification-table-wrap {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+html.dark main.staff-verification-page .staff-verification-table-wrap thead tr {
+  background: #182232 !important;
+  background-color: #182232 !important;
+  color: #8E9DB2 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark main.staff-verification-page .staff-verification-table-wrap th {
+  background: #182232 !important;
+  background-color: #182232 !important;
+  color: #8E9DB2 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark main.staff-verification-page .staff-verification-table-wrap td {
+  color: #CBD5E1 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark main.staff-verification-page .staff-verification-table-wrap tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+html.dark main.staff-verification-page .staff-verification-table-wrap td .font-extrabold {
+  color: #FFFFFF !important;
+}
+
+html.dark main.staff-verification-page .staff-verification-table-wrap td .text-\[10px\],
+html.dark main.staff-verification-page .staff-verification-table-wrap td .text-\[11px\] {
+  color: #8E9DB2 !important;
+}
+
+/* Staff Warehouse & Inventory (Dark Mode - No surrounding container) */
+html.dark main.staff-inventory-page .staff-inventory-summary,
+html.dark .member-app main.staff-workspace.staff-inventory-page .staff-inventory-summary,
+html.dark .admin-app main.staff-workspace.staff-inventory-page .staff-inventory-summary,
+html.dark .staff-module-sections > .staff-inventory-summary {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap,
+html.dark .member-app main.staff-workspace.staff-inventory-page .staff-inventory-table-wrap,
+html.dark .admin-app main.staff-workspace.staff-inventory-page .staff-inventory-table-wrap,
+html.dark main.staff-inventory-page .staff-workspace-table,
+html.dark .member-app main.staff-workspace.staff-inventory-page .staff-workspace-table,
+html.dark .admin-app main.staff-workspace.staff-inventory-page .staff-workspace-table,
+html.dark .staff-module-sections > .staff-inventory-table-wrap {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap thead tr {
+  background: #182232 !important;
+  background-color: #182232 !important;
+  color: #8E9DB2 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap th {
+  background: #182232 !important;
+  background-color: #182232 !important;
+  color: #8E9DB2 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td {
+  color: #CBD5E1 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td .font-extrabold {
+  color: #FFFFFF !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td .text-\[10px\],
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td .text-\[11px\] {
+  color: #8E9DB2 !important;
+}
+
+/* Staff Walk-In Desk (Dark Mode - No surrounding container) */
+html.dark main.staff-walkin-page .staff-walkin-summary,
+html.dark .member-app main.staff-workspace.staff-walkin-page .staff-walkin-summary,
+html.dark .admin-app main.staff-workspace.staff-walkin-page .staff-walkin-summary,
+html.dark .staff-module-sections > .staff-walkin-summary,
+html.dark main.staff-walkin-page .staff-walkin-steps,
+html.dark .member-app main.staff-workspace.staff-walkin-page .staff-walkin-steps,
+html.dark .admin-app main.staff-workspace.staff-walkin-page .staff-walkin-steps,
+html.dark .staff-module-sections > .staff-walkin-steps,
+html.dark main.staff-walkin-page .staff-walkin-form,
+html.dark .member-app main.staff-workspace.staff-walkin-page .staff-walkin-form,
+html.dark .admin-app main.staff-workspace.staff-walkin-page .staff-walkin-form,
+html.dark .staff-module-sections > .staff-walkin-form {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Staff Support & Fulfillment / Dispatch Desk (Dark Mode - No surrounding container) */
+html.dark main.staff-dispatch-page .staff-dispatch-summary,
+html.dark .member-app main.staff-workspace.staff-dispatch-page .staff-dispatch-summary,
+html.dark .admin-app main.staff-workspace.staff-dispatch-page .staff-dispatch-summary,
+html.dark .staff-module-sections > .staff-dispatch-summary,
+html.dark main.staff-dispatch-page .staff-dispatch-steps,
+html.dark .member-app main.staff-workspace.staff-dispatch-page .staff-dispatch-steps,
+html.dark .admin-app main.staff-workspace.staff-dispatch-page .staff-dispatch-steps,
+html.dark .staff-module-sections > .staff-dispatch-steps,
+html.dark main.staff-dispatch-page .staff-dispatch-table-wrap,
+html.dark .member-app main.staff-workspace.staff-dispatch-page .staff-dispatch-table-wrap,
+html.dark .admin-app main.staff-workspace.staff-dispatch-page .staff-dispatch-table-wrap,
+html.dark .staff-module-sections > .staff-dispatch-table-wrap {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+html.dark main.staff-dispatch-page .staff-dispatch-table-wrap thead tr {
+  background: #182232 !important;
+  background-color: #182232 !important;
+  color: #8E9DB2 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark main.staff-dispatch-page .staff-dispatch-table-wrap th {
+  background: #182232 !important;
+  background-color: #182232 !important;
+  color: #8E9DB2 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark main.staff-dispatch-page .staff-dispatch-table-wrap td {
+  color: #CBD5E1 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark main.staff-dispatch-page .staff-dispatch-table-wrap tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+html.dark main.staff-dispatch-page .staff-dispatch-table-wrap td .font-extrabold {
+  color: #FFFFFF !important;
+}
+
+html.dark main.staff-dispatch-page .staff-dispatch-table-wrap td .text-\[10px\],
+html.dark main.staff-dispatch-page .staff-dispatch-table-wrap td .text-\[11px\] {
+  color: #8E9DB2 !important;
+}
+
+/* ==========================================================================
+   PANELS, CARDS & ARTICLES (Admin & Staff)
+   ========================================================================== */
+
+html.dark .panel,
+html.dark .card,
+html.dark article.panel,
+html.dark .admin-dashboard .panel,
+html.dark .admin-dashboard .card,
+html.dark .admin-app main.page .panel,
+html.dark .admin-app main.page .card,
+html.dark .staff-workspace .panel,
+html.dark .staff-workspace .card {
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark article.panel.bg-white,
+html.dark .admin-request-row,
+html.dark .admin-activity-row {
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .panel .border-b,
+html.dark .panel .border-t,
+html.dark .card .border-b,
+html.dark .card .border-t,
+html.dark article .border-b,
+html.dark article .border-t {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ==========================================================================
+   ADMIN STAT & CHART CARDS
+   ========================================================================== */
+
+html.dark .admin-stat-card {
+  background-color: #141C28 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+html.dark .admin-stat-card strong,
+html.dark .admin-stat-card .text-3xl {
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-stat-card span.text-xs,
+html.dark .admin-stat-card span.font-bold {
+  color: #8E9DB2 !important;
+}
+
+html.dark .admin-stat-card p,
+html.dark .admin-stat-card p.text-xs {
+  color: #64748B !important;
+}
+
+html.dark .admin-stat-card > div:first-child > span:last-child {
+  background-color: #1A2638 !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  color: #60A5FA !important;
+}
+
+html.dark .admin-stat-fulfillment {
+  background: linear-gradient(135deg, #141C28, #0F231D) !important;
+  border-color: rgba(34, 197, 94, 0.25) !important;
+}
+
+html.dark .admin-stat-fulfillment strong {
+  color: #4ADE80 !important;
+}
+
+html.dark .admin-stat-fulfillment span.text-xs {
+  color: #34D399 !important;
+}
+
+html.dark .admin-stat-fulfillment > div:first-child > span:last-child {
+  background-color: rgba(34, 197, 94, 0.18) !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+  color: #4ADE80 !important;
+}
+
+html.dark .admin-stat-fulfillment div.overflow-hidden {
+  background-color: #1E293B !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .admin-chart-card {
+  background-color: #141C28 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+html.dark .admin-chart-card h2 {
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-chart-card p {
+  color: #8E9DB2 !important;
+}
+
+html.dark .admin-chart-card .border-b {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .admin-chart-card span.h-10 {
+  background-color: #1A2638 !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  color: #60A5FA !important;
+}
+
+html.dark .admin-community-chart div.rounded-xl {
+  background-color: #182232 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .admin-community-chart div.rounded-xl span {
+  color: #94A3B8 !important;
+}
+
+html.dark .admin-community-chart div.rounded-xl strong {
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-directory-panel > div.panel,
+html.dark .admin-directory-card {
+  background-color: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+html.dark .admin-directory-panel h3,
+html.dark .admin-directory-card strong {
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-directory-panel p,
+html.dark .admin-directory-card p {
+  color: #8E9DB2 !important;
+}
+
+html.dark .admin-directory-panel a {
+  color: #60A5FA !important;
+}
+
+html.dark .admin-directory-panel a:hover {
+  color: #93C5FD !important;
+}
+
+html.dark .admin-bottom-grid section.panel {
+  background-color: #141C28 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+html.dark .admin-bottom-grid h2 {
+  color: #FFFFFF !important;
+}
+
+html.dark .admin-bottom-grid p {
+  color: #8E9DB2 !important;
+}
+
+html.dark .admin-bottom-grid a {
+  color: #60A5FA !important;
+}
+
+html.dark .admin-quick-actions {
+  background-color: #141C28 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+html.dark .admin-quick-actions > p {
+  color: #8E9DB2 !important;
+}
+
+html.dark .admin-action-primary,
+html.dark .admin-action-secondary {
+  background-color: #182333 !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark .admin-action-primary:hover:not(:disabled),
+html.dark .admin-action-secondary:hover {
+  background-color: #202F44 !important;
+  border-color: rgba(96, 165, 250, 0.4) !important;
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   MODALS, DIALOGS & OVERLAYS (Dark Mode)
+   ========================================================================== */
+
+html.dark .modal-overlay .panel,
+html.dark .modal-overlay form.panel,
+html.dark .modal-overlay section[role="dialog"],
+html.dark .modal-card,
+html.dark .modal-content,
+html.dark dialog,
+html.dark [role="dialog"] {
+  background-color: #141C28 !important;
+  background: #141C28 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7) !important;
+}
+
+html.dark .modal-overlay h1,
+html.dark .modal-overlay h2,
+html.dark .modal-overlay h3,
+html.dark .modal-overlay strong {
+  color: #FFFFFF !important;
+}
+
+html.dark .modal-overlay p,
+html.dark .modal-overlay label,
+html.dark .modal-overlay span {
+  color: #CBD5E1 !important;
+}
+
+html.dark .modal-blur-backdrop {
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* ==========================================================================
+   FORM INPUTS, SELECTS & TEXTAREAS (Dark Mode)
+   ========================================================================== */
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea,
+html.dark .field,
+html.dark .input,
+html.dark .member-app main.staff-workspace input,
+html.dark .member-app main.staff-workspace .field,
+html.dark .member-app main.staff-workspace .input,
+html.dark .member-app main.staff-activity-page .field,
+html.dark .member-app main.staff-activity-page .input {
+  background-color: #16202E !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus,
+html.dark .field:focus,
+html.dark .input:focus,
+html.dark .dropdown-select-trigger:focus-visible {
+  border-color: #3B82F6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22) !important;
+}
+
+/* ==========================================================================
+   BUTTONS (Dark Mode)
+   ========================================================================== */
+
+html.dark .btn-secondary,
+html.dark button.btn-secondary,
+html.dark .staff-dashboard-plain-action,
+html.dark .staff-priority-view-all {
+  background-color: #182333 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark .btn-secondary:hover:not(:disabled),
+html.dark button.btn-secondary:hover:not(:disabled),
+html.dark .staff-dashboard-plain-action:hover,
+html.dark .staff-priority-view-all:hover {
+  background-color: #202F44 !important;
+  border-color: rgba(96, 165, 250, 0.4) !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .btn-ghost,
+html.dark button.btn-ghost {
+  color: #CBD5E1 !important;
+}
+
+html.dark .btn-ghost:hover:not(:disabled),
+html.dark button.btn-ghost:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   WORKSPACES TEXT CONTRAST OVERRIDE (Staff & Admin)
+   ========================================================================== */
+
+html.dark .staff-workspace .text-\[\#2563EB\],
+html.dark .page .text-\[\#2563EB\] {
+  color: #CBD5E1 !important;
+}
+
+html.dark .staff-workspace h1.text-\[\#2563EB\],
+html.dark .staff-workspace h2.text-\[\#2563EB\],
+html.dark .staff-workspace h3.text-\[\#2563EB\],
+html.dark .staff-workspace strong.text-\[\#2563EB\],
+html.dark .page h1.text-\[\#2563EB\],
+html.dark .page h2.text-\[\#2563EB\],
+html.dark .page h3.text-\[\#2563EB\],
+html.dark .page strong.text-\[\#2563EB\] {
+  color: #FFFFFF !important;
+}
+
+html.dark .staff-workspace .text-\[\#2563EB\]\/80,
+html.dark .staff-workspace .text-\[\#2563EB\]\/75,
+html.dark .staff-workspace .text-\[\#2563EB\]\/70,
+html.dark .staff-workspace .text-\[\#2563EB\]\/65,
+html.dark .staff-workspace .text-\[\#2563EB\]\/60,
+html.dark .page .text-\[\#2563EB\]\/80,
+html.dark .page .text-\[\#2563EB\]\/75,
+html.dark .page .text-\[\#2563EB\]\/70,
+html.dark .page .text-\[\#2563EB\]\/65,
+html.dark .page .text-\[\#2563EB\]\/60 {
+  color: #8E9DB2 !important;
+}
+
+html.dark .text-\[\#22C55E\],
+html.dark p.text-\[\#22C55E\],
+html.dark strong.text-\[\#22C55E\] {
+  color: #4ADE80 !important;
+}
+
+/* ==========================================================================
+   STATUS, BANNER & NOTICE OVERRIDES (Dark Mode)
+   ========================================================================== */
+
+html.dark .bg-emerald-50,
+html.dark .bg-\[\#22C55E\]\/10,
+html.dark .admin-empty-success {
+  background-color: #09261C !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  color: #4ADE80 !important;
+}
+
+html.dark .bg-red-50 {
+  background-color: #2D1214 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: #FCA5A5 !important;
+}
+
+html.dark .bg-\[\#2563EB\]\/5,
+html.dark .bg-blue-50 {
+  background-color: #101E33 !important;
+  border-color: rgba(59, 130, 246, 0.25) !important;
+  color: #93C5FD !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-yellow-50 {
+  background-color: #2A1D0B !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  color: #FCD34D !important;
+}
+
+/* ==========================================================================
+   RESIDUAL BG-WHITE NEUTRALIZER (Staff & Admin Dark Mode)
+   ========================================================================== */
+
+html.dark .staff-workspace .bg-white,
+html.dark .page .bg-white,
+html.dark .admin-app .bg-white,
+html.dark .member-app:has(.staff-workspace) .bg-white,
+html.dark .member-app:has(.staff-activity-page) .bg-white {
+  background-color: #141C28 !important;
+}
+
+html.dark .page span.grid.bg-white,
+html.dark .staff-workspace span.grid.bg-white,
+html.dark .admin-app span.grid.bg-white {
+  background-color: #1A2638 !important;
+  border-color: rgba(59, 130, 246, 0.25) !important;
+  color: #60A5FA !important;
+}
+
+html.dark .page span.grid.border-\[\#22C55E\],
+html.dark .staff-workspace span.grid.border-\[\#22C55E\],
+html.dark .admin-app span.grid.border-\[\#22C55E\] {
+  background-color: rgba(34, 197, 94, 0.18) !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  color: #4ADE80 !important;
+}
+
+/* ==========================================================================
+   BADGES (Dark Mode)
+   ========================================================================== */
+
+html.dark .badge-primary {
+  background-color: rgba(37, 99, 235, 0.2) !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+  color: #93C5FD !important;
+}
+
+html.dark .badge-success {
+  background-color: rgba(34, 197, 94, 0.18) !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+  color: #4ADE80 !important;
+}
+
+html.dark .badge-warning {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  color: #FCD34D !important;
+}
+
+html.dark .badge-danger {
+  background-color: rgba(239, 68, 68, 0.18) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+  color: #FCA5A5 !important;
+}
+
+/* ==========================================================================
+   SCROLLBARS (Dark Mode)
+   ========================================================================== */
+
+html.dark ::-webkit-scrollbar-track {
+  background: #101722;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #253347;
+  border-radius: 8px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334460;
+}
+
