@@ -9236,12 +9236,12 @@ function StaffDashboard() {
                         {user?.name || 'Staff member'}, monitor verification, warehouse, dispatch, and walk-in operations from one live workspace.
                     </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                    <Button variant="secondary" onClick={handleExportCsv} loading={exporting}>
+                <div className="staff-dashboard-header-actions flex flex-wrap items-center gap-3">
+                    <Button variant="secondary" className="staff-dashboard-header-action" onClick={handleExportCsv} loading={exporting}>
                         <Icon name="report" />
                         <span className="ml-1 text-xs">Export CSV Audit Report</span>
                     </Button>
-                    <Button variant="secondary" onClick={loadData} loading={loading}>
+                    <Button variant="secondary" className="staff-dashboard-header-action" onClick={loadData} loading={loading}>
                         <Icon name="refresh" />
                         <span className="ml-1 text-xs">Refresh Feed</span>
                     </Button>

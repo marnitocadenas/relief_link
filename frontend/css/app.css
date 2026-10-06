@@ -5767,6 +5767,18 @@ html.dark .dropdown-select-trigger:focus-visible {
    BUTTONS (Dark Mode)
    ========================================================================== */
 
+html.dark .member-app main.staff-workspace.staff-dashboard-page .staff-dashboard-banner .staff-dashboard-header-action {
+  border-color: #64748B !important;
+  background: #111827 !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .member-app main.staff-workspace.staff-dashboard-page .staff-dashboard-banner .staff-dashboard-header-action:hover:not(:disabled) {
+  border-color: #94A3B8 !important;
+  background: #1F2937 !important;
+  color: #FFFFFF !important;
+}
+
 html.dark .member-app main.staff-workspace.staff-inventory-page .staff-inventory-hero-actions > .btn-primary {
   border-color: #64748B;
   background: #111827;
@@ -5777,6 +5789,18 @@ html.dark .member-app main.staff-workspace.staff-inventory-page .staff-inventory
   border-color: #94A3B8;
   background: #1F2937;
   color: #FFFFFF;
+}
+
+html.dark .member-app main.staff-workspace.staff-inventory-page .staff-inventory-hero-actions > .btn-secondary {
+  border-color: #64748B !important;
+  background: #111827 !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark .member-app main.staff-workspace.staff-inventory-page .staff-inventory-hero-actions > .btn-secondary:hover:not(:disabled) {
+  border-color: #94A3B8 !important;
+  background: #1F2937 !important;
+  color: #FFFFFF !important;
 }
 
 html.dark .btn-secondary,
