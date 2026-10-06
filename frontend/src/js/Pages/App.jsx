@@ -9367,7 +9367,7 @@ function StaffDashboard() {
                                 </button>
                             ))}
                         </div>
-                    ) : <div className="p-7"><Empty>No requests are waiting for verification.</Empty></div>}
+                    ) : <div className="staff-dashboard-empty p-7"><Empty>No requests are waiting for verification.</Empty></div>}
                 </div>
                 <div className="panel overflow-hidden xl:col-span-2">
                     <div className="flex items-center justify-between border-b border-[#2563EB]/15 p-5"><div><h2 className="font-extrabold text-[#2563EB]">Recent activity</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Latest audited operations.</p></div><Icon name="activity"/></div>
@@ -9669,22 +9669,22 @@ function StaffVerificationDesk() {
                 </div>
 
                 {/* Requests Table */}
-                <div className="staff-verification-table-wrap overflow-x-auto">
-                    <table className="w-full min-w-[640px] text-left text-xs border-collapse">
+                <div className="table-wrap no-hover staff-table-wrap staff-verification-table-wrap">
+                    <table className="data-table staff-table staff-workspace-table">
                         <thead>
-                            <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
-                                <th className="p-3">Student / Beneficiary</th>
-                                <th className="p-3">Category</th>
-                                <th className="p-3">Urgency</th>
-                                <th className="p-3">Tier</th>
-                                <th className="p-3">Verified By</th>
-                                <th className="p-3">Status</th>
-                                <th className="p-3 text-right">Actions</th>
+                            <tr>
+                                <th>Student / Beneficiary</th>
+                                <th>Category</th>
+                                <th>Urgency</th>
+                                <th>Tier</th>
+                                <th>Verified By</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#2563EB]/10 font-semibold">
+                        <tbody>
                             {loading ? (
-                                <tr><td colSpan="7" className="p-8"><div className="space-y-2"><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/></div></td></tr>
+                                <tr><td colSpan="7" className="p-8 text-center font-bold text-[#2563EB]"><div className="space-y-2 max-w-md mx-auto"><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/></div></td></tr>
                             ) : !filtered.length ? (
                                 <tr>
                                     <td colSpan="7" className="p-8 text-center text-[#2563EB]/70">
@@ -9694,42 +9694,67 @@ function StaffVerificationDesk() {
                             ) : (
                                 filtered.map((req) => {
                                     const isSelf = user && req.beneficiary_id === user.id;
+                                    const studentName = req.beneficiary?.name || 'Student';
+                                    const initial = studentName.charAt(0).toUpperCase();
                                     return (
-                                        <tr key={req.id} className="hover:bg-[#2563EB]/5 transition">
-                                            <td className="p-3">
-                                                <div className="font-extrabold text-[#2563EB]">{req.beneficiary?.name || 'Student'}</div>
-                                                <div className="text-[10px] text-[#2563EB]/70">{req.beneficiary?.email}</div>
-                                                {req.student_id_number && (
-                                                    <div className="text-[10px] font-bold text-[#22C55E]">ID: {req.student_id_number}</div>
-                                                )}
+                                        <tr key={req.id}>
+                                            <td>
+                                                <div className="flex items-center gap-2.5">
+                                                    {req.beneficiary?.profile_photo_url ? (
+                                                        <img
+                                                            src={req.beneficiary.profile_photo_url}
+                                                            alt={studentName}
+                                                            className="h-8 w-8 rounded-full object-cover border border-[#2563EB]/20 shrink-0"
+                                                        />
+                                                    ) : (
+                                                        <span className="grid h-8 w-8 place-items-center rounded-full bg-[#2563EB] text-xs font-extrabold text-white shrink-0">
+                                                            {initial}
+                                                        </span>
+                                                    )}
+                                                    <div className="min-w-0">
+                                                        <strong className="block text-xs font-bold text-[#2563EB] truncate max-w-[150px]" title={studentName}>
+                                                            {studentName}
+                                                        </strong>
+                                                        <div className="text-[10px] text-[#2563EB]/70 truncate max-w-[150px]" title={req.beneficiary?.email}>{req.beneficiary?.email}</div>
+                                                        {req.student_id_number && (
+                                                            <div className="text-[10px] font-bold text-[#22C55E]">ID: {req.student_id_number}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td className="p-3 font-bold">{req.category}</td>
-                                            <td className="p-3">
-                                                <span className="uppercase text-[10px] font-black px-2 py-0.5 rounded bg-[#2563EB] text-white">
+                                            <td>
+                                                <span className="text-xs font-bold text-[#2563EB]">{req.category}</span>
+                                            </td>
+                                            <td>
+                                                <span className={`rounded px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider ${String(req.urgency || '').toLowerCase() === 'critical' ? 'bg-red-500' : String(req.urgency || '').toLowerCase() === 'high' ? 'bg-amber-500' : 'bg-[#2563EB]'}`}>
                                                     {req.urgency}
                                                 </span>
                                             </td>
-                                            <td className="p-3">
-                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[#2563EB]/30 bg-[#2563EB]/10">
+                                            <td>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-[#2563EB]/30 bg-[#2563EB]/10 text-[#2563EB]">
                                                     {(req.verification_tier || 'unverified').replace('_', ' ')}
                                                 </span>
                                             </td>
-                                            <td className="p-3 text-[11px] text-[#2563EB]/80">
-                                                {req.verified_by?.name || '—'}
+                                            <td>
+                                                <span className="text-xs font-semibold text-[#2563EB]/80">
+                                                    {req.verified_by?.name || '—'}
+                                                </span>
                                             </td>
-                                            <td className="p-3">
+                                            <td>
                                                 <Badge status={req.status} />
                                             </td>
-                                            <td className="p-3 text-right">
-                                                {isSelf ? (
-                                                    <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">
-                                                        Self-Approval Blocked
-                                                    </span>
-                                                ) : (
-                                                    <Button size="sm" onClick={() => openModal(req)}>
-                                                        <Icon name="eye" size={14}/><span className="ml-1">View & Verify</span>
-                                                    </Button>
-                                                )}
+                                            <td>
+                                                <div className="flex items-center justify-center gap-1.5">
+                                                    {isSelf ? (
+                                                        <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">
+                                                            Self-Approval Blocked
+                                                        </span>
+                                                    ) : (
+                                                        <Button variant="secondary" onClick={() => openModal(req)}>
+                                                            <Icon name="eye" size={14}/><span className="ml-1 text-xs">View & Verify</span>
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -10069,22 +10094,22 @@ function StaffWarehouseInventory() {
                 </div>
 
                 {/* Stock Table */}
-                <div className="staff-inventory-table-wrap overflow-x-auto">
-                    <table className="w-full min-w-[640px] text-left text-xs border-collapse">
+                <div className="table-wrap no-hover staff-table-wrap staff-inventory-table-wrap">
+                    <table className="data-table staff-table staff-workspace-table">
                         <thead>
-                            <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
-                                <th className="p-3">Donated Item Name</th>
-                                <th className="p-3">Category</th>
-                                <th className="p-3">Physical Storage Bin</th>
-                                <th className="p-3">Stock</th>
-                                <th className="p-3">Condition Grade</th>
-                                <th className="p-3">Status</th>
-                                <th className="p-3 text-right">Action</th>
+                            <tr>
+                                <th>Donated Item Name</th>
+                                <th>Category</th>
+                                <th>Physical Storage Bin</th>
+                                <th>Stock</th>
+                                <th>Condition Grade</th>
+                                <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#2563EB]/10 font-semibold">
+                        <tbody>
                             {loading ? (
-                                <tr><td colSpan="7" className="p-8"><div className="space-y-2"><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/></div></td></tr>
+                                <tr><td colSpan="7" className="p-8 text-center font-bold text-[#2563EB]"><div className="space-y-2 max-w-md mx-auto"><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/></div></td></tr>
                             ) : !filtered.length ? (
                                 <tr>
                                     <td colSpan="7" className="p-8 text-center text-[#2563EB]/70">
@@ -10093,26 +10118,41 @@ function StaffWarehouseInventory() {
                                 </tr>
                             ) : (
                                 filtered.map((item) => (
-                                    <tr key={item.id} className="hover:bg-[#2563EB]/5 transition">
-                                        <td className="p-3">
-                                            <div className="font-extrabold text-[#2563EB]">{item.item_name}</div>
+                                    <tr key={item.id}>
+                                        <td>
+                                            <strong className="block text-xs font-bold text-[#2563EB]">{item.item_name}</strong>
                                             <div className="text-[10px] text-[#2563EB]/70">Donor: {item.donor?.name || 'Donor'}</div>
                                         </td>
-                                        <td className="p-3 font-bold">{item.category}</td>
-                                        <td className="p-3">
-                                            <span className="font-extrabold text-[#2563EB] bg-[#2563EB]/10 px-2 py-0.5 rounded border border-[#2563EB]/20">
+                                        <td>
+                                            <span className="text-xs font-bold text-[#2563EB]">{item.category}</span>
+                                        </td>
+                                        <td>
+                                            <span className="font-extrabold text-[#2563EB] bg-[#2563EB]/10 px-2 py-0.5 rounded border border-[#2563EB]/20 text-[11px]">
                                                 {item.storage_location || item.pickup_location || 'Warehouse Depot 1'}
                                             </span>
                                         </td>
-                                        <td className="p-3"><p className="font-black text-sm">{item.quantity} <span className="text-[10px] font-bold text-[#2563EB]/60">on hand</span></p><p className="mt-1 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? ` · ${item.reserved_quantity} reserved` : ''}</p></td>
-                                        <td className="p-3">
+                                        <td>
+                                            <p className="font-black text-sm text-[#2563EB]">{item.quantity} <span className="text-[10px] font-bold text-[#2563EB]/60">on hand</span></p>
+                                            <p className="mt-0.5 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? ` · ${item.reserved_quantity} reserved` : ''}</p>
+                                        </td>
+                                        <td>
                                             <span className="uppercase text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
                                                 {(item.condition_grade || 'good').replace('_', ' ')}
                                             </span>
                                         </td>
-                                        <td className="p-3"><span className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-extrabold ${['Low stock','Expiring soon','Damaged','Expired'].includes(stockSignal(item)) ? 'border-[#22C55E] bg-[#22C55E]/10 text-[#22C55E]' : 'border-[#2563EB]/20 text-[#2563EB]'}`}>{stockSignal(item)}</span>{item.expiry_date && <p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">Expires {new Date(item.expiry_date).toLocaleDateString()}</p>}</td>
-                                        <td className="p-3 text-right">
-                                            <div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={() => setViewingItem(item)}>Details</Button><Button size="sm" onClick={() => openEditModal(item)}>Adjust</Button></div>
+                                        <td>
+                                            <span className={`inline-flex rounded px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${['Low stock','Expiring soon','Damaged','Expired'].includes(stockSignal(item)) ? 'bg-amber-500 text-white' : 'bg-[#22C55E] text-white'}`}>{stockSignal(item)}</span>
+                                            {item.expiry_date && <p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">Expires {new Date(item.expiry_date).toLocaleDateString()}</p>}
+                                        </td>
+                                        <td>
+                                            <div className="flex items-center justify-center gap-1.5">
+                                                <Button variant="secondary" onClick={() => setViewingItem(item)}>
+                                                    <Icon name="eye" size={14}/><span className="ml-1 text-xs">Details</span>
+                                                </Button>
+                                                <Button variant="secondary" onClick={() => openEditModal(item)}>
+                                                    <Icon name="edit" size={14}/><span className="ml-1 text-xs">Adjust</span>
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -10670,21 +10710,23 @@ function StaffHandoffDispatch() {
                     <DropdownSelect value={hubFilter} onChange={(e)=>setHubFilter(e.target.value)} className="input text-xs w-full"><option value="all">All pickup locations</option>{hubs.map((hub)=><option key={hub} value={hub}>{hub}</option>)}</DropdownSelect>
                 </div>
 
-                <div className="staff-dispatch-table-wrap overflow-x-auto">
-                    <table className="w-full min-w-[640px] text-left text-xs border-collapse">
+                <div className="table-wrap no-hover staff-table-wrap staff-dispatch-table-wrap">
+                    <table className="data-table staff-table staff-workspace-table">
                         <thead>
-                            <tr className="border-b border-[#2563EB]/20 bg-[#2563EB]/5 text-[#2563EB] font-extrabold uppercase">
-                                <th className="p-3">Match ID & Item</th>
-                                <th className="p-3">Donor</th>
-                                <th className="p-3">Student Beneficiary</th>
-                                <th className="p-3">Pickup Location</th>
-                                <th className="p-3">Release readiness</th>
-                                <th className="p-3">Status</th>
-                                <th className="p-3 text-right">Action</th>
+                            <tr>
+                                <th>Match ID & Item</th>
+                                <th>Donor</th>
+                                <th>Student Beneficiary</th>
+                                <th>Pickup Location</th>
+                                <th>Release readiness</th>
+                                <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#2563EB]/10 font-semibold">
-                            {loading ? <tr><td colSpan="7" className="p-8"><div className="h-4 animate-pulse rounded bg-[#2563EB]/10"/></td></tr> : !filtered.length ? (
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan="7" className="p-8 text-center font-bold text-[#2563EB]"><div className="h-4 animate-pulse rounded bg-[#2563EB]/10 max-w-md mx-auto"/></td></tr>
+                            ) : !filtered.length ? (
                                 <tr>
                                     <td colSpan="7" className="p-8 text-center text-[#2563EB]/70">
                                         No active handoffs scheduled currently.
@@ -10692,26 +10734,37 @@ function StaffHandoffDispatch() {
                                 </tr>
                             ) : (
                                 filtered.map((m) => (
-                                    <tr key={m.id} className="hover:bg-[#2563EB]/5 transition">
-                                        <td className="p-3 font-extrabold text-[#2563EB]">
-                                            Match #{m.id} — {m.donation?.item_name || 'Item'}
+                                    <tr key={m.id}>
+                                        <td>
+                                            <strong className="block text-xs font-bold text-[#2563EB]">
+                                                Match #{m.id} — {m.donation?.item_name || 'Item'}
+                                            </strong>
                                         </td>
-                                        <td className="p-3 text-[#2563EB]/80">{m.donation?.donor?.name || 'Donor'}</td>
-                                        <td className="p-3">
-                                            <div className="font-extrabold text-[#2563EB]">{m.request?.beneficiary?.name || 'Recipient'}</div>
+                                        <td>
+                                            <span className="text-xs font-medium text-[#2563EB]">{m.donation?.donor?.name || 'Donor'}</span>
+                                        </td>
+                                        <td>
+                                            <strong className="block text-xs font-bold text-[#2563EB]">{m.request?.beneficiary?.name || 'Recipient'}</strong>
                                             <div className="text-[10px] text-[#2563EB]/70">{m.request?.beneficiary?.email}</div>
                                         </td>
-                                        <td className="p-3 text-[11px] font-bold">
-                                            {m.pickup_hub || m.donation?.storage_location || 'Campus Center Desk'}
+                                        <td>
+                                            <span className="text-xs font-semibold text-[#2563EB]/80">
+                                                {m.pickup_hub || m.donation?.storage_location || 'Campus Center Desk'}
+                                            </span>
                                         </td>
-                                        <td className="p-3"><span className={`rounded-full border px-2 py-1 text-[10px] font-extrabold ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'border-[#22C55E] text-[#22C55E]' : 'border-[#2563EB]/20 text-[#2563EB]'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} · ID check required</p></td>
-                                        <td className="p-3">
+                                        <td>
+                                            <span className={`inline-flex rounded px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'bg-amber-500 text-white' : 'bg-[#22C55E] text-white'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span>
+                                            <p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} · ID check required</p>
+                                        </td>
+                                        <td>
                                             <Badge status={m.status} />
                                         </td>
-                                        <td className="p-3 text-right">
-                                            <Button size="sm" onClick={() => openPinModal(m)}>
-                                                Verify 6-Digit PIN & Handoff
-                                            </Button>
+                                        <td>
+                                            <div className="flex items-center justify-center">
+                                                <Button variant="secondary" onClick={() => openPinModal(m)}>
+                                                    <Icon name="check" size={14}/><span className="ml-1 text-xs">Verify PIN & Handoff</span>
+                                                </Button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
