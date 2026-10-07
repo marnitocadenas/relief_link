@@ -6360,7 +6360,7 @@ function PeopleManager(){
                                                 <Badge status={userItem.role}/>
                                             </td>
                                             <td>
-                                                <span className={`rounded px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider ${userItem.is_active ? 'bg-[#22C55E]' : 'bg-gray-500'}`}>
+                                                <span className={`user-management-status-badge rounded px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider ${userItem.is_active ? 'user-management-status-active bg-[#22C55E]' : 'user-management-status-inactive bg-gray-500'}`}>
                                                     {userItem.is_active ? 'Active' : 'Inactive'}
                                                 </span>
                                             </td>
@@ -9726,7 +9726,7 @@ function StaffVerificationDesk() {
                                                 <span className="text-xs font-bold text-[#2563EB]">{req.category}</span>
                                             </td>
                                             <td>
-                                                <span className={`rounded px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider ${String(req.urgency || '').toLowerCase() === 'critical' ? 'bg-red-500' : String(req.urgency || '').toLowerCase() === 'high' ? 'bg-amber-500' : 'bg-[#2563EB]'}`}>
+                                                <span className={`staff-verification-urgency-badge rounded px-2 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wider ${String(req.urgency || '').toLowerCase() === 'critical' ? 'staff-verification-urgency-critical bg-red-500' : String(req.urgency || '').toLowerCase() === 'high' ? 'staff-verification-urgency-high bg-amber-500' : String(req.urgency || '').toLowerCase() === 'medium' ? 'staff-verification-urgency-medium bg-[#2563EB]' : 'staff-verification-urgency-normal bg-[#2563EB]'}`}>
                                                     {req.urgency}
                                                 </span>
                                             </td>
@@ -10136,12 +10136,12 @@ function StaffWarehouseInventory() {
                                             <p className="mt-0.5 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? ` · ${item.reserved_quantity} reserved` : ''}</p>
                                         </td>
                                         <td>
-                                            <span className="uppercase text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                                            <span className="staff-inventory-condition-grade uppercase text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
                                                 {(item.condition_grade || 'good').replace('_', ' ')}
                                             </span>
                                         </td>
                                         <td>
-                                            <span className={`inline-flex rounded px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${['Low stock','Expiring soon','Damaged','Expired'].includes(stockSignal(item)) ? 'bg-amber-500 text-white' : 'bg-[#22C55E] text-white'}`}>{stockSignal(item)}</span>
+                                            <span className={`staff-inventory-stock-status-badge inline-flex rounded px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${['Low stock','Expiring soon','Damaged','Expired'].includes(stockSignal(item)) ? 'staff-inventory-stock-status-warning bg-amber-500 text-white' : 'staff-inventory-stock-status-available bg-[#22C55E] text-white'}`}>{stockSignal(item)}</span>
                                             {item.expiry_date && <p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">Expires {new Date(item.expiry_date).toLocaleDateString()}</p>}
                                         </td>
                                         <td>
@@ -10753,8 +10753,8 @@ function StaffHandoffDispatch() {
                                             </span>
                                         </td>
                                         <td>
-                                            <span className={`inline-flex rounded px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'bg-amber-500 text-white' : 'bg-[#22C55E] text-white'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span>
-                                            <p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} · ID check required</p>
+                                            <span className={`staff-dispatch-readiness-badge inline-flex rounded px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'staff-dispatch-readiness-warning bg-amber-500 text-white' : 'staff-dispatch-readiness-ready bg-[#22C55E] text-white'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span>
+                                            <p className="staff-dispatch-readiness-note mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} · ID check required</p>
                                         </td>
                                         <td>
                                             <Badge status={m.status} />
