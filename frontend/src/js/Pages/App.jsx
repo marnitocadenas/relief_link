@@ -3983,7 +3983,7 @@ function DonorDonationForm() {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setShowReviewModal(false)}
                             >
                                 <Icon name="close" />
@@ -4906,7 +4906,7 @@ function BeneficiaryRequestForm() {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setShowConfirmModal(false)}
                             >
                                 <Icon name="close" />
@@ -5451,7 +5451,7 @@ function EditModal({item, kind, admin, close, done}){
             <form noValidate className="panel no-hover w-full max-w-xl p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl rounded-2xl" onSubmit={save}>
                 <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                     <h2 className="text-lg font-extrabold text-[#2563EB]">{item.id ? (isUserKind ? 'Edit Member Account' : 'Edit entry') : (isUserKind ? 'Add New Member' : 'Add entry')}</h2>
-                    <button type="button" title="Close" className="nav-link p-1" onClick={close}><Icon name="close"/></button>
+                    <button type="button" title="Close" className="nav-link p-1 panel-modal-close" onClick={close}><Icon name="close"/></button>
                 </div>
 
                 {isUserKind ? (
@@ -6348,7 +6348,7 @@ function PeopleManager(){
                                                     )}
                                                     <div className="min-w-0">
                                                         <strong className="block text-xs font-bold text-[#2563EB] truncate max-w-[150px]" title={userItem.name}>
-                                                            {truncateTableText(userItem.name, 15)}
+                                                            {userItem.name?.length > 12 ? `${userItem.name.slice(0, 11)}…` : userItem.name}
                                                         </strong>
                                                     </div>
                                                 </div>
@@ -6452,12 +6452,12 @@ function PeopleManager(){
                         })}
                     </div>
 
-                    {totalPages > 1 && (
+                    {
                         <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} members
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
                                     variant="secondary"
                                     disabled={currentPage === 1}
@@ -6477,7 +6477,7 @@ function PeopleManager(){
                                 </Button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             )}
 
@@ -6486,7 +6486,7 @@ function PeopleManager(){
                     <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Member Account Details</h2>
-                            <button className="nav-link p-1" onClick={() => setViewingUser(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setViewingUser(null)} title="Close" aria-label="Close member account details">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -6603,7 +6603,7 @@ function PeopleManager(){
                     <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Member</h2>
-                            <button className="nav-link p-1" onClick={() => setDeletingUser(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setDeletingUser(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -6949,12 +6949,12 @@ function DonationManager(){
                         ))}
                     </div>
 
-                    {totalPages > 1 && (
+                    {
                         <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} donations
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
                                     variant="secondary"
                                     disabled={currentPage === 1}
@@ -6974,7 +6974,7 @@ function DonationManager(){
                                 </Button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             )}
 
@@ -6983,7 +6983,7 @@ function DonationManager(){
                     <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Donation Details Inspection</h2>
-                            <button className="nav-link p-1" onClick={() => setViewingDonation(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setViewingDonation(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -7052,7 +7052,7 @@ function DonationManager(){
                     <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Donation</h2>
-                            <button className="nav-link p-1" onClick={() => setDeletingDonation(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setDeletingDonation(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -7142,7 +7142,7 @@ function RequestEditModal({ item, close, done }) {
                         </span>
                         <h2 className="text-lg font-extrabold text-[#2563EB]">Edit Support Request</h2>
                     </div>
-                    <button type="button" className="nav-link p-1" onClick={close} title="Close">
+                    <button type="button" className="nav-link p-1 panel-modal-close" onClick={close} title="Close">
                         <Icon name="close"/>
                     </button>
                 </div>
@@ -7732,12 +7732,12 @@ function RequestManager(){
                     </div>
 
                     {/* Pagination */}
-                    {totalPages > 1 && (
+                    {
                         <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} requests
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
                                     variant="secondary"
                                     disabled={currentPage === 1}
@@ -7757,7 +7757,7 @@ function RequestManager(){
                                 </Button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             )}
 
@@ -7772,7 +7772,7 @@ function RequestManager(){
                                 </span>
                                 <h2 className="text-xl font-black text-[#2563EB]">Support Request Inspection</h2>
                             </div>
-                            <button className="nav-link p-1" onClick={() => setViewingRequest(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setViewingRequest(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -7949,7 +7949,7 @@ function RequestManager(){
                     <div className="panel no-hover max-h-[90vh] w-full max-w-md overflow-y-auto p-6 text-[#2563EB] shadow-2xl space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Cancel Support Request?</h3>
-                            <button className="nav-link p-1" onClick={() => setCancellingRequest(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setCancellingRequest(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -7987,7 +7987,7 @@ function RequestManager(){
                     <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Request</h2>
-                            <button className="nav-link p-1" onClick={() => setDeletingRequest(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setDeletingRequest(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -8223,7 +8223,7 @@ function Matches(){
                             type="button"
                             onClick={() => setMatchMessage('')}
                             aria-label="Close match engine result"
-                            className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full p-0 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                            className="panel-modal-close absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full p-0 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         >
                             <Icon name="close" size={16}/>
                         </button>
@@ -8433,12 +8433,12 @@ function Matches(){
                         </article>
                     ))}
 
-                    {totalPages > 1 && (
-                        <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
+                    {
+                        <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} matches
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
                                     variant="secondary"
                                     disabled={currentPage === 1}
@@ -8458,7 +8458,7 @@ function Matches(){
                                 </Button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             )}
 
@@ -8467,7 +8467,7 @@ function Matches(){
                     <div className="panel w-full max-w-2xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Match Inspection Details</h2>
-                            <button className="nav-link p-1" onClick={() => setViewingMatch(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setViewingMatch(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -8554,7 +8554,7 @@ function Matches(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Match Pair</h2>
-                            <button className="nav-link p-1" onClick={() => setConfirmingMatch(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setConfirmingMatch(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -8586,7 +8586,7 @@ function Matches(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Decline Proposed Match</h2>
-                            <button className="nav-link p-1" onClick={() => setDecliningMatch(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setDecliningMatch(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -8624,7 +8624,7 @@ function Matches(){
                     }}>
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Schedule Handoff</h2>
-                            <button type="button" className="nav-link p-1" onClick={() => setSchedule(null)} title="Close">
+                            <button type="button" className="nav-link p-1 panel-modal-close" onClick={() => setSchedule(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -8766,7 +8766,7 @@ function Dashboard(){
                             type="button"
                             onClick={() => setMatchMessage('')}
                             aria-label="Close match engine result"
-                            className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full p-0 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                            className="panel-modal-close absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full p-0 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
                         >
                             <Icon name="close" size={16}/>
                         </button>
@@ -9771,7 +9771,7 @@ function StaffVerificationDesk() {
                     <div className="panel no-hover w-full max-w-xl p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Verification Desk Inspection</h3>
-                            <button className="nav-link p-1" onClick={() => setInspecting(null)}>
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setInspecting(null)}>
                                 <Icon name="close" />
                             </button>
                         </div>
@@ -10162,7 +10162,7 @@ function StaffWarehouseInventory() {
                 </div>
             </div>
 
-            {viewingItem && <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop /><div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white p-6"><div className="flex items-start justify-between border-b border-[#2563EB]/20 pb-3"><div><p className="eyebrow">Inventory item record</p><h3 className="text-lg font-extrabold">{viewingItem.item_name}</h3></div><button className="nav-link p-1" onClick={() => setViewingItem(null)} aria-label="Close item details"><Icon name="close"/></button></div><div className="mt-5 grid gap-4 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#2563EB]/5 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Stock and location</p><p className="mt-2 text-xl font-black">{viewingItem.quantity} units</p><p className="mt-1 font-bold">{viewingItem.storage_location || viewingItem.pickup_location || 'Location not set'}</p><p className="mt-1 text-[#2563EB]/65">{viewingItem.category} · {stockSignal(viewingItem)}</p></div><div className="rounded-xl border border-[#2563EB]/20 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Condition and handling</p><p className="mt-2 font-extrabold capitalize">{(viewingItem.condition_grade || 'good').replace('_', ' ')}</p><p className="mt-1 text-[#2563EB]/70">{viewingItem.condition_notes || viewingItem.intake_notes || 'No inspection notes recorded.'}</p>{viewingItem.expiry_date && <p className="mt-2 font-bold text-[#22C55E]">Expiry: {new Date(viewingItem.expiry_date).toLocaleDateString()}</p>}</div></div><div className="mt-5"><div className="flex items-center justify-between"><div><h4 className="font-extrabold">Movement history</h4><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">Every recorded intake or stock adjustment.</p></div><span className="text-xs font-extrabold">{movements.filter((movement) => movement.donation_id === viewingItem.id).length} records</span></div><div className="mt-3 divide-y divide-[#2563EB]/10 rounded-xl border border-[#2563EB]/15">{movements.filter((movement) => movement.donation_id === viewingItem.id).length ? movements.filter((movement) => movement.donation_id === viewingItem.id).map((movement) => <div key={movement.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-xs font-extrabold capitalize">{movement.movement_type.replace('_', ' ')} <span className="font-semibold text-[#2563EB]/65">· {movement.staff?.name || 'Staff'}</span></p><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{movement.reason || 'No reason recorded'} · {new Date(movement.created_at).toLocaleString()}</p></div><span className="text-xs font-black text-[#22C55E]">{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</span></div>) : <div className="p-5 text-center text-xs font-semibold text-[#2563EB]/65">No movements have been recorded for this item yet.</div>}</div></div><div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>Adjust stock</Button><Button onClick={() => setViewingItem(null)}>Close</Button></div></div></div>}
+            {viewingItem && <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop /><div className="panel max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-white p-6"><div className="flex items-start justify-between border-b border-[#2563EB]/20 pb-3"><div><p className="eyebrow">Inventory item record</p><h3 className="text-lg font-extrabold">{viewingItem.item_name}</h3></div><button className="nav-link p-1 panel-modal-close" onClick={() => setViewingItem(null)} aria-label="Close item details"><Icon name="close"/></button></div><div className="mt-5 grid gap-4 text-xs sm:grid-cols-2"><div className="rounded-xl bg-[#2563EB]/5 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Stock and location</p><p className="mt-2 text-xl font-black">{viewingItem.quantity} units</p><p className="mt-1 font-bold">{viewingItem.storage_location || viewingItem.pickup_location || 'Location not set'}</p><p className="mt-1 text-[#2563EB]/65">{viewingItem.category} · {stockSignal(viewingItem)}</p></div><div className="rounded-xl border border-[#2563EB]/20 p-4"><p className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Condition and handling</p><p className="mt-2 font-extrabold capitalize">{(viewingItem.condition_grade || 'good').replace('_', ' ')}</p><p className="mt-1 text-[#2563EB]/70">{viewingItem.condition_notes || viewingItem.intake_notes || 'No inspection notes recorded.'}</p>{viewingItem.expiry_date && <p className="mt-2 font-bold text-[#22C55E]">Expiry: {new Date(viewingItem.expiry_date).toLocaleDateString()}</p>}</div></div><div className="mt-5"><div className="flex items-center justify-between"><div><h4 className="font-extrabold">Movement history</h4><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/65">Every recorded intake or stock adjustment.</p></div><span className="text-xs font-extrabold">{movements.filter((movement) => movement.donation_id === viewingItem.id).length} records</span></div><div className="mt-3 divide-y divide-[#2563EB]/10 rounded-xl border border-[#2563EB]/15">{movements.filter((movement) => movement.donation_id === viewingItem.id).length ? movements.filter((movement) => movement.donation_id === viewingItem.id).map((movement) => <div key={movement.id} className="flex items-center justify-between gap-3 p-3"><div><p className="text-xs font-extrabold capitalize">{movement.movement_type.replace('_', ' ')} <span className="font-semibold text-[#2563EB]/65">· {movement.staff?.name || 'Staff'}</span></p><p className="mt-1 text-[10px] font-semibold text-[#2563EB]/60">{movement.reason || 'No reason recorded'} · {new Date(movement.created_at).toLocaleString()}</p></div><span className="text-xs font-black text-[#22C55E]">{movement.quantity_delta > 0 ? '+' : ''}{movement.quantity_delta}</span></div>) : <div className="p-5 text-center text-xs font-semibold text-[#2563EB]/65">No movements have been recorded for this item yet.</div>}</div></div><div className="mt-5 flex justify-end gap-2"><Button variant="secondary" onClick={() => { setViewingItem(null); openEditModal(viewingItem); }}>Adjust stock</Button><Button onClick={() => setViewingItem(null)}>Close</Button></div></div></div>}
 
             {/* Modal: Physical Intake */}
             {showIntakeModal && (
@@ -10170,7 +10170,7 @@ function StaffWarehouseInventory() {
                     <form onSubmit={handleCreateIntake} className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Physical Inventory Item Intake</h3>
-                            <button type="button" className="nav-link p-1" onClick={() => setShowIntakeModal(false)}>
+                            <button type="button" className="nav-link p-1 panel-modal-close" onClick={() => setShowIntakeModal(false)}>
                                 <Icon name="close" />
                             </button>
                         </div>
@@ -10288,7 +10288,7 @@ function StaffWarehouseInventory() {
                     <form onSubmit={handleSaveStock} className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">Update Stock & Storage Bin</h3>
-                            <button type="button" className="nav-link p-1" onClick={() => setEditingStock(null)}>
+                            <button type="button" className="nav-link p-1 panel-modal-close" onClick={() => setEditingStock(null)}>
                                 <Icon name="close" />
                             </button>
                         </div>
@@ -10780,7 +10780,7 @@ function StaffHandoffDispatch() {
                     <form onSubmit={handleVerifyPin} className="staff-dispatch-modal panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h3 className="text-lg font-extrabold text-[#2563EB]">PIN Handoff Clearance</h3>
-                            <button type="button" className="nav-link p-1" onClick={() => setVerifyingMatch(null)}>
+                            <button type="button" className="nav-link p-1 panel-modal-close" onClick={() => setVerifyingMatch(null)}>
                                 <Icon name="close" />
                             </button>
                         </div>
@@ -11254,7 +11254,7 @@ function DonorDashboard(){
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Donation Details</h2>
-                            <button className="nav-link p-1" onClick={() => setInspectingItem(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setInspectingItem(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -11860,7 +11860,7 @@ function BeneficiaryDashboard() {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setSelectedRequestDetails(null)}
                             >
                                 <Icon name="close" />
@@ -12437,15 +12437,15 @@ function DonorNeeds() {
                         </div>
 
                         {/* Pagination Bar */}
-                        {totalPages > 1 && (
-                            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-[#2563EB] pt-4 text-xs font-bold text-[#2563EB]">
+                        {
+                            <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                                 <div>
                                     Showing {startIndex + 1}–{Math.min(startIndex + pageSize, sortedRequests.length)} of {sortedRequests.length} campus needs
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                     <Button
                                         variant="secondary"
-                                        className="py-1 px-3 text-xs"
+                                        className="shrink-0"
                                         disabled={currentPage <= 1}
                                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                                     >
@@ -12458,7 +12458,7 @@ function DonorNeeds() {
 
                                     <Button
                                         variant="secondary"
-                                        className="py-1 px-3 text-xs"
+                                        className="shrink-0"
                                         disabled={currentPage >= totalPages}
                                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                     >
@@ -12466,7 +12466,7 @@ function DonorNeeds() {
                                     </Button>
                                 </div>
                             </div>
-                        )}
+                        }
                     </>
                 )}
             </div>
@@ -12483,7 +12483,7 @@ function DonorNeeds() {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setSelectedDetailRequest(null)}
                             >
                                 <Icon name="close" />
@@ -12631,7 +12631,7 @@ function DonorNeeds() {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setDonatingRequest(null)}
                             >
                                 <Icon name="close" />
@@ -13339,7 +13339,7 @@ function FulfillmentPage({ role }) {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setSchedulingMatch(null)}
                             >
                                 <Icon name="close" />
@@ -13413,7 +13413,7 @@ function FulfillmentPage({ role }) {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setCancellingMatch(null)}
                             >
                                 <Icon name="close" />
@@ -13468,7 +13468,7 @@ function FulfillmentPage({ role }) {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setSelectedMatchDetails(null)}
                             >
                                 <Icon name="close" />
@@ -14022,15 +14022,15 @@ function HistoryPage({ role }) {
                         </div>
 
                         {/* Pagination Bar */}
-                        {totalPages > 1 && (
-                            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#2563EB] pt-4 text-xs font-bold text-[#2563EB]">
+                        {
+                            <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                                 <div>
                                     Showing {startIndex + 1}–{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length} records
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                     <Button
                                         variant="secondary"
-                                        className="py-1 px-3 text-xs"
+                                        className="shrink-0"
                                         disabled={currentPage <= 1}
                                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                                     >
@@ -14043,7 +14043,7 @@ function HistoryPage({ role }) {
 
                                     <Button
                                         variant="secondary"
-                                        className="py-1 px-3 text-xs"
+                                        className="shrink-0"
                                         disabled={currentPage >= totalPages}
                                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                     >
@@ -14051,7 +14051,7 @@ function HistoryPage({ role }) {
                                     </Button>
                                 </div>
                             </div>
-                        )}
+                        }
                     </>
                 )}
             </div>
@@ -14070,7 +14070,7 @@ function HistoryPage({ role }) {
                             <button
                                 type="button"
                                 title="Close"
-                                className="nav-link p-1"
+                                className="nav-link p-1 panel-modal-close"
                                 onClick={() => setSelectedDonation(null)}
                             >
                                 <Icon name="close" />
@@ -14619,12 +14619,12 @@ function AdminCategories(){
                         })}
                     </div>
 
-                    {totalPages > 1 && (
-                        <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
+                    {
+                        <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} categories
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
                                     variant="secondary"
                                     disabled={currentPage === 1}
@@ -14644,7 +14644,7 @@ function AdminCategories(){
                                 </Button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             )}
 
@@ -14653,7 +14653,7 @@ function AdminCategories(){
                     <form className="panel w-full max-w-md p-6 bg-white space-y-4" onSubmit={handleAddCategory}>
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Add New Resource Category</h2>
-                            <button type="button" className="nav-link p-1" onClick={() => setAddingCategory(false)} title="Close">
+                            <button type="button" className="nav-link p-1 panel-modal-close" onClick={() => setAddingCategory(false)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -14681,7 +14681,7 @@ function AdminCategories(){
                     <form className="panel w-full max-w-md p-6 bg-white space-y-4" onSubmit={handleUpdateCategory}>
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Edit Category</h2>
-                            <button type="button" className="nav-link p-1" onClick={() => setEditingCategory(null)} title="Close">
+                            <button type="button" className="nav-link p-1 panel-modal-close" onClick={() => setEditingCategory(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -14709,7 +14709,7 @@ function AdminCategories(){
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Category Listings Inspection</h2>
-                            <button className="nav-link p-1" onClick={() => setInspectingCategory(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setInspectingCategory(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -14757,7 +14757,7 @@ function AdminCategories(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Category</h2>
-                            <button className="nav-link p-1" onClick={() => setDeletingCategory(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setDeletingCategory(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -15075,12 +15075,12 @@ function AdminApprovals(){
                         </article>
                     ))}
 
-                    {totalPages > 1 && (
-                        <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
+                    {
+                        <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} requests
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
                                     variant="secondary"
                                     disabled={currentPage === 1}
@@ -15100,7 +15100,7 @@ function AdminApprovals(){
                                 </Button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             )}
 
@@ -15109,7 +15109,7 @@ function AdminApprovals(){
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Support Request Inspection</h2>
-                            <button className="nav-link p-1" onClick={() => setInspectingRequest(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setInspectingRequest(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -15183,7 +15183,7 @@ function AdminApprovals(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Request Authorization</h2>
-                            <button className="nav-link p-1" onClick={() => setApprovingRequest(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setApprovingRequest(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -15211,7 +15211,7 @@ function AdminApprovals(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Decline Support Request</h2>
-                            <button className="nav-link p-1" onClick={() => setDecliningRequest(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setDecliningRequest(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -15606,12 +15606,12 @@ function AdminAnnouncements(){
                                     </article>
                                 ))}
 
-                                {totalPages > 1 && (
-                                    <div className="panel p-3 flex flex-wrap items-center justify-between gap-4">
+                                {
+                                    <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                                         <p className="text-xs font-bold text-[#2563EB]">
                                             Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredHistory.length)} of {filteredHistory.length}
                                         </p>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                             <Button
                                                 variant="secondary"
                                                 disabled={currentPage === 1}
@@ -15631,7 +15631,7 @@ function AdminAnnouncements(){
                                             </Button>
                                         </div>
                                     </div>
-                                )}
+                                }
                             </div>
                         )}
                     </div>
@@ -15643,7 +15643,7 @@ function AdminAnnouncements(){
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Announcement Recipient Preview</h2>
-                            <button className="nav-link p-1" onClick={() => setPreviewingData(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setPreviewingData(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -15675,7 +15675,7 @@ function AdminAnnouncements(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Delete Announcement</h2>
-                            <button className="nav-link p-1" onClick={() => setDeletingAnnouncement(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setDeletingAnnouncement(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -16188,7 +16188,7 @@ function AdminSettings(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Save Settings</h2>
-                            <button className="nav-link p-1" onClick={()=>setConfirmSave(false)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={()=>setConfirmSave(false)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -16221,7 +16221,7 @@ function AdminSettings(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Reset to Defaults</h2>
-                            <button className="nav-link p-1" onClick={()=>setConfirmReset(false)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={()=>setConfirmReset(false)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -17042,7 +17042,7 @@ function Profile(){
                     <div className="relative max-h-[90vh] max-w-[90vw]" onMouseDown={event=>event.stopPropagation()}>
                         <button
                             type="button"
-                            className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border-2 border-[#2563EB] bg-white text-[#2563EB] shadow-sm"
+                            className="panel-modal-close absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border-2 border-[#2563EB] bg-white text-[#2563EB] shadow-sm"
                             onClick={()=>setIsPhotoViewerOpen(false)}
                             aria-label="Close photo preview"
                         >
@@ -17634,12 +17634,12 @@ function Activities(){
                         </article>
                     ))}
 
-                    {totalPages > 1 && (
-                        <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
+                    {
+                        <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} audit entries
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
                                     variant="secondary"
                                     disabled={currentPage === 1}
@@ -17659,7 +17659,7 @@ function Activities(){
                                 </Button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             )}
 
@@ -17668,7 +17668,7 @@ function Activities(){
                     <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Activity Audit Log Inspection</h2>
-                            <button className="nav-link p-1" onClick={() => setViewingLog(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setViewingLog(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -18019,12 +18019,12 @@ function NotificationsPage(){
                         );
                     })}
 
-                    {totalPages>1&&(
-                        <div className="panel p-4 flex flex-wrap items-center justify-between gap-4">
+                    {
+                        <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
                                 Showing {(currentPage-1)*pageSize+1} to {Math.min(currentPage*pageSize,filtered.length)} of {filtered.length} notifications
                             </p>
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
                                     variant="secondary"
                                     disabled={currentPage===1}
@@ -18044,7 +18044,7 @@ function NotificationsPage(){
                                 </Button>
                             </div>
                         </div>
-                    )}
+                    }
                 </div>
             )}
 
@@ -18053,7 +18053,7 @@ function NotificationsPage(){
                     <div className="panel w-full max-w-lg p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Notification Details</h2>
-                            <button className="nav-link p-1" onClick={()=>setInspecting(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={()=>setInspecting(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -18135,7 +18135,7 @@ function NotificationsPage(){
                     <div className="panel w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Delete Notification</h2>
-                            <button className="nav-link p-1" onClick={()=>setDeletingNotif(null)} title="Close">
+                            <button className="nav-link p-1 panel-modal-close" onClick={()=>setDeletingNotif(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
