@@ -450,23 +450,34 @@ function SidebarContent({ modules, user, location, isDark, toggleTheme }) {
                     <button
                         type="button"
                         onClick={toggleTheme}
-                        className={`w-full rounded-2xl border-2 py-2.5 px-3 flex items-center gap-3 transition-all duration-200 cursor-pointer select-none ${
+                        role="switch"
+                        aria-checked={isDark}
+                        className={`w-full rounded-2xl border-2 py-2.5 px-3 flex items-center gap-3 transition-all duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 ${
                             isDark
                                 ? 'border-[#8B9BB4] bg-[#162232] hover:bg-[#1E2E44] hover:border-white text-white shadow-lg shadow-black/25'
                                 : 'border-white/40 bg-white/10 hover:bg-white/20 hover:border-white/80 text-white shadow-sm'
                         }`}
-                        aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                        aria-label={isDark ? 'Dark mode active. Switch to Light Mode' : 'Light mode active. Switch to Dark Mode'}
                         title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                     >
                         <SunMoon className="h-6 w-6 shrink-0 text-white stroke-[2.2]" />
-                        <div className="flex flex-col text-left overflow-hidden">
+                        <div className="flex min-w-0 flex-1 flex-col text-left overflow-hidden">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-white/80 leading-none">
-                                SWITCH TO
+                                CURRENT THEME
                             </span>
                             <span className="text-xs font-black uppercase tracking-wide text-white leading-tight mt-0.5">
-                                {isDark ? 'LIGHT MODE' : 'DARK MODE'}
+                                {isDark ? 'DARK MODE' : 'LIGHT MODE'}
                             </span>
                         </div>
+                        <span
+                            aria-hidden="true"
+                            className={`relative h-6 w-11 shrink-0 rounded-full border border-white/35 transition-colors duration-200 ${isDark ? 'bg-[#2563EB]' : 'bg-black/25'}`}
+                        >
+                            <span
+                                className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200"
+                                style={{ transform: `translateX(${isDark ? 20 : 0}px)` }}
+                            />
+                        </span>
                     </button>
                 </div>
             )}
@@ -7764,7 +7775,7 @@ function RequestManager(){
             {/* Request Details Inspection Modal */}
             {viewingRequest && (
                 <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
-                    <div className="panel no-hover w-full max-w-xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+                    <div className="request-management-view-modal panel no-hover w-full max-w-xl p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <div>
                                 <span className="text-sm font-black text-[#2563EB]">
@@ -7778,7 +7789,7 @@ function RequestManager(){
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className={`px-2.5 py-1 rounded text-sm font-black uppercase ${viewingRequest.request_type === 'financial' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-[#2563EB]'}`}>
+                            <span className={`request-management-view-type px-2.5 py-1 rounded text-sm font-black uppercase ${viewingRequest.request_type === 'financial' ? 'request-management-view-type-financial bg-amber-100 text-amber-800' : 'request-management-view-type-physical bg-blue-100 text-[#2563EB]'}`}>
                                 {viewingRequest.request_type === 'financial' ? 'Financial Assistance' : 'Physical Item Request'}
                             </span>
                             <Badge status={viewingRequest.urgency}/>
@@ -10832,6 +10843,7 @@ function StaffHandoffDispatch() {
 
 function DonorDashboard(){
     const {user} = useAuth();
+    const { isDark } = useTheme();
     const [donations, setDonations] = useState([]);
     const [matches, setMatches] = useState([]);
     const [needs, setNeeds] = useState([]);
@@ -11303,6 +11315,7 @@ function DonorDashboard(){
 
 function BeneficiaryDashboard() {
     const { user } = useAuth();
+    const { isDark } = useTheme();
     const [requests, setRequests] = useState([]);
     const [matches, setMatches] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16447,9 +16460,9 @@ function Profile(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero member-profile-notification-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">ACCOUNT SETTINGS</p>
+                    <p className="eyebrow staff-module-badge">ACCOUNT SETTINGS</p>
                     <h1 className="page-title">Your Profile</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Manage your personal information, security settings, and account details.
@@ -16964,7 +16977,7 @@ function Profile(){
                                 <h3 className="text-sm font-extrabold text-[#2563EB] uppercase tracking-wider">Account Information</h3>
                             </div>
 
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="profile-account-info-grid grid gap-4 sm:grid-cols-2">
                                 {[
                                     {label:'Account ID',value:`#${user.id||'—'}`},
                                     {label:'Full Name',value:user.name||'—'},
@@ -17008,7 +17021,7 @@ function Profile(){
                                 <h3 className="text-sm font-extrabold text-[#2563EB] uppercase tracking-wider">Session & Security</h3>
                             </div>
 
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="profile-account-info-grid grid gap-4 sm:grid-cols-2">
                                 <div className="bg-[#2563EB]/5 rounded-xl p-4 border border-[#2563EB]/10">
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[#2563EB]/60 mb-1">Authentication Method</p>
                                     <p className="text-sm font-extrabold text-[#2563EB]">Email & Password</p>
@@ -17814,7 +17827,6 @@ function NotificationsPage(){
 
     const categoryIcon={match:'match',request:'request',donation:'donation',handoff:'approvals',system:'activity'};
     const categoryLabel={match:'Match Update',request:'Request Update',donation:'Donation Alert',handoff:'Handoff Notice',system:'System Alert'};
-
     let filtered=items.filter(n=>{
         const matchesRead=readFilter==='all'||(readFilter==='unread'&&!n.is_read)||(readFilter==='read'&&n.is_read);
         const q=search.toLowerCase();
@@ -17851,9 +17863,9 @@ function NotificationsPage(){
 
     return (
         <main className="page space-y-6">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero member-profile-notification-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="eyebrow">ALERTS & UPDATES</p>
+                    <p className="eyebrow staff-module-badge">ALERTS & UPDATES</p>
                     <h1 className="page-title">Notifications</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Stay up to date with support requests, donations, matches, and handoff progress.
