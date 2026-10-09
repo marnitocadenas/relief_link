@@ -1912,7 +1912,7 @@ function Auth({ register = false }) {
                             <div className="space-y-4">
                                 <div>
                                     <label htmlFor="auth_email" className="auth-form-label block text-xs font-bold text-[#2563EB]">
-                                        Email address <span className="text-[#22C55E]">*</span>
+                                        Email address
                                     </label>
                                     <input
                                         id="auth_email"
@@ -1928,7 +1928,7 @@ function Auth({ register = false }) {
 
                                 <div>
                                     <label htmlFor="auth_password" className="auth-form-label block text-xs font-bold text-[#2563EB]">
-                                        Password <span className="text-[#22C55E]">*</span>
+                                        Password
                                     </label>
                                     <div className="mt-1">
                                         <input
@@ -2034,7 +2034,7 @@ function Auth({ register = false }) {
                                 {/* RANK #1: Account Type (ALWAYS VISIBLE & AT RANK #1) */}
                                 <div>
                                     <label htmlFor="reg_account_type" className="block text-xs font-bold text-[#2563EB]">
-                                        Account Type <span className="text-[#22C55E]">*</span>
+                                        Account Type
                                     </label>
                                     <DropdownSelect
                                         id="reg_account_type"
@@ -2063,7 +2063,7 @@ function Auth({ register = false }) {
                                         {/* Rank #2: First Name */}
                                         <div>
                                             <label htmlFor="reg_first_name_init" className="block text-xs font-bold text-[#2563EB]">
-                                                First Name <span className="text-[#22C55E]">*</span>
+                                                First Name
                                             </label>
                                             <input
                                                 id="reg_first_name_init"
@@ -2098,7 +2098,7 @@ function Auth({ register = false }) {
                                         {/* Rank #4: Last Name */}
                                         <div>
                                             <label htmlFor="reg_last_name_init" className="block text-xs font-bold text-[#2563EB]">
-                                                Last Name <span className="text-[#22C55E]">*</span>
+                                                Last Name
                                             </label>
                                             <input
                                                 id="reg_last_name_init"
@@ -2116,7 +2116,7 @@ function Auth({ register = false }) {
                                         {/* Rank #5: Contact Number */}
                                         <div>
                                             <label htmlFor="reg_contact_init" className="block text-xs font-bold text-[#2563EB]">
-                                                Contact Number <span className="text-[#22C55E]">*</span>
+                                                Contact Number
                                             </label>
                                             <InternationalPhoneInput
                                                 id="reg_contact_init"
@@ -2132,7 +2132,7 @@ function Auth({ register = false }) {
                                         {/* Rank #6: Password */}
                                         <div>
                                             <label htmlFor="reg_pwd_init" className="block text-xs font-bold text-[#2563EB]">
-                                                Password <span className="text-[#22C55E]">*</span>
+                                                Password
                                             </label>
                                             <div className="relative mt-1">
                                                 <input
@@ -2192,7 +2192,7 @@ function Auth({ register = false }) {
                                         {/* Rank #7: Confirm Password */}
                                         <div>
                                             <label htmlFor="reg_confirm_init" className="block text-xs font-bold text-[#2563EB]">
-                                                Confirm Password <span className="text-[#22C55E]">*</span>
+                                                Confirm Password
                                             </label>
                                             <div className="relative mt-1">
                                                 <input
@@ -2243,7 +2243,7 @@ function Auth({ register = false }) {
                                         {/* Rank #2: First Name */}
                                         <div>
                                             <label htmlFor="reg_first_name_ben" className="block text-xs font-bold text-[#2563EB]">
-                                                First Name <span className="text-[#22C55E]">*</span>
+                                                First Name
                                             </label>
                                             <input
                                                 id="reg_first_name_ben"
@@ -2276,7 +2276,7 @@ function Auth({ register = false }) {
                                         {/* Rank #4: Last Name */}
                                         <div>
                                             <label htmlFor="reg_last_name_ben" className="block text-xs font-bold text-[#2563EB]">
-                                                Last Name <span className="text-[#22C55E]">*</span>
+                                                Last Name
                                             </label>
                                             <input
                                                 id="reg_last_name_ben"
@@ -2293,7 +2293,7 @@ function Auth({ register = false }) {
                                         {/* Rank #5: Student ID Number */}
                                         <div>
                                             <label htmlFor="reg_student_id" className="block text-xs font-bold text-[#2563EB]">
-                                                Student ID Number <span className="text-[#22C55E]">*</span>
+                                                Student ID Number
                                             </label>
                                             <input
                                                 id="reg_student_id"
@@ -2317,7 +2317,7 @@ function Auth({ register = false }) {
                                         {/* Rank #6: Email Address */}
                                         <div>
                                             <label htmlFor="reg_school_email" className="block text-xs font-bold text-[#2563EB]">
-                                                Email Address <span className="text-[#22C55E]">*</span>
+                                                Email Address
                                             </label>
                                             <input
                                                 id="reg_school_email"
@@ -2339,7 +2339,7 @@ function Auth({ register = false }) {
                                         {/* Rank #7: Department */}
                                         <div>
                                             <label htmlFor="reg_department" className="block text-xs font-bold text-[#2563EB]">
-                                                Department <span className="text-[#22C55E]">*</span>
+                                                Department
                                             </label>
                                             <DropdownSelect
                                                 id="reg_department"
@@ -2359,7 +2359,7 @@ function Auth({ register = false }) {
                                         {/* Rank #8: Course */}
                                         <div>
                                             <label htmlFor="reg_course" className="block text-xs font-bold text-[#2563EB]">
-                                                Course <span className="text-[#22C55E]">*</span>
+                                                Course
                                             </label>
                                             <DropdownSelect
                                                 id="reg_course"
@@ -2379,7 +2379,7 @@ function Auth({ register = false }) {
                                         {/* Rank #9: Year Level */}
                                         <div>
                                             <label htmlFor="reg_year_level" className="block text-xs font-bold text-[#2563EB]">
-                                                Year Level <span className="text-[#22C55E]">*</span>
+                                                Year Level
                                             </label>
                                             <DropdownSelect
                                                 id="reg_year_level"
@@ -2399,7 +2399,7 @@ function Auth({ register = false }) {
                                         {/* Rank #10: Contact Number (Local Philippine Mobile 09XXXXXXXXX) */}
                                         <div>
                                             <label htmlFor="reg_contact_ben" className="block text-xs font-bold text-[#2563EB]">
-                                                Contact Number <span className="text-[#22C55E]">*</span>
+                                                Contact Number
                                             </label>
                                             <input
                                                 id="reg_contact_ben"
@@ -2426,7 +2426,7 @@ function Auth({ register = false }) {
                                         {/* Rank #11: Password */}
                                         <div>
                                             <label htmlFor="reg_pwd_ben" className="block text-xs font-bold text-[#2563EB]">
-                                                Password <span className="text-[#22C55E]">*</span>
+                                                Password
                                             </label>
                                             <div className="relative mt-1">
                                                 <input
@@ -2508,7 +2508,7 @@ function Auth({ register = false }) {
                                         {/* Rank #12: Confirm Password */}
                                         <div>
                                             <label htmlFor="reg_confirm_ben" className="block text-xs font-bold text-[#2563EB]">
-                                                Confirm Password <span className="text-[#22C55E]">*</span>
+                                                Confirm Password
                                             </label>
                                             <div className="relative mt-1">
                                                 <input
@@ -2559,7 +2559,7 @@ function Auth({ register = false }) {
                                         {/* Rank #2: First Name */}
                                         <div>
                                             <label htmlFor="reg_first_name_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                First Name <span className="text-[#22C55E]">*</span>
+                                                First Name
                                             </label>
                                             <input
                                                 id="reg_first_name_donor"
@@ -2597,7 +2597,7 @@ function Auth({ register = false }) {
                                         {/* Rank #4: Last Name */}
                                         <div>
                                             <label htmlFor="reg_last_name_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Last Name <span className="text-[#22C55E]">*</span>
+                                                Last Name
                                             </label>
                                             <input
                                                 id="reg_last_name_donor"
@@ -2623,7 +2623,7 @@ function Auth({ register = false }) {
                                         {/* Rank #5: Email Address */}
                                         <div>
                                             <label htmlFor="reg_email_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Email Address <span className="text-[#22C55E]">*</span>
+                                                Email Address
                                             </label>
                                             <input
                                                 id="reg_email_donor"
@@ -2677,7 +2677,7 @@ function Auth({ register = false }) {
                                         {/* Rank #6: Country / Region */}
                                         <div>
                                             <label htmlFor="reg_country_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Country / Region <span className="text-[#22C55E]">*</span>
+                                                Country / Region
                                             </label>
                                             <CountrySelect
                                                 id="reg_country_donor"
@@ -2695,7 +2695,7 @@ function Auth({ register = false }) {
                                         {/* Rank #7: Contact Number */}
                                         <div>
                                             <label htmlFor="reg_contact_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Contact Number <span className="text-[#22C55E]">*</span>
+                                                Contact Number
                                             </label>
                                             <InternationalPhoneInput
                                                 id="reg_contact_donor"
@@ -2716,7 +2716,7 @@ function Auth({ register = false }) {
                                         {/* Rank #8: Address Line 1 */}
                                         <div>
                                             <label htmlFor="reg_address_line_1" className="block text-xs font-bold text-[#2563EB]">
-                                                Address Line 1 <span className="text-[#22C55E]">*</span>
+                                                Address Line 1
                                             </label>
                                             <input
                                                 id="reg_address_line_1"
@@ -2803,7 +2803,7 @@ function Auth({ register = false }) {
                                         {/* Rank #13: Valid ID Type */}
                                         <div>
                                             <label htmlFor="reg_valid_id_type" className="block text-xs font-bold text-[#2563EB]">
-                                                Valid ID Type <span className="text-[#22C55E]">*</span>
+                                                Valid ID Type
                                             </label>
                                             <DropdownSelect
                                                 id="reg_valid_id_type"
@@ -2823,7 +2823,7 @@ function Auth({ register = false }) {
                                         {/* Rank #14: Valid ID Number */}
                                         <div>
                                             <label htmlFor="reg_valid_id_number" className="block text-xs font-bold text-[#2563EB]">
-                                                Valid ID Number <span className="text-[#22C55E]">*</span>
+                                                Valid ID Number
                                             </label>
                                             <input
                                                 id="reg_valid_id_number"
@@ -2842,7 +2842,7 @@ function Auth({ register = false }) {
                                         {/* Rank #15: Password */}
                                         <div>
                                             <label htmlFor="reg_pwd_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Password <span className="text-[#22C55E]">*</span>
+                                                Password
                                             </label>
                                             <div className="relative mt-1">
                                                 <input
@@ -2924,7 +2924,7 @@ function Auth({ register = false }) {
                                         {/* Rank #16: Confirm Password */}
                                         <div>
                                             <label htmlFor="reg_confirm_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Confirm Password <span className="text-[#22C55E]">*</span>
+                                                Confirm Password
                                             </label>
                                             <div className="relative mt-1">
                                                 <input
@@ -3039,7 +3039,7 @@ function Auth({ register = false }) {
 
                             <div>
                                 <label htmlFor="reset_email" className="block text-xs font-bold text-[#2563EB]">
-                                    Registered Email Address <span className="text-[#22C55E]">*</span>
+                                    Registered Email Address
                                 </label>
                                 <input
                                     id="reset_email"
@@ -3085,7 +3085,7 @@ function Auth({ register = false }) {
 
                             <div>
                                 <label className="block text-xs font-bold text-[#2563EB] mb-2">
-                                    Verification Code <span className="text-[#22C55E]">*</span>
+                                    Verification Code
                                 </label>
                                 <div className="flex items-center justify-between gap-1.5 sm:gap-3" onPaste={handleOtpPaste}>
                                     {otpDigits.map((digit, idx) => (
@@ -3157,7 +3157,7 @@ function Auth({ register = false }) {
                             <div className="space-y-3">
                                 <div>
                                     <label htmlFor="new_password" className="block text-xs font-bold text-[#2563EB]">
-                                        New Password <span className="text-[#22C55E]">*</span>
+                                        New Password
                                     </label>
                                     <div className="mt-1">
                                         <input
@@ -3222,7 +3222,7 @@ function Auth({ register = false }) {
 
                                 <div>
                                     <label htmlFor="confirm_new_password" className="block text-xs font-bold text-[#2563EB]">
-                                        Confirm New Password <span className="text-[#22C55E]">*</span>
+                                        Confirm New Password
                                     </label>
                                     <div className="mt-1">
                                         <input
@@ -3567,7 +3567,7 @@ function DonorDonationForm() {
                         <div className="sm:col-span-2">
                             <div className="flex items-center justify-between text-sm font-bold text-[#2563EB]">
                                 <label htmlFor="item_name">
-                                    Item Name <span className="text-[#22C55E]">*</span>
+                                    Item Name
                                 </label>
                                 <span className="text-xs font-normal text-[#2563EB] opacity-80">
                                     {f.item_name.length} / 255
@@ -3594,7 +3594,7 @@ function DonorDonationForm() {
                         {/* Category Selection */}
                         <div>
                             <label htmlFor="category" className="block text-sm font-bold text-[#2563EB]">
-                                Category <span className="text-[#22C55E]">*</span>
+                                Category
                             </label>
                             <DropdownSelect
                                 id="category"
@@ -3619,7 +3619,7 @@ function DonorDonationForm() {
                         {/* Quantity Counter & Validation */}
                         <div>
                             <label htmlFor="quantity" className="block text-sm font-bold text-[#2563EB]">
-                                Quantity <span className="text-[#22C55E]">*</span>
+                                Quantity
                             </label>
                             <div className="mt-2 flex items-center gap-2">
                                 <button
@@ -3736,7 +3736,7 @@ function DonorDonationForm() {
                         {/* Availability Window */}
                         <div className="sm:col-span-2">
                             <label className="block text-sm font-bold text-[#2563EB] mb-2">
-                                Availability Window <span className="text-[#22C55E]">*</span>
+                                Availability Window
                             </label>
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {availabilityPresets.map((preset) => (
@@ -3791,7 +3791,7 @@ function DonorDonationForm() {
                         {/* Pickup Location */}
                         <div className="sm:col-span-2">
                             <label htmlFor="pickup_preset" className="block text-sm font-bold text-[#2563EB]">
-                                Pickup Location <span className="text-[#22C55E]">*</span>
+                                Pickup Location
                             </label>
                             <DropdownSelect
                                 id="pickup_preset"
@@ -4486,7 +4486,7 @@ function BeneficiaryRequestForm() {
                         <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
                             <Icon name="request" className="text-[#2563EB]" size={18} />
                             <h2 className="text-base font-extrabold text-[#2563EB]">
-                                1. Select Request Type <span className="text-[#22C55E]">*</span>
+                                1. Select Request Type
                             </h2>
                         </div>
 
@@ -4550,13 +4550,13 @@ function BeneficiaryRequestForm() {
                         <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
                             <Icon name="categories" className="text-[#2563EB]" size={18} />
                             <h2 className="text-base font-extrabold text-[#2563EB]">
-                                2. Assistance Category <span className="text-[#22C55E]">*</span>
+                                2. Assistance Category
                             </h2>
                         </div>
 
                         <div>
                             <label htmlFor="req_category" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                Category <span className="text-[#22C55E]">*</span>
+                                Category
                             </label>
                             <DropdownSelect
                                 id="req_category"
@@ -4607,7 +4607,7 @@ function BeneficiaryRequestForm() {
                             <div className="space-y-4">
                                 <div>
                                     <label htmlFor="req_item_details" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                        Assistance Needed (Item / Supply Name) <span className="text-[#22C55E]">*</span>
+                                        Assistance Needed (Item / Supply Name)
                                     </label>
                                     <input
                                         id="req_item_details"
@@ -4626,7 +4626,7 @@ function BeneficiaryRequestForm() {
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="req_qty" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                            Quantity Needed <span className="text-[#22C55E]">*</span>
+                                            Quantity Needed
                                         </label>
                                         <input
                                             id="req_qty"
@@ -4641,7 +4641,7 @@ function BeneficiaryRequestForm() {
 
                                     <div>
                                         <label htmlFor="req_unit" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                            Unit of Measure <span className="text-[#22C55E]">*</span>
+                                            Unit of Measure
                                         </label>
                                         <DropdownSelect
                                             id="req_unit"
@@ -4667,7 +4667,7 @@ function BeneficiaryRequestForm() {
                                 <div className="grid gap-4 sm:grid-cols-3">
                                     <div className="sm:col-span-2">
                                         <label htmlFor="req_amount" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                            Amount Requested <span className="text-[#22C55E]">*</span>
+                                            Amount Requested
                                         </label>
                                         <input
                                             id="req_amount"
@@ -4687,7 +4687,7 @@ function BeneficiaryRequestForm() {
 
                                     <div>
                                         <label htmlFor="req_currency" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                            Currency <span className="text-[#22C55E]">*</span>
+                                            Currency
                                         </label>
                                         <DropdownSelect
                                             id="req_currency"
@@ -4704,7 +4704,7 @@ function BeneficiaryRequestForm() {
 
                                 <div>
                                     <label htmlFor="req_purpose" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                        Purpose of Funds <span className="text-[#22C55E]">*</span>
+                                        Purpose of Funds
                                     </label>
                                     <input
                                         id="req_purpose"
@@ -4733,7 +4733,7 @@ function BeneficiaryRequestForm() {
                             <div>
                                 <div className="flex items-center justify-between mb-1">
                                     <label htmlFor="req_just" className="block text-xs font-bold text-[#2563EB]">
-                                        Reason for Request <span className="text-[#22C55E]">*</span>
+                                        Reason for Request
                                     </label>
                                     <span className="text-[11px] font-bold text-[#2563EB]/70">
                                         {f.justification.length} / 2000 chars
@@ -4754,7 +4754,7 @@ function BeneficiaryRequestForm() {
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <label htmlFor="req_pref_date" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                        Preferred Assistance Date <span className="text-[#22C55E]">*</span>
+                                        Preferred Assistance Date
                                     </label>
                                     <input
                                         id="req_pref_date"
@@ -4769,7 +4769,7 @@ function BeneficiaryRequestForm() {
 
                                 <div>
                                     <label htmlFor="req_urgency" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                        Priority Level <span className="text-[#22C55E]">*</span>
+                                        Priority Level
                                     </label>
                                     <DropdownSelect
                                         id="req_urgency"
@@ -5284,7 +5284,7 @@ function EditModal({item, kind, admin, close, done}){
                         return;
                     }
                     if (!adminHasSpecial) {
-                        setError('Password must contain at least one special character (!@#$%^&*()_-+=[]{}|:;,.?).');
+                        setError('Password must contain at least one special character (!@#$%^&()_-+=[]{}|:;,.?).');
                         return;
                     }
                     if (!adminNoSpaces) {
@@ -5470,7 +5470,7 @@ function EditModal({item, kind, admin, close, done}){
                         {/* Rank #1: Account Type - MUST NEVER DISAPPEAR */}
                         <div>
                             <label htmlFor="modal_account_type" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                Account Type <span className="text-[#22C55E]">*</span>
+                                Account Type
                             </label>
                             <DropdownSelect
                                 id="modal_account_type"
@@ -5490,7 +5490,7 @@ function EditModal({item, kind, admin, close, done}){
                         {/* Rank #2: First Name */}
                         <div>
                             <label htmlFor="modal_first_name" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                First Name <span className="text-[#22C55E]">*</span>
+                                First Name
                             </label>
                             <input
                                 id="modal_first_name"
@@ -5523,7 +5523,7 @@ function EditModal({item, kind, admin, close, done}){
                         {/* Rank #4: Last Name */}
                         <div>
                             <label htmlFor="modal_last_name" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                Last Name <span className="text-[#22C55E]">*</span>
+                                Last Name
                             </label>
                             <input
                                 id="modal_last_name"
@@ -5546,7 +5546,7 @@ function EditModal({item, kind, admin, close, done}){
                             <>
                                 <div>
                                     <label htmlFor="modal_campus_id" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        {f.role === 'admin' ? 'Administrator ID / Campus ID Number' : 'Staff ID / Campus ID Number'} <span className="text-[#22C55E]">*</span>
+                                        {f.role === 'admin' ? 'Administrator ID / Campus ID Number' : 'Staff ID / Campus ID Number'}
                                     </label>
                                     <input
                                         id="modal_campus_id"
@@ -5561,7 +5561,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_admin_email" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        TMC Email Address <span className="text-[#22C55E]">*</span>
+                                        TMC Email Address
                                     </label>
                                     <input
                                         id="modal_admin_email"
@@ -5575,7 +5575,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_admin_dept" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Department / Office <span className="text-[#22C55E]">*</span>
+                                        Department / Office
                                     </label>
                                     <input
                                         id="modal_admin_dept"
@@ -5590,7 +5590,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_admin_contact" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Contact Number <span className="text-[#22C55E]">*</span>
+                                        Contact Number
                                     </label>
                                     <InternationalPhoneInput
                                         id="modal_admin_contact"
@@ -5628,7 +5628,7 @@ function EditModal({item, kind, admin, close, done}){
                                     {/* Rank #5: Student ID Number */}
                                     <div>
                                         <label htmlFor="modal_student_id" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                            Student ID Number <span className="text-[#22C55E]">*</span>
+                                            Student ID Number
                                         </label>
                                         <input
                                             id="modal_student_id"
@@ -5658,7 +5658,7 @@ function EditModal({item, kind, admin, close, done}){
                                     {/* Rank #6: School Email Address */}
                                     <div>
                                         <label htmlFor="modal_ben_email" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                            School Email Address <span className="text-[#22C55E]">*</span>
+                                            School Email Address
                                         </label>
                                         <input
                                             id="modal_ben_email"
@@ -5685,7 +5685,7 @@ function EditModal({item, kind, admin, close, done}){
                                     {/* Rank #7: Department */}
                                     <div>
                                         <label htmlFor="modal_ben_dept" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                            Department <span className="text-[#22C55E]">*</span>
+                                            Department
                                         </label>
                                         <DropdownSelect
                                             id="modal_ben_dept"
@@ -5704,7 +5704,7 @@ function EditModal({item, kind, admin, close, done}){
                                     {/* Rank #8: Course (cascades from Department) */}
                                     <div>
                                         <label htmlFor="modal_ben_course" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                            Course <span className="text-[#22C55E]">*</span>
+                                            Course
                                         </label>
                                         <DropdownSelect
                                             id="modal_ben_course"
@@ -5727,7 +5727,7 @@ function EditModal({item, kind, admin, close, done}){
                                     {/* Rank #9: Year Level (cascades from Course) */}
                                     <div>
                                         <label htmlFor="modal_ben_year" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                            Year Level <span className="text-[#22C55E]">*</span>
+                                            Year Level
                                         </label>
                                         <DropdownSelect
                                             id="modal_ben_year"
@@ -5750,7 +5750,7 @@ function EditModal({item, kind, admin, close, done}){
                                     {/* Rank #10: Contact Number */}
                                     <div>
                                         <label htmlFor="modal_ben_contact" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                            Contact Number <span className="text-[#22C55E]">*</span>
+                                            Contact Number
                                         </label>
                                         <input
                                             id="modal_ben_contact"
@@ -5790,7 +5790,7 @@ function EditModal({item, kind, admin, close, done}){
                             <>
                                 <div>
                                     <label htmlFor="modal_donor_email" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Email Address <span className="text-[#22C55E]">*</span>
+                                        Email Address
                                     </label>
                                     <input
                                         id="modal_donor_email"
@@ -5804,7 +5804,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_donor_country" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Country / Region <span className="text-[#22C55E]">*</span>
+                                        Country / Region
                                     </label>
                                     <CountrySelect
                                         id="modal_donor_country"
@@ -5818,7 +5818,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_donor_contact" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Contact Number <span className="text-[#22C55E]">*</span>
+                                        Contact Number
                                     </label>
                                     <InternationalPhoneInput
                                         id="modal_donor_contact"
@@ -5834,7 +5834,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_donor_addr1" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Address Line 1 <span className="text-[#22C55E]">*</span>
+                                        Address Line 1
                                     </label>
                                     <input
                                         id="modal_donor_addr1"
@@ -5905,7 +5905,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_donor_id_type" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Valid ID Type <span className="text-[#22C55E]">*</span>
+                                        Valid ID Type
                                     </label>
                                     <DropdownSelect
                                         id="modal_donor_id_type"
@@ -5922,7 +5922,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_donor_id_num" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Valid ID Number <span className="text-[#22C55E]">*</span>
+                                        Valid ID Number
                                     </label>
                                     <input
                                         id="modal_donor_id_num"
@@ -5942,7 +5942,7 @@ function EditModal({item, kind, admin, close, done}){
                         {!f.role && (
                             <div>
                                 <label htmlFor="modal_init_contact" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                    Contact Number <span className="text-[#22C55E]">*</span>
+                                    Contact Number
                                 </label>
                                 <InternationalPhoneInput
                                     id="modal_init_contact"
@@ -5957,7 +5957,7 @@ function EditModal({item, kind, admin, close, done}){
                         {/* PASSWORDS: Rendered at final ranks */}
                         <div>
                             <label htmlFor="modal_pwd" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                {item.id ? 'New Password' : 'Password'} {!item.id && <span className="text-[#22C55E]">*</span>}
+                                {item.id ? 'New Password' : 'Password'}
                             </label>
                             <div className="relative">
                                 <input
@@ -6018,7 +6018,7 @@ function EditModal({item, kind, admin, close, done}){
 
                         <div>
                             <label htmlFor="modal_confirm_pwd" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                {item.id ? 'Confirm New Password' : 'Confirm Password'} {!item.id && <span className="text-[#22C55E]">*</span>}
+                                {item.id ? 'Confirm New Password' : 'Confirm Password'}
                             </label>
                             <div className="relative">
                                 <input
@@ -7140,7 +7140,7 @@ function RequestEditModal({ item, close, done }) {
     const lbl = txt => (
         <label className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">{txt}</label>
     );
-    const req = <span className="text-[#22C55E]"> *</span>;
+    const req = null;
 
     return (
         <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
@@ -10190,7 +10190,7 @@ function StaffWarehouseInventory() {
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Item Name *</label>
+                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Item Name </label>
                                 <input
                                     type="text"
                                     required
@@ -10201,7 +10201,7 @@ function StaffWarehouseInventory() {
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Category *</label>
+                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Category </label>
                                 <DropdownSelect
                                     value={intakeForm.category}
                                     onChange={(e) => setIntakeForm({ ...intakeForm, category: e.target.value })}
@@ -10219,7 +10219,7 @@ function StaffWarehouseInventory() {
 
                         <div className="grid grid-cols-3 gap-3">
                             <div>
-                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Quantity *</label>
+                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Quantity </label>
                                 <input
                                     type="number"
                                     min="1"
@@ -10230,7 +10230,7 @@ function StaffWarehouseInventory() {
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Condition Grade *</label>
+                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Condition Grade </label>
                                 <DropdownSelect
                                     value={intakeForm.condition_grade}
                                     onChange={(e) => setIntakeForm({ ...intakeForm, condition_grade: e.target.value })}
@@ -10254,7 +10254,7 @@ function StaffWarehouseInventory() {
                         </div>
 
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Storage Shelf / Bin Location *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Storage Shelf / Bin Location </label>
                             <input
                                 type="text"
                                 required
@@ -10482,7 +10482,7 @@ function StaffWalkInDesk() {
                     <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">1</span><div><h2 className="text-sm font-extrabold">Identify and verify the student</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Check campus details before recording a new request.</p></div></div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student Full Name *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student Full Name </label>
                             <input
                                 type="text"
                                 required
@@ -10493,7 +10493,7 @@ function StaffWalkInDesk() {
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student Campus Email *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student Campus Email </label>
                             <input
                                 type="email"
                                 required
@@ -10504,7 +10504,7 @@ function StaffWalkInDesk() {
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student ID Number *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student ID Number </label>
                             <input
                                 type="text"
                                 required
@@ -10520,7 +10520,7 @@ function StaffWalkInDesk() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Aid Category *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Aid Category </label>
                             <DropdownSelect
                                 value={form.category}
                                 onChange={(e) => setForm({ ...form, category: e.target.value })}
@@ -10535,7 +10535,7 @@ function StaffWalkInDesk() {
                             </DropdownSelect>
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Quantity Needed *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Quantity Needed </label>
                             <input
                                 type="number"
                                 min="1"
@@ -10546,7 +10546,7 @@ function StaffWalkInDesk() {
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Urgency Level *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Urgency Level </label>
                             <DropdownSelect
                                 value={form.urgency}
                                 onChange={(e) => setForm({ ...form, urgency: e.target.value })}
@@ -10560,7 +10560,7 @@ function StaffWalkInDesk() {
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Walk-In Hardship Justification *</label>
+                        <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Walk-In Hardship Justification </label>
                         <textarea
                             rows="3"
                             required
@@ -10810,7 +10810,7 @@ function StaffHandoffDispatch() {
                         <div className="rounded-xl border border-[#2563EB]/20 bg-[#2563EB]/5 p-3"><p className="text-xs font-extrabold">Release checklist</p><div className="mt-2 space-y-2">{[['identity','Student ID and recipient identity match'],['item','Correct item is physically present'],['quantity',`Correct quantity (${verifyingMatch.matched_quantity}) is ready`]].map(([key,label])=><label key={key} className="flex items-center gap-2 text-[11px] font-bold"><input type="checkbox" checked={handoffChecks[key]} onChange={(e)=>setHandoffChecks({...handoffChecks,[key]:e.target.checked})} className="accent-[#22C55E]"/>{label}</label>)}</div></div>
 
                         <div className="space-y-1">
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]">Enter Recipient's 6-Digit PIN Code *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]">Enter Recipient's 6-Digit PIN Code </label>
                             <input
                                 type="text"
                                 maxLength="6"
@@ -12682,7 +12682,7 @@ function DonorNeeds() {
                                         {/* Financial Donation Amount */}
                                         <div>
                                             <label htmlFor="q_amount" className="block text-xs font-bold text-[#2563EB]">
-                                                Donation Amount (₱ PHP) <span className="text-[#22C55E]">*</span>
+                                                Donation Amount (₱ PHP)
                                             </label>
                                             <input
                                                 id="q_amount"
@@ -12730,7 +12730,7 @@ function DonorNeeds() {
                                         {/* Physical Item Name */}
                                         <div>
                                             <label htmlFor="q_item_name" className="block text-xs font-bold text-[#2563EB]">
-                                                Donation Item Name <span className="text-[#22C55E]">*</span>
+                                                Donation Item Name
                                             </label>
                                             <input
                                                 id="q_item_name"
@@ -12745,7 +12745,7 @@ function DonorNeeds() {
                                         {/* Quantity */}
                                         <div>
                                             <label htmlFor="q_quantity" className="block text-xs font-bold text-[#2563EB]">
-                                                Donation Quantity <span className="text-[#22C55E]">*</span>
+                                                Donation Quantity
                                             </label>
                                             <input
                                                 id="q_quantity"
@@ -13370,7 +13370,7 @@ function FulfillmentPage({ role }) {
                             {/* Scheduled Date & Time */}
                             <div>
                                 <label htmlFor="sched_date" className="block text-xs font-bold text-[#2563EB]">
-                                    Handoff Date & Time <span className="text-[#22C55E]">*</span>
+                                    Handoff Date & Time
                                 </label>
                                 <input
                                     id="sched_date"
@@ -13385,7 +13385,7 @@ function FulfillmentPage({ role }) {
                             {/* Location & Instructions */}
                             <div>
                                 <label htmlFor="sched_notes" className="block text-xs font-bold text-[#2563EB]">
-                                    Meeting Location & Instructions <span className="text-[#22C55E]">*</span>
+                                    Meeting Location & Instructions
                                 </label>
                                 <textarea
                                     id="sched_notes"
@@ -13440,7 +13440,7 @@ function FulfillmentPage({ role }) {
 
                             <div>
                                 <label htmlFor="cancel_reason" className="block text-xs font-bold text-[#2563EB]">
-                                    Reason / Issue Details <span className="text-[#22C55E]">*</span>
+                                    Reason / Issue Details
                                 </label>
                                 <textarea
                                     id="cancel_reason"
@@ -16563,7 +16563,7 @@ function Profile(){
                                 <>
                                     <div className="grid gap-5 sm:grid-cols-2">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Full Name *</label>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Full Name </label>
                                             <input
                                                 required
                                                 className="field w-full"
@@ -16573,7 +16573,7 @@ function Profile(){
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Email Address *</label>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Email Address</label>
                                             <input
                                                 required
                                                 type="email"
@@ -16587,7 +16587,7 @@ function Profile(){
 
                                     <div className="grid gap-5 sm:grid-cols-2">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region *</label>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region </label>
                                             <CountrySelect
                                                 id="profile_country"
                                                 value={f.country}
@@ -16694,7 +16694,7 @@ function Profile(){
                                 <>
                                     <div className="grid gap-5 sm:grid-cols-2">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Full Name *</label>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Full Name </label>
                                             <input
                                                 required
                                                 className="field w-full"
@@ -16704,7 +16704,7 @@ function Profile(){
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Email Address *</label>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Email Address</label>
                                             <input
                                                 required
                                                 type="email"
