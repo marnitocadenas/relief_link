@@ -117,6 +117,13 @@ class AuthController extends Controller
                 $country = $data['country'] ?? '';
                 $countryCode = $r->input('country_code');
                 $region = RegisterRequest::resolveCountryIso($country, $countryCode);
+                if ($accountType === 'donor' && $region !== 'PH') {
+                    return response()->json([
+                        'field' => $field,
+                        'available' => false,
+                        'message' => 'Donor registration is limited to the Philippines.',
+                    ]);
+                }
                 $phoneUtil = PhoneNumberUtil::getInstance();
                 try {
                     $proto = str_starts_with($value, '+')
@@ -166,7 +173,6 @@ class AuthController extends Controller
         $u = User::where('email', $d['email'])->first();
         abort_unless($u && $u->is_active && Hash::check($d['password'], $u->password), 422, 'Invalid credentials.');
 
-        // Ensure email_verified_at and remember_token are populated
         if (is_null($u->email_verified_at)) {
             $u->email_verified_at = now();
         }
@@ -365,10 +371,13 @@ class AuthController extends Controller
             'last_name' => $lastName ?: $u->last_name,
             'email' => RegisterRequest::normalizeEmail((string) $r->input('email', '')),
             'contact_number' => $contactNormalized ?: null,
-            'campus_id' => $validIdNum ?: null,
-            'valid_id_number' => $validIdNum ?: null,
-            'valid_id_type' => trim((string) $r->input('valid_id_type', '')) ?: null,
+            'campus_id' => ($u->role === 'beneficiary'
+                ? RegisterRequest::normalizeId((string) $r->input('campus_id', ''))
+                : $validIdNum) ?: null,
+            'valid_id_number' => $u->role === 'beneficiary' ? null : ($validIdNum ?: null),
+            'valid_id_type' => $u->role === 'beneficiary' ? null : (trim((string) $r->input('valid_id_type', '')) ?: null),
             'student_id_number' => RegisterRequest::normalizeId((string) $r->input('student_id_number', '')) ?: null,
+            'beneficiary_type' => in_array($u->role, ['beneficiary'], true) ? ($r->input('beneficiary_type') ?: $u->beneficiary_type) : null,
             'school_email' => RegisterRequest::normalizeEmail((string) $r->input('school_email', '')) ?: null,
             'address' => $address ?: null,
             'address_line_1' => $addr1 ?: null,
@@ -406,9 +415,28 @@ class AuthController extends Controller
             'district_local_area' => 'nullable|string|max:255',
             'postal_zip_code' => 'nullable|string|max:50',
             'student_id_number' => ['nullable', 'string', 'max:9', 'unique:users,student_id_number,' . $u->id],
+            'beneficiary_type' => ['nullable', 'in:student,faculty,staff'],
             'school_email' => 'nullable|email|max:255',
-            'country' => 'nullable|string|max:100',
-            'country_code' => 'nullable|string|max:10',
+            'country' => [
+                $u->role === 'donor' ? 'required' : 'nullable',
+                'string',
+                'max:100',
+                function ($attribute, $value, $fail) use ($u) {
+                    if ($u->role === 'donor' && !in_array(strtolower(trim((string) $value)), ['philippines', 'ph'], true)) {
+                        $fail('Donor profiles are limited to the Philippines.');
+                    }
+                },
+            ],
+            'country_code' => [
+                'nullable',
+                'string',
+                'max:10',
+                function ($attribute, $value, $fail) use ($u) {
+                    if ($u->role === 'donor' && !empty($value) && strtoupper(trim((string) $value)) !== 'PH') {
+                        $fail('Donor profiles are limited to the Philippines.');
+                    }
+                },
+            ],
         ];
 
         if ($u->role === 'beneficiary') {
@@ -419,6 +447,14 @@ class AuthController extends Controller
             $rules['department'] = ['nullable', 'string', 'max:255', \Illuminate\Validation\Rule::in(RegisterRequest::DEPARTMENTS)];
             $rules['course'] = ['nullable', 'string', 'max:255', \Illuminate\Validation\Rule::in(RegisterRequest::COURSES)];
             $rules['year_level'] = ['nullable', 'string', 'max:50', \Illuminate\Validation\Rule::in(RegisterRequest::YEAR_LEVELS)];
+        } elseif ($u->role === 'donor') {
+            $rules['contact_number'] = [
+                'nullable', 'string', 'max:30', 'unique:users,contact_number,' . $u->id,
+                'regex:/^(09[0-9]{9}|\\+639[0-9]{9})$/',
+            ];
+            $rules['department'] = ['nullable', 'string', 'max:255'];
+            $rules['course'] = ['nullable', 'string', 'max:255'];
+            $rules['year_level'] = ['nullable', 'string', 'max:50'];
         } else {
             $rules['contact_number'] = [
                 'nullable', 'string', 'max:30', 'unique:users,contact_number,' . $u->id,

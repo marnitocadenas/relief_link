@@ -46,7 +46,6 @@ class DonationMatch extends Model
         static::creating(function ($m) {
             if (!$m->verification_pin) {
                 $m->verification_pin = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
-                $m->pin_expires_at = now()->addDays(7);
             }
         });
     }

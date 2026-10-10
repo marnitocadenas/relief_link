@@ -305,12 +305,12 @@ const getModulesForRole = (role) => {
     if (role === 'admin') {
         return [
             { name: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
-            { name: 'User Management', path: '/users', icon: 'users' },
-            { name: 'Donation Management', path: '/donations', icon: 'donation' },
-            { name: 'Request Management', path: '/requests', icon: 'request' },
-            { name: 'Matching Management', path: '/matches', icon: 'match' },
-            { name: 'Category Management', path: '/admin/categories', icon: 'categories' },
-            { name: 'Approval Management', path: '/admin/approvals', icon: 'approvals' },
+            { name: 'Users', path: '/users', icon: 'users' },
+            { name: 'Donations', path: '/donations', icon: 'donation' },
+            { name: 'Requests', path: '/requests', icon: 'request' },
+            { name: 'Matching', path: '/matches', icon: 'match' },
+            { name: 'Categories', path: '/admin/categories', icon: 'categories' },
+            { name: 'Approvals', path: '/admin/approvals', icon: 'approvals' },
             { name: 'Announcements', path: '/admin/announcements', icon: 'announcements' },
             { name: 'Activity & Reports', path: '/admin/activity-reports', icon: 'activity' },
             { name: 'Reports & Analytics', path: '/reports', icon: 'report' },
@@ -452,30 +452,23 @@ function SidebarContent({ modules, user, location, isDark, toggleTheme }) {
                         onClick={toggleTheme}
                         role="switch"
                         aria-checked={isDark}
-                        className={`w-full rounded-2xl border-2 py-2.5 px-3 flex items-center gap-3 transition-all duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 ${
+                        className={`w-full rounded-xl border px-3 py-2.5 flex items-center gap-2.5 transition-colors duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 ${
                             isDark
-                                ? 'border-[#8B9BB4] bg-[#162232] hover:bg-[#1E2E44] hover:border-white text-white shadow-lg shadow-black/25'
-                                : 'border-white/40 bg-white/10 hover:bg-white/20 hover:border-white/80 text-white shadow-sm'
+                                ? 'border-white/20 bg-slate-950/35 hover:bg-slate-950/50 text-white'
+                                : 'border-white/20 bg-white/10 hover:bg-white/15 text-white'
                         }`}
                         aria-label={isDark ? 'Dark mode active. Switch to Light Mode' : 'Light mode active. Switch to Dark Mode'}
                         title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                     >
-                        <SunMoon className="h-6 w-6 shrink-0 text-white stroke-[2.2]" />
-                        <div className="flex min-w-0 flex-1 flex-col text-left overflow-hidden">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-white/80 leading-none">
-                                CURRENT THEME
-                            </span>
-                            <span className="text-xs font-black uppercase tracking-wide text-white leading-tight mt-0.5">
-                                {isDark ? 'DARK MODE' : 'LIGHT MODE'}
-                            </span>
-                        </div>
+                        <SunMoon className="h-[18px] w-[18px] shrink-0 text-white/90" />
+                        <span className="min-w-0 flex-1 text-left text-sm font-semibold text-white">Dark mode</span>
                         <span
                             aria-hidden="true"
-                            className={`relative h-6 w-11 shrink-0 rounded-full border border-white/35 transition-colors duration-200 ${isDark ? 'bg-[#2563EB]' : 'bg-black/25'}`}
+                            className={`relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${isDark ? 'bg-blue-400' : 'bg-slate-950/30'}`}
                         >
                             <span
-                                className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200"
-                                style={{ transform: `translateX(${isDark ? 20 : 0}px)` }}
+                                className="absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200"
+                                style={{ transform: `translateX(${isDark ? 16 : 0}px)` }}
                             />
                         </span>
                     </button>
@@ -812,7 +805,7 @@ function Home() {
                     <p className="eyebrow">KEY PLATFORM VALUES</p>
                     <h2 className="page-title text-3xl">Designed for trust, transparency, and ease</h2>
                     <p className="page-copy mt-2">
-                        ReliefLink connects student support needs directly with generous campus donors.
+                        ReliefLink connects campus community support needs directly with generous campus donors.
                     </p>
                 </div>
 
@@ -903,7 +896,7 @@ function Home() {
             </section>
             <footer className="border-t border-white/30 bg-[#2563EB] text-white">
                 <div className="shell grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="sm:col-span-2"><div className="flex items-center gap-3"><img src="/images/relieflink-logo.png" alt="ReliefLink logo" className="h-10 w-10 object-contain"/><span className="text-lg font-extrabold">ReliefLink</span></div><p className="mt-3 max-w-md text-sm font-semibold text-white/85">A secure campus resource exchange connecting generous donors with verified student needs.</p></div>
+                    <div className="sm:col-span-2"><div className="flex items-center gap-3"><img src="/images/relieflink-logo.png" alt="ReliefLink logo" className="h-10 w-10 object-contain"/><span className="text-lg font-extrabold">ReliefLink</span></div><p className="mt-3 max-w-md text-sm font-semibold text-white/85">A secure campus resource exchange connecting generous donors with verified campus community needs.</p></div>
                     <div><p className="text-xs font-extrabold uppercase tracking-wider text-white/75">Navigation</p><div className="mt-3 grid gap-2 text-sm font-bold">{[['Home', '#top'], ['How It Works', '#how-it-works'], ['Categories', '#categories'], ['About', '#about']].map(([label, href]) => <a key={label} href={href} className="text-white no-underline hover:text-[#22C55E]">{label}</a>)}</div></div>
                     <div><p className="text-xs font-extrabold uppercase tracking-wider text-white/75">Support</p><div className="mt-3 grid gap-2 text-sm font-bold"><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Help</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Contact</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Privacy Policy</NavLink><NavLink to="/login" className="text-white no-underline hover:text-[#22C55E]">Terms of Service</NavLink></div></div>
                 </div>
@@ -1074,7 +1067,9 @@ function Auth({ register = false }) {
         password_confirmation: '',
         contact_number: '',
         // Beneficiary fields
+        beneficiary_type: 'student',
         student_id_number: '',
+        campus_id: '',
         school_email: '',
         department: '',
         course: '',
@@ -1095,6 +1090,7 @@ function Auth({ register = false }) {
     const [uniqueness, setUniqueness] = useState({
         valid_id_number: { status: 'idle', message: '' },
         student_id_number: { status: 'idle', message: '' },
+        campus_id: { status: 'idle', message: '' },
         contact_number: { status: 'idle', message: '' },
         email: { status: 'idle', message: '' },
     });
@@ -1158,16 +1154,29 @@ function Auth({ register = false }) {
     const isLastNameValid = Boolean((f.last_name || '').trim());
 
     const STUDENT_ID_REGEX = /^\d{2}-\d{6}$/;
+    const isStudentBeneficiary = isBeneficiary && f.beneficiary_type === 'student';
+    const isEmployeeBeneficiary = isBeneficiary && f.beneficiary_type === 'faculty';
     const regStudentIdValid = STUDENT_ID_REGEX.test((f.student_id_number || '').trim());
+    const regCampusIdValid = (f.campus_id || '').trim().length >= 3;
     const regBeneficiaryEmailValid = (f.school_email || '').trim().length > 0 && EMAIL_REGEX.test((f.school_email || '').trim()) && !(f.school_email || '').trim().includes('..');
-    const regDepartmentValid = BENEFICIARY_DEPARTMENTS.includes((f.department || '').trim());
-    const regCourseValid = regDepartmentValid && (BENEFICIARY_DEPARTMENT_COURSES[(f.department || '').trim()] || []).includes((f.course || '').trim());
-    const regYearLevelValid = regCourseValid && BENEFICIARY_YEAR_LEVELS.includes((f.year_level || '').trim());
+    const regDepartmentValid = isStudentBeneficiary
+        ? BENEFICIARY_DEPARTMENTS.includes((f.department || '').trim())
+        : isEmployeeBeneficiary && Boolean((f.department || '').trim());
+    const regCourseValid = isStudentBeneficiary
+        ? regDepartmentValid && (BENEFICIARY_DEPARTMENT_COURSES[(f.department || '').trim()] || []).includes((f.course || '').trim())
+        : isEmployeeBeneficiary;
+    const regYearLevelValid = isStudentBeneficiary
+        ? regCourseValid && BENEFICIARY_YEAR_LEVELS.includes((f.year_level || '').trim())
+        : isEmployeeBeneficiary;
     const regBeneficiaryContactValid = /^09[0-9]{9}$/.test((f.contact_number || '').trim());
 
     // Step by step progressive unlocks for Beneficiary
     const canEnterStudentId = regNamesValid;
-    const canEnterBeneficiaryEmail = canEnterStudentId && regStudentIdValid && uniqueness.student_id_number.status !== 'taken' && uniqueness.student_id_number.status !== 'error';
+    const beneficiaryIdentityValid = isStudentBeneficiary ? regStudentIdValid : regCampusIdValid;
+    const beneficiaryIdentityAvailable = isStudentBeneficiary
+        ? uniqueness.student_id_number.status === 'available'
+        : uniqueness.campus_id.status === 'available';
+    const canEnterBeneficiaryEmail = canEnterStudentId && beneficiaryIdentityValid && beneficiaryIdentityAvailable;
     const canEnterDepartment = canEnterBeneficiaryEmail && regBeneficiaryEmailValid && uniqueness.email.status !== 'taken' && uniqueness.email.status !== 'error';
     const canEnterCourse = canEnterDepartment && regDepartmentValid;
     const canEnterYearLevel = canEnterCourse && regCourseValid;
@@ -1185,10 +1194,10 @@ function Auth({ register = false }) {
     // Sequential unlocks for Donor:
     // 1. Email field unlocks after First Name + Last Name are complete
     const canEnterDonorEmail = regNamesValid;
-    // 2. Country / Region unlocks ONLY after Email is valid format and confirmed available in DB
+    // 2. The donor's local country and calling code are fixed to the Philippines.
     const canEnterDonorCountry = regNamesValid && regDonorEmailValid;
-    const regCountryValid = Boolean((f.country || '').trim() && (f.country || '').trim().toLowerCase() !== 'select your country' && (f.country || '').trim().toLowerCase() !== 'select country / region' && (f.country || '').trim().toLowerCase() !== 'enter your country/region' && (f.country || '').trim().toLowerCase() !== 'enter your country / region' && findCountry(f.country || f.country_code));
-    // 3. Contact Number unlocks ONLY after Country / Region is selected
+    const regCountryValid = isDonor && f.country_code === 'PH';
+    // 3. Contact Number uses the fixed Philippine +63 calling code.
     const canEnterDonorContact = canEnterDonorCountry && regCountryValid;
     const regDonorContactValid = isPhoneValid === true && Boolean((f.contact_number || '').trim());
     const isDonorContactAvailable = uniqueness.contact_number.status === 'available';
@@ -1201,8 +1210,8 @@ function Auth({ register = false }) {
 
     const regBeneficiaryValid = isBeneficiary
         && regNamesValid
-        && regStudentIdValid
-        && uniqueness.student_id_number.status !== 'taken'
+        && beneficiaryIdentityValid
+        && beneficiaryIdentityAvailable
         && regBeneficiaryEmailValid
         && uniqueness.email.status !== 'taken'
         && regDepartmentValid
@@ -1230,6 +1239,7 @@ function Auth({ register = false }) {
 
     const duplicateCandidates = {
         student_id_number: (isBeneficiary && regStudentIdValid) ? f.student_id_number.trim() : '',
+        campus_id: (isEmployeeBeneficiary && regCampusIdValid) ? f.campus_id.trim() : '',
         valid_id_number: (isDonor && regValidIdNumberValid) ? f.valid_id_number.trim() : '',
         contact_number: isBeneficiary
             ? (regBeneficiaryContactValid ? f.contact_number.trim() : '')
@@ -1313,16 +1323,24 @@ function Auth({ register = false }) {
             };
             if (selectedType === 'donor') {
                 // Clear Beneficiary-specific fields
+                next.beneficiary_type = '';
                 next.student_id_number = '';
+                next.campus_id = '';
                 next.school_email = '';
                 next.department = '';
                 next.course = '';
                 next.year_level = '';
-                next.country = '';
-                next.country_code = '';
+                next.country = 'Philippines';
+                next.country_code = 'PH';
                 next.contact_number = '';
             } else if (selectedType === 'beneficiary') {
                 // Clear Donor-specific fields
+                next.beneficiary_type = 'student';
+                next.student_id_number = '';
+                next.campus_id = '';
+                next.department = '';
+                next.course = '';
+                next.year_level = '';
                 next.email = '';
                 next.country = '';
                 next.country_code = '';
@@ -1335,7 +1353,9 @@ function Auth({ register = false }) {
                 next.valid_id_number = '';
                 next.contact_number = '';
             } else {
+                next.beneficiary_type = '';
                 next.student_id_number = '';
+                next.campus_id = '';
                 next.school_email = '';
                 next.department = '';
                 next.course = '';
@@ -1358,6 +1378,7 @@ function Auth({ register = false }) {
         setUniqueness((prev) => ({
             ...prev,
             student_id_number: { status: 'idle', message: '' },
+            campus_id: { status: 'idle', message: '' },
             valid_id_number: { status: 'idle', message: '' },
             email: { status: 'idle', message: '' },
             contact_number: { status: 'idle', message: '' },
@@ -1376,7 +1397,14 @@ function Auth({ register = false }) {
     const handleRegistrationFieldChange = (field, value) => {
         setF((prev) => {
             const next = { ...prev, [field]: value };
-            if (field === 'department') {
+            if (field === 'beneficiary_type') {
+                next.student_id_number = '';
+                next.campus_id = '';
+                next.department = '';
+                next.course = '';
+                next.year_level = '';
+                next.school_email = '';
+            } else if (field === 'department') {
                 next.course = '';
                 next.year_level = '';
             } else if (field === 'course') {
@@ -1384,6 +1412,14 @@ function Auth({ register = false }) {
             }
             return next;
         });
+        if (field === 'beneficiary_type') {
+            setUniqueness((prev) => ({
+                ...prev,
+                student_id_number: { status: 'idle', message: '' },
+                campus_id: { status: 'idle', message: '' },
+                email: { status: 'idle', message: '' },
+            }));
+        }
     };
 
     const handleRegistrationPhoneChange = (e164Value, valid, meta = {}) => {
@@ -1513,8 +1549,13 @@ function Auth({ register = false }) {
             }
 
             if (f.account_type === 'beneficiary') {
-                if (!f.student_id_number?.trim() || !STUDENT_ID_REGEX.test(f.student_id_number.trim())) {
+                if (f.beneficiary_type === 'student' && (!f.student_id_number?.trim() || !STUDENT_ID_REGEX.test(f.student_id_number.trim()))) {
                     setError('Please enter a valid Student ID Number in the format YY-###### (e.g., 21-010956).');
+                    setLoading(false);
+                    return;
+                }
+                if (isEmployeeBeneficiary && (!f.campus_id?.trim() || f.campus_id.trim().length < 3)) {
+                    setError('Please enter your campus employee ID.');
                     setLoading(false);
                     return;
                 }
@@ -1523,21 +1564,23 @@ function Auth({ register = false }) {
                     setLoading(false);
                     return;
                 }
-                if (!f.department?.trim() || !BENEFICIARY_DEPARTMENTS.includes(f.department.trim())) {
+                if (!f.department?.trim() || (f.beneficiary_type === 'student' && !BENEFICIARY_DEPARTMENTS.includes(f.department.trim()))) {
                     setError('Please select a valid department.');
                     setLoading(false);
                     return;
                 }
-                const allowedCourses = BENEFICIARY_DEPARTMENT_COURSES[f.department.trim()] || [];
-                if (!f.course?.trim() || !allowedCourses.includes(f.course.trim())) {
-                    setError('The selected course does not belong to the selected department. Please choose a valid course.');
-                    setLoading(false);
-                    return;
-                }
-                if (!f.year_level?.trim() || !BENEFICIARY_YEAR_LEVELS.includes(f.year_level.trim())) {
-                    setError('Please select a valid year level.');
-                    setLoading(false);
-                    return;
+                if (f.beneficiary_type === 'student') {
+                    const allowedCourses = BENEFICIARY_DEPARTMENT_COURSES[f.department.trim()] || [];
+                    if (!f.course?.trim() || !allowedCourses.includes(f.course.trim())) {
+                        setError('The selected course does not belong to the selected department. Please choose a valid course.');
+                        setLoading(false);
+                        return;
+                    }
+                    if (!f.year_level?.trim() || !BENEFICIARY_YEAR_LEVELS.includes(f.year_level.trim())) {
+                        setError('Please select a valid year level.');
+                        setLoading(false);
+                        return;
+                    }
                 }
                 if (!f.contact_number?.trim() || !/^09[0-9]{9}$/.test(f.contact_number.trim())) {
                     setError('Please enter a valid Philippine mobile number (09XXXXXXXXX).');
@@ -1562,8 +1605,8 @@ function Auth({ register = false }) {
                     setLoading(false);
                     return;
                 }
-                if (!f.country?.trim() || f.country.trim().toLowerCase() === 'select your country' || f.country.trim().toLowerCase() === 'select country / region' || f.country.trim().toLowerCase() === 'enter your country/region' || f.country.trim().toLowerCase() === 'enter your country / region' || !findCountry(f.country || f.country_code)) {
-                    setError('Please select your Country / Region before continuing.');
+                if (f.country_code !== 'PH') {
+                    setError('Donor registration is limited to the Philippines.');
                     setLoading(false);
                     return;
                 }
@@ -1572,8 +1615,8 @@ function Auth({ register = false }) {
                     setLoading(false);
                     return;
                 }
-                if (!isPhoneValid) {
-                    setError('Please enter a valid contact number for the selected Country / Region.');
+                if (!isPhoneValid || !/^\+639[0-9]{9}$/.test(f.contact_number || '')) {
+                    setError('Please enter a valid Philippine mobile number.');
                     setLoading(false);
                     return;
                 }
@@ -1622,12 +1665,14 @@ function Auth({ register = false }) {
                 middle_name: f.middle_name?.trim() || null,
                 last_name: f.last_name.trim(),
                 name: fullName,
-                student_id_number: f.student_id_number.trim(),
+                beneficiary_type: f.beneficiary_type,
+                student_id_number: isStudentBeneficiary ? f.student_id_number.trim() : null,
+                campus_id: isEmployeeBeneficiary ? f.campus_id.trim() : null,
                 email: f.school_email.trim(),
                 school_email: f.school_email.trim(),
                 department: f.department.trim(),
-                course: f.course.trim(),
-                year_level: f.year_level.trim(),
+                course: isStudentBeneficiary ? f.course.trim() : null,
+                year_level: isStudentBeneficiary ? f.year_level.trim() : null,
                 contact_number: f.contact_number.trim(),
                 password: f.password,
                 password_confirmation: f.password_confirmation,
@@ -1640,14 +1685,14 @@ function Auth({ register = false }) {
                 name: fullName,
                 email: f.email.trim(),
                 contact_number: f.contact_number.trim(),
-                country: f.country?.trim() || 'Philippines',
-                country_code: f.country_code?.trim() || 'PH',
+                country: 'Philippines',
+                country_code: 'PH',
                 address_line_1: f.address_line_1.trim(),
                 state_province_region: f.state_province_region?.trim() || null,
                 city_municipality: f.city_municipality?.trim() || null,
                 district_local_area: f.district_local_area?.trim() || null,
                 postal_zip_code: f.postal_zip_code?.trim() || null,
-                address: [f.address_line_1, f.district_local_area, f.city_municipality, f.state_province_region, f.postal_zip_code, f.country].filter(Boolean).map(s => s.trim()).join(', '),
+                address: [f.address_line_1, f.district_local_area, f.city_municipality, f.state_province_region, f.postal_zip_code, 'Philippines'].filter(Boolean).map(s => s.trim()).join(', '),
                 valid_id_type: f.valid_id_type.trim(),
                 valid_id_number: f.valid_id_number.trim(),
                 campus_id: f.valid_id_number.trim(),
@@ -1674,6 +1719,7 @@ function Auth({ register = false }) {
                 const messages = {
                     valid_id_number: validationErrors.valid_id_number?.[0] || validationErrors.campus_id?.[0],
                     student_id_number: validationErrors.student_id_number?.[0],
+                    campus_id: validationErrors.campus_id?.[0],
                     contact_number: validationErrors.contact_number?.[0],
                     email: validationErrors.email?.[0] || validationErrors.school_email?.[0],
                 };
@@ -1995,6 +2041,8 @@ function Auth({ register = false }) {
                                             password_confirmation: '',
                                             contact_number: '',
                                             student_id_number: '',
+                                            beneficiary_type: 'student',
+                                            campus_id: '',
                                             school_email: '',
                                             department: '',
                                             course: '',
@@ -2026,7 +2074,7 @@ function Auth({ register = false }) {
                                     Create your account
                                 </h1>
                                 <p className="page-copy text-xs text-[#2563EB] opacity-80 mt-1 max-w-xs mx-auto">
-                                    Register as a campus donor or beneficiary to start sharing resources.
+                                    Register as a campus donor or as a student or faculty member who may need support.
                                 </p>
                             </div>
 
@@ -2044,7 +2092,7 @@ function Auth({ register = false }) {
                                         required
                                     >
                                         <option value="" disabled hidden>Select account type</option>
-                                        <option value="beneficiary">Beneficiary (Student)</option>
+                                        <option value="beneficiary">Beneficiary (Campus Member)</option>
                                         <option value="donor">Donor</option>
                                     </DropdownSelect>
                                     {!f.account_type && (
@@ -2290,8 +2338,15 @@ function Auth({ register = false }) {
                                             />
                                         </div>
 
-                                        {/* Rank #5: Student ID Number */}
                                         <div>
+                                            <label htmlFor="reg_beneficiary_type" className="block text-xs font-bold text-[#2563EB]">Campus Role <span className="text-[#22C55E">*</span></label>
+                                            <DropdownSelect id="reg_beneficiary_type" className="field mt-1 text-xs py-2 font-semibold" value={f.beneficiary_type || 'student'} onChange={(e) => handleRegistrationFieldChange('beneficiary_type', e.target.value)} required>
+                                                <option value="student">Student</option>
+                                                <option value="faculty">Faculty</option>
+                                            </DropdownSelect>
+                                        </div>
+
+                                        {isStudentBeneficiary && <div>
                                             <label htmlFor="reg_student_id" className="block text-xs font-bold text-[#2563EB]">
                                                 Student ID Number
                                             </label>
@@ -2312,7 +2367,12 @@ function Auth({ register = false }) {
                                                 </p>
                                             )}
                                             {renderDuplicateStatus('student_id_number')}
-                                        </div>
+                                        </div>}
+                                        {isEmployeeBeneficiary && <div>
+                                            <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">Campus Employee ID <span className="text-[#22C55E">*</span></label>
+                                            <input id="reg_campus_id" type="text" disabled={!canEnterStudentId} placeholder="Enter your faculty ID" className={`field mt-1 text-xs py-2 font-semibold ${!canEnterStudentId ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''} ${uniqueness.campus_id?.status === 'taken' || uniqueness.campus_id?.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''}`} value={f.campus_id} onChange={(e) => handleRegistrationFieldChange('campus_id', e.target.value)} maxLength={50} required />
+                                            {renderDuplicateStatus('campus_id')}
+                                        </div>}
 
                                         {/* Rank #6: Email Address */}
                                         <div>
@@ -2323,7 +2383,7 @@ function Auth({ register = false }) {
                                                 id="reg_school_email"
                                                 type="email"
                                                 disabled={!canEnterBeneficiaryEmail}
-                                                placeholder="e.g. student@tmc.edu.ph"
+                                                placeholder="Enter your campus email"
                                                 className={`field mt-1 text-xs py-2 font-semibold ${!canEnterBeneficiaryEmail ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''} ${uniqueness.email?.status === 'taken' || uniqueness.email?.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                                                 value={f.school_email}
                                                 onChange={(e) => handleRegistrationFieldChange('school_email', e.target.value)}
@@ -2331,7 +2391,7 @@ function Auth({ register = false }) {
                                                 required
                                             />
                                             <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">
-                                                Beneficiary accounts are strictly for Trinidad Municipal College students.
+                                                Campus affiliation is reviewed by staff before aid requests are approved.
                                             </p>
                                             {renderDuplicateStatus('email')}
                                         </div>
@@ -2341,7 +2401,7 @@ function Auth({ register = false }) {
                                             <label htmlFor="reg_department" className="block text-xs font-bold text-[#2563EB]">
                                                 Department
                                             </label>
-                                            <DropdownSelect
+                                            {isStudentBeneficiary ? <DropdownSelect
                                                 id="reg_department"
                                                 disabled={!canEnterDepartment}
                                                 className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDepartment ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
@@ -2353,9 +2413,20 @@ function Auth({ register = false }) {
                                                 {BENEFICIARY_DEPARTMENTS.map((dept) => (
                                                     <option key={dept} value={dept}>{dept}</option>
                                                 ))}
-                                            </DropdownSelect>
+                                            </DropdownSelect> : <input
+                                                id="reg_department"
+                                                type="text"
+                                                disabled={!canEnterDepartment}
+                                                placeholder="Enter your campus department"
+                                                className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDepartment ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
+                                                value={f.department}
+                                                onChange={(e) => handleRegistrationFieldChange('department', e.target.value)}
+                                                maxLength={255}
+                                                required
+                                            />}
                                         </div>
 
+                                        {isStudentBeneficiary && <>
                                         {/* Rank #8: Course */}
                                         <div>
                                             <label htmlFor="reg_course" className="block text-xs font-bold text-[#2563EB]">
@@ -2395,6 +2466,7 @@ function Auth({ register = false }) {
                                                 ))}
                                             </DropdownSelect>
                                         </div>
+                                        </>}
 
                                         {/* Rank #10: Contact Number (Local Philippine Mobile 09XXXXXXXXX) */}
                                         <div>
@@ -2674,22 +2746,15 @@ function Auth({ register = false }) {
                                             )}
                                         </div>
 
-                                        {/* Rank #6: Country / Region */}
+                                        {/* Rank #6: Country is fixed because ReliefLink serves the Philippines campus. */}
                                         <div>
                                             <label htmlFor="reg_country_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Country / Region
+                                                Country / Region <span className="text-[#22C55E]">*</span>
                                             </label>
-                                            <CountrySelect
-                                                id="reg_country_donor"
-                                                disabled={!canEnterDonorCountry}
-                                                value={f.country}
-                                                onChange={handleRegistrationCountryChange}
-                                            />
-                                            {canEnterDonorCountry && !regCountryValid && (
-                                                <p className="mt-1 text-[11px] font-semibold text-amber-600 flex items-center gap-1">
-                                                    <span>Please select your Country / Region before continuing.</span>
-                                                </p>
-                                            )}
+                                            <div className={`field mt-1 flex w-full items-center gap-2 text-xs py-2 font-semibold ${!canEnterDonorCountry ? 'opacity-60 bg-gray-50' : ''}`} aria-label="Country: Philippines">
+                                                <span aria-hidden="true">🇵🇭</span>
+                                                <span>Philippines</span>
+                                            </div>
                                         </div>
 
                                         {/* Rank #7: Contact Number */}
@@ -2702,8 +2767,8 @@ function Auth({ register = false }) {
                                                 disabled={!canEnterDonorContact}
                                                 value={f.contact_number}
                                                 onChange={handleRegistrationPhoneChange}
-                                                defaultCountry={f.country_code || findCountry(f.country)?.code || ''}
-                                                placeholder={!canEnterDonorContact ? 'Select Country / Region first' : 'Enter contact number'}
+                                                defaultCountry="PH"
+                                                placeholder={!canEnterDonorContact ? 'Enter your Philippine mobile number' : '09XX XXX XXXX'}
                                             />
                                             {canEnterDonorContact && isPhoneValid && uniqueness.contact_number?.status === 'available' && (
                                                 <p className="mt-1 text-[11px] font-semibold text-[#22C55E] flex items-center gap-1">
@@ -3002,6 +3067,8 @@ function Auth({ register = false }) {
                                             password_confirmation: '',
                                             contact_number: '',
                                             student_id_number: '',
+                                            beneficiary_type: 'student',
+                                            campus_id: '',
                                             school_email: '',
                                             department: '',
                                             course: '',
@@ -4327,7 +4394,7 @@ function BeneficiaryRequestForm() {
                 <p className="eyebrow">BENEFICIARY WORKSPACE</p>
                 <h1 className="page-title">Create Support Request</h1>
                 <p className="page-copy">
-                    Submit a student assistance request for educational supplies, living essentials, or campus financial aid.
+                    Submit an assistance request for educational supplies, living essentials, or campus financial aid.
                 </p>
             </div>
 
@@ -4344,7 +4411,7 @@ function BeneficiaryRequestForm() {
             <div className="panel no-hover p-5 bg-[#2563EB]/5 border border-[#2563EB]/30">
                 <div className="flex items-center gap-2 text-xs font-extrabold text-[#2563EB] uppercase tracking-wider mb-2">
                     <Icon name="users" size={16} />
-                    <span>Beneficiary Student Profile Details (Automatic from Account)</span>
+                    <span>Campus Member Profile Details (Automatic from Account)</span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3 text-xs">
                     <div>
@@ -4352,7 +4419,11 @@ function BeneficiaryRequestForm() {
                         <span className="font-extrabold text-[#2563EB]">{user?.name || 'N/A'}</span>
                     </div>
                     <div>
-                        <span className="font-bold text-[#2563EB]/70 block">Student ID</span>
+                        <span className="font-bold text-[#2563EB]/70 block">Campus Role</span>
+                        <span className="font-extrabold text-[#2563EB]">{{ student: 'Student', faculty: 'Faculty', staff: 'Staff' }[user?.beneficiary_type] || 'Campus Member'}</span>
+                    </div>
+                    <div>
+                        <span className="font-bold text-[#2563EB]/70 block">Campus ID</span>
                         <span className="font-extrabold text-[#2563EB]">{user?.student_id_number || user?.campus_id || 'N/A'}</span>
                     </div>
                     <div>
@@ -4363,14 +4434,14 @@ function BeneficiaryRequestForm() {
                         <span className="font-bold text-[#2563EB]/70 block">Department</span>
                         <span className="font-extrabold text-[#2563EB]">{user?.department || 'N/A'}</span>
                     </div>
-                    <div>
+                    {user?.beneficiary_type === 'student' && <div>
                         <span className="font-bold text-[#2563EB]/70 block">Course / Program</span>
                         <span className="font-extrabold text-[#2563EB]">{user?.course || 'N/A'}</span>
-                    </div>
-                    <div>
+                    </div>}
+                    {user?.beneficiary_type === 'student' && <div>
                         <span className="font-bold text-[#2563EB]/70 block">Year Level</span>
                         <span className="font-extrabold text-[#2563EB]">{user?.year_level || 'N/A'}</span>
-                    </div>
+                    </div>}
                 </div>
             </div>
 
@@ -5009,6 +5080,7 @@ function EditModal({item, kind, admin, close, done}){
         email: item.email || item.school_email || '',
         role: item.role || item.account_type || '',
         account_type: item.account_type || item.role || '',
+        beneficiary_type: item.beneficiary_type || 'student',
         contact_number: item.contact_number || '',
         campus_id: item.campus_id || '',
         student_id_number: item.student_id_number || '',
@@ -5180,6 +5252,7 @@ function EditModal({item, kind, admin, close, done}){
             if (newRole === 'admin' || newRole === 'staff') {
                 return {
                     ...base,
+                    beneficiary_type: '',
                     student_id_number: '',
                     school_email: '',
                     course: '',
@@ -5197,6 +5270,7 @@ function EditModal({item, kind, admin, close, done}){
             } else if (newRole === 'beneficiary') {
                 return {
                     ...base,
+                    beneficiary_type: prev.beneficiary_type || 'student',
                     campus_id: '',
                     address_line_1: '',
                     state_province_region: '',
@@ -5213,6 +5287,7 @@ function EditModal({item, kind, admin, close, done}){
                     ...base,
                     campus_id: '',
                     student_id_number: '',
+                    beneficiary_type: '',
                     school_email: '',
                     department: '',
                     course: '',
@@ -5225,6 +5300,7 @@ function EditModal({item, kind, admin, close, done}){
                     ...base,
                     campus_id: '',
                     student_id_number: '',
+                    beneficiary_type: '',
                     school_email: '',
                     department: '',
                     course: '',
@@ -5320,26 +5396,36 @@ function EditModal({item, kind, admin, close, done}){
                     return;
                 }
             } else if (f.role === 'beneficiary') {
-                if (!f.student_id_number?.trim() || !STUDENT_ID_REGEX.test(f.student_id_number.trim())) {
+                if (!['student', 'faculty', ...(item.id && f.beneficiary_type === 'staff' ? ['staff'] : [])].includes(f.beneficiary_type)) {
+                    setError('Please select whether the beneficiary is a student or faculty member.');
+                    return;
+                }
+                if (f.beneficiary_type === 'student' && (!f.student_id_number?.trim() || !STUDENT_ID_REGEX.test(f.student_id_number.trim()))) {
                     setError('Please enter a valid Student ID Number in the format YY-###### (e.g., 21-010956).');
+                    return;
+                }
+                if (['faculty', 'staff'].includes(f.beneficiary_type) && !f.campus_id?.trim()) {
+                    setError('Campus ID Number is required for faculty beneficiaries.');
                     return;
                 }
                 if (!f.email?.trim() || !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(f.email.trim())) {
                     setError('Please enter a valid email address.');
                     return;
                 }
-                if (!f.department?.trim() || !BENEFICIARY_DEPARTMENTS.includes(f.department.trim())) {
-                    setError('Please select a valid department.');
+                if (!f.department?.trim() || (f.beneficiary_type === 'student' && !BENEFICIARY_DEPARTMENTS.includes(f.department.trim()))) {
+                    setError(f.beneficiary_type === 'student' ? 'Please select a valid department.' : 'Department / Office is required.');
                     return;
                 }
-                const allowedCourses = BENEFICIARY_DEPARTMENT_COURSES[f.department.trim()] || [];
-                if (!f.course?.trim() || !allowedCourses.includes(f.course.trim())) {
-                    setError('The selected course does not belong to the selected department. Please choose a valid course.');
-                    return;
-                }
-                if (!f.year_level?.trim() || !BENEFICIARY_YEAR_LEVELS.includes(f.year_level.trim())) {
-                    setError('Please select a valid year level.');
-                    return;
+                if (f.beneficiary_type === 'student') {
+                    const allowedCourses = BENEFICIARY_DEPARTMENT_COURSES[f.department.trim()] || [];
+                    if (!f.course?.trim() || !allowedCourses.includes(f.course.trim())) {
+                        setError('The selected course does not belong to the selected department. Please choose a valid course.');
+                        return;
+                    }
+                    if (!f.year_level?.trim() || !BENEFICIARY_YEAR_LEVELS.includes(f.year_level.trim())) {
+                        setError('Please select a valid year level.');
+                        return;
+                    }
                 }
                 if (!f.contact_number?.trim() || !/^09[0-9]{9}$/.test(f.contact_number.trim())) {
                     setError('Contact Number must begin with 09 and contain exactly 11 digits.');
@@ -5347,11 +5433,11 @@ function EditModal({item, kind, admin, close, done}){
                 }
                 // Block submission if real-time uniqueness checks are still pending or have failed
                 if (!item.id) {
-                    if (adminUniqueness.student_id_number.status === 'checking') {
+                    if (f.beneficiary_type === 'student' && adminUniqueness.student_id_number.status === 'checking') {
                         setError('Please wait — verifying Student ID Number availability.');
                         return;
                     }
-                    if (adminUniqueness.student_id_number.status === 'taken') {
+                    if (f.beneficiary_type === 'student' && adminUniqueness.student_id_number.status === 'taken') {
                         setError(adminUniqueness.student_id_number.message || 'This Student ID Number is already registered.');
                         return;
                     }
@@ -5424,11 +5510,13 @@ function EditModal({item, kind, admin, close, done}){
                 payload.campus_id = f.campus_id?.trim() || '';
                 payload.department = f.department?.trim() || '';
             } else if (f.role === 'beneficiary') {
-                payload.student_id_number = f.student_id_number?.trim() || '';
+                payload.beneficiary_type = f.beneficiary_type;
+                payload.student_id_number = f.beneficiary_type === 'student' ? f.student_id_number?.trim() || '' : '';
+                payload.campus_id = ['faculty', 'staff'].includes(f.beneficiary_type) ? f.campus_id?.trim() || '' : '';
                 payload.school_email = f.email?.trim() || '';
                 payload.department = f.department?.trim() || '';
-                payload.course = f.course?.trim() || '';
-                payload.year_level = f.year_level?.trim() || '';
+                payload.course = f.beneficiary_type === 'student' ? f.course?.trim() || '' : '';
+                payload.year_level = f.beneficiary_type === 'student' ? f.year_level?.trim() || '' : '';
             } else if (f.role === 'donor') {
                 payload.country = f.country?.trim() || '';
                 payload.country_code = f.country_code?.trim() || '';
@@ -5482,7 +5570,7 @@ function EditModal({item, kind, admin, close, done}){
                                 <option value="" disabled hidden>Select account type</option>
                                 <option value="admin">Administrator</option>
                                 <option value="staff">Staff</option>
-                                <option value="beneficiary">Beneficiary (Student)</option>
+                                <option value="beneficiary">Beneficiary</option>
                                 <option value="donor">Donor</option>
                             </DropdownSelect>
                         </div>
@@ -5625,8 +5713,28 @@ function EditModal({item, kind, admin, close, done}){
 
                             return (
                                 <>
-                                    {/* Rank #5: Student ID Number */}
                                     <div>
+                                        <label htmlFor="modal_beneficiary_type" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Beneficiary Campus Role <span className="text-[#22C55E]">*</span></label>
+                                        <DropdownSelect
+                                            id="modal_beneficiary_type"
+                                            required
+                                            className="field w-full text-xs font-semibold"
+                                            value={f.beneficiary_type || 'student'}
+                                            onChange={e => setF({ ...f, beneficiary_type: e.target.value, campus_id: '', student_id_number: '', course: '', year_level: '' })}
+                                        >
+                                            <option value="student">Student</option>
+                                            <option value="faculty">Faculty</option>
+                                            {item.id && f.beneficiary_type === 'staff' && <option value="staff">Staff (existing account)</option>}
+                                        </DropdownSelect>
+                                    </div>
+
+                                    {['faculty', 'staff'].includes(f.beneficiary_type) && <div>
+                                        <label htmlFor="modal_beneficiary_campus_id" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Campus ID Number <span className="text-[#22C55E]">*</span></label>
+                                        <input id="modal_beneficiary_campus_id" required type="text" className="field w-full text-xs font-semibold" placeholder="Enter faculty campus ID" value={f.campus_id || ''} onChange={e => setF({ ...f, campus_id: e.target.value })} maxLength={50}/>
+                                    </div>}
+
+                                    {/* Student ID is only collected for student beneficiaries. */}
+                                    {f.beneficiary_type === 'student' && <div>
                                         <label htmlFor="modal_student_id" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                             Student ID Number
                                         </label>
@@ -5653,12 +5761,12 @@ function EditModal({item, kind, admin, close, done}){
                                             <p className="mt-1 text-[11px] font-semibold text-red-600">Please enter a valid Student ID Number in the format YY-###### (e.g., 21-010956).</p>
                                         )}
                                         {sidFormatValid && renderAdminDuplicateStatus('student_id_number')}
-                                    </div>
+                                    </div>}
 
-                                    {/* Rank #6: School Email Address */}
+                                    {/* Rank #6: Member Email Address */}
                                     <div>
                                         <label htmlFor="modal_ben_email" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                            School Email Address
+                                            Email Address <span className="text-[#22C55E]">*</span>
                                         </label>
                                         <input
                                             id="modal_ben_email"
@@ -5671,7 +5779,7 @@ function EditModal({item, kind, admin, close, done}){
                                                         ? 'border-[#22C55E] focus:border-[#22C55E]'
                                                         : ''
                                             }`}
-                                            placeholder="e.g. student@tmc.edu.ph"
+                                            placeholder="e.g. member@tmc.edu.ph"
                                             value={f.email || ''}
                                             onChange={e => setF({...f, email: e.target.value})}
                                             maxLength={255}
@@ -5682,8 +5790,8 @@ function EditModal({item, kind, admin, close, done}){
                                         {emailFormatValid && renderAdminDuplicateStatus('email')}
                                     </div>
 
-                                    {/* Rank #7: Department */}
-                                    <div>
+                                    {/* Rank #7: Department / Office */}
+                                    {f.beneficiary_type === 'student' ? <div>
                                         <label htmlFor="modal_ben_dept" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                             Department
                                         </label>
@@ -5699,10 +5807,13 @@ function EditModal({item, kind, admin, close, done}){
                                                 <option key={dept} value={dept}>{dept}</option>
                                             ))}
                                         </DropdownSelect>
-                                    </div>
+                                    </div> : <div>
+                                        <label htmlFor="modal_ben_dept" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Department / Office <span className="text-[#22C55E]">*</span></label>
+                                        <input id="modal_ben_dept" required type="text" className="field w-full text-xs font-semibold" placeholder="Enter department or office" value={f.department || ''} onChange={e => setF({ ...f, department: e.target.value })} maxLength={255}/>
+                                    </div>}
 
                                     {/* Rank #8: Course (cascades from Department) */}
-                                    <div>
+                                    {f.beneficiary_type === 'student' && <div>
                                         <label htmlFor="modal_ben_course" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                             Course
                                         </label>
@@ -5722,10 +5833,10 @@ function EditModal({item, kind, admin, close, done}){
                                         {!f.department && (
                                             <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/60">Select a Department first to unlock Course.</p>
                                         )}
-                                    </div>
+                                    </div>}
 
                                     {/* Rank #9: Year Level (cascades from Course) */}
-                                    <div>
+                                    {f.beneficiary_type === 'student' && <div>
                                         <label htmlFor="modal_ben_year" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                             Year Level
                                         </label>
@@ -5745,7 +5856,7 @@ function EditModal({item, kind, admin, close, done}){
                                         {(!f.course || !f.department) && f.department && (
                                             <p className="mt-1 text-[11px] font-semibold text-[#2563EB]/60">Select a Course first to unlock Year Level.</p>
                                         )}
-                                    </div>
+                                    </div>}
 
                                     {/* Rank #10: Contact Number */}
                                     <div>
@@ -6218,7 +6329,7 @@ function PeopleManager(){
                         Manage user roles, inspect account profiles, and authorize campus accounts.
                     </p>
                 </div>
-                <Button onClick={() => setEditing({ id: null, role: '', account_type: '', first_name: '', middle_name: '', last_name: '', name: '', email: '', contact_number: '', campus_id: '', student_id_number: '', school_email: '', department: '', course: '', year_level: '', country: '', country_code: '', address_line_1: '', state_province_region: '', city_municipality: '', district_local_area: '', postal_zip_code: '', valid_id_type: '', valid_id_number: '', password: '', password_confirmation: '' })}>
+                <Button onClick={() => setEditing({ id: null, role: '', account_type: '', beneficiary_type: 'student', first_name: '', middle_name: '', last_name: '', name: '', email: '', contact_number: '', campus_id: '', student_id_number: '', school_email: '', department: '', course: '', year_level: '', country: '', country_code: '', address_line_1: '', state_province_region: '', city_municipality: '', district_local_area: '', postal_zip_code: '', valid_id_type: '', valid_id_number: '', password: '', password_confirmation: '' })}>
                     <Icon name="plus"/><span className="ml-2">Add New Member</span>
                 </Button>
             </div>
@@ -6559,8 +6670,12 @@ function PeopleManager(){
                             </>)}
                             {viewingUser.role === 'beneficiary' && (<>
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
-                                    <span className="font-bold text-[#2563EB]/70">Student ID Number:</span>
-                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.student_id_number || 'N/A'}</span>
+                                    <span className="font-bold text-[#2563EB]/70">Campus Role:</span>
+                                    <span className="font-semibold text-[#2563EB]">{{ student: 'Student', faculty: 'Faculty', staff: 'Staff' }[viewingUser.beneficiary_type] || 'Campus Member'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Campus ID:</span>
+                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.student_id_number || viewingUser.campus_id || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                     <span className="font-bold text-[#2563EB]/70">School Email:</span>
@@ -6570,14 +6685,14 @@ function PeopleManager(){
                                     <span className="font-bold text-[#2563EB]/70">Department:</span>
                                     <span className="font-semibold text-[#2563EB]">{viewingUser.department || 'Not provided'}</span>
                                 </div>
-                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                {viewingUser.beneficiary_type === 'student' && <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                     <span className="font-bold text-[#2563EB]/70">Course:</span>
                                     <span className="font-semibold text-[#2563EB]">{viewingUser.course || 'Not provided'}</span>
-                                </div>
-                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                </div>}
+                                {viewingUser.beneficiary_type === 'student' && <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                     <span className="font-bold text-[#2563EB]/70">Year Level:</span>
                                     <span className="font-semibold text-[#2563EB]">{viewingUser.year_level || 'Not provided'}</span>
-                                </div>
+                                </div>}
                             </>)}
                             {(viewingUser.role === 'admin' || viewingUser.role === 'staff') && (<>
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
@@ -7839,14 +7954,19 @@ function RequestManager(){
                                 {Object.entries(viewingRequest).filter(([key]) => key !== 'id' && key !== 'beneficiary').map(([key, value]) => {
                                     const label = key === 'created_by_staff_id'
                                         ? 'Created By Staff ID'
-                                        : key.replaceAll('_', ' ').replace(/\b\w/g, character => character.toUpperCase());
+                                        : key === 'verified_by'
+                                            ? 'Verified By'
+                                            : key.replaceAll('_', ' ').replace(/\b\w/g, character => character.toUpperCase());
+                                    const displayValue = key === 'verified_by' && value && typeof value === 'object'
+                                        ? value.name || 'N/A'
+                                        : value;
                                     return (
                                         <div key={key} className="min-w-0 rounded-lg bg-gray-50 p-3 text-sm leading-relaxed">
                                             <dt className="text-xs font-bold uppercase tracking-wide text-[#2563EB]/70">{label}</dt>
-                                            {value !== null && typeof value === 'object' ? (
-                                                <pre className="mt-1 whitespace-pre-wrap break-words font-sans text-sm font-semibold leading-relaxed text-gray-800">{JSON.stringify(value, null, 2)}</pre>
+                                            {displayValue !== null && typeof displayValue === 'object' ? (
+                                                <pre className="mt-1 whitespace-pre-wrap break-words font-sans text-sm font-semibold leading-relaxed text-gray-800">{JSON.stringify(displayValue, null, 2)}</pre>
                                             ) : (
-                                                <dd className="mt-1 break-words text-sm font-semibold leading-relaxed text-gray-800">{value === null || value === undefined || value === '' ? 'N/A' : String(value)}</dd>
+                                                <dd className="mt-1 break-words text-sm font-semibold leading-relaxed text-gray-800">{displayValue === null || displayValue === undefined || displayValue === '' ? 'N/A' : String(displayValue)}</dd>
                                             )}
                                         </div>
                                     );
@@ -8209,7 +8329,7 @@ function Matches(){
                     <p className="eyebrow staff-module-badge">CONNECTION PROGRESS</p>
                     <h1 className="page-title">Matches with Meaning</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
-                        Authorize, schedule, and track matches connecting campus resource donations with student needs.
+                        Authorize, schedule, and track matches connecting campus resource donations with verified campus needs.
                     </p>
                 </div>
                 {user.role === 'admin' && (
@@ -8386,7 +8506,7 @@ function Matches(){
                             <div className="grid gap-3 text-sm font-semibold sm:grid-cols-2 lg:grid-cols-3">
                                 <div className="min-w-0 rounded-lg border border-[#2563EB]/20 p-2.5 bg-white">
                                     <span className="text-[#2563EB]/70 block font-bold uppercase text-xs">Donor Info</span>
-                                    <p className="text-sm text-[#2563EB] font-bold mt-0.5 break-words">{x.donation?.donor?.name || 'Campus Donor'}</p>
+                                    <p className="text-sm text-[#2563EB] font-bold mt-0.5 break-words">{x.donation?.donor?.name || x.donation?.external_donor_name || 'Campus Donor'}</p>
                                     <span className="text-xs text-[#2563EB]/80 mt-1 block break-words">
                                         Handoff Status: {x.donor_completed_at ? <strong className="text-[#22C55E]">Confirmed</strong> : 'Awaiting'}
                                     </span>
@@ -8405,6 +8525,7 @@ function Matches(){
                                     <p className="text-sm text-[#2563EB] font-bold mt-0.5 break-words">
                                         {x.handoff_scheduled_at ? new Date(x.handoff_scheduled_at).toLocaleString() : 'Not scheduled yet'}
                                     </p>
+                                    {x.verification_pin && <p className="mt-2 rounded-md bg-[#2563EB]/5 p-2 text-xs font-extrabold tracking-wider text-[#2563EB]">Pickup PIN: {x.verification_pin}<span className="mt-1 block text-[10px] font-semibold tracking-normal text-[#2563EB]/70">Show this code to campus staff when collecting your items.</span></p>}
                                     {x.handoff_notes && <p className="text-xs text-[#2563EB]/80 break-words leading-relaxed mt-0.5">{x.handoff_notes}</p>}
                                 </div>
                             </div>
@@ -8498,7 +8619,7 @@ function Matches(){
                                 <p className="font-extrabold text-sm text-[#2563EB] border-b border-[#2563EB]/20 pb-2">Donated Resource</p>
                                 <div><span className="font-bold text-[#2563EB]/70">Item Name:</span> <strong className="text-[#2563EB]">{viewingMatch.donation?.item_name || 'N/A'}</strong></div>
                                 <div><span className="font-bold text-[#2563EB]/70">Category:</span> <span className="text-[#2563EB]">{title(viewingMatch.donation?.category)}</span></div>
-                                <div><span className="font-bold text-[#2563EB]/70">Donor Name:</span> <span className="text-[#2563EB] font-semibold">{viewingMatch.donation?.donor?.name || 'Campus Donor'}</span></div>
+                                <div><span className="font-bold text-[#2563EB]/70">Donor Name:</span> <span className="text-[#2563EB] font-semibold">{viewingMatch.donation?.donor?.name || viewingMatch.donation?.external_donor_name || 'Campus Donor'}</span></div>
                                 {viewingMatch.donation?.donor?.email && <div><span className="font-bold text-[#2563EB]/70">Donor Email:</span> <span className="text-[#2563EB]">{viewingMatch.donation.donor.email}</span></div>}
                                 {viewingMatch.donation?.pickup_location && <div><span className="font-bold text-[#2563EB]/70">Pickup Location:</span> <span className="text-[#2563EB]">{viewingMatch.donation.pickup_location}</span></div>}
                                 {viewingMatch.donation?.condition_notes && (
@@ -9318,7 +9439,7 @@ function StaffDashboard() {
                     {lowStockItems.length > 0 && (
                         <div className="p-4 rounded-xl border border-[#22C55E]/40 bg-[#22C55E]/10 text-[#2563EB] flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm">⚠️ LOW WAREHOUSE STOCK WARNING:</span>
+                                <span className="font-bold text-sm">LOW WAREHOUSE STOCK WARNING:</span>
                                 <span className="text-xs font-semibold">
                                     {lowStockItems.length} category item(s) running low (quantity ≤ 2).
                                 </span>
@@ -9331,9 +9452,9 @@ function StaffDashboard() {
                     {pendingRequests.length > 5 && (
                         <div className="p-4 rounded-xl border border-[#2563EB]/35 bg-[#2563EB]/5 text-[#2563EB] flex items-center justify-between flex-wrap gap-3">
                             <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm">⏳ VERIFICATION BOTTLENECK:</span>
+                                <span className="font-bold text-sm">â³ VERIFICATION BOTTLENECK:</span>
                                 <span className="text-xs font-semibold">
-                                    {pendingRequests.length} student aid requests awaiting review.
+                                    {pendingRequests.length} campus aid requests awaiting review.
                                 </span>
                             </div>
                             <Button size="sm" onClick={() => navigate('/staff/verifications')}>
@@ -9891,7 +10012,7 @@ function StaffWarehouseInventory() {
     const [error, setError] = useState('');
 
     const [intakeForm, setIntakeForm] = useState({
-        donor_name: 'Anonymous Donor',
+        donor_name: '',
         item_name: '',
         category: 'Food & Meals',
         quantity: 1,
@@ -9905,6 +10026,7 @@ function StaffWarehouseInventory() {
         storage_location: '',
         condition_grade: 'good',
         quantity: 1,
+        status: 'pending_match',
         intake_notes: '',
         expiry_date: '',
     });
@@ -9929,7 +10051,7 @@ function StaffWarehouseInventory() {
             await api.post('/admin/donations/intake', intakeForm);
             setShowIntakeModal(false);
             setIntakeForm({
-                donor_name: 'Anonymous Donor',
+                donor_name: '',
                 item_name: '',
                 category: 'Food & Meals',
                 quantity: 1,
@@ -9968,6 +10090,7 @@ function StaffWarehouseInventory() {
             storage_location: item.storage_location || item.pickup_location || 'Warehouse Bin A1',
             condition_grade: item.condition_grade || 'good',
             quantity: item.quantity || 1,
+            status: item.status === 'pending_intake' ? item.status : undefined,
             intake_notes: item.intake_notes || '',
             expiry_date: item.expiry_date || '',
         });
@@ -9998,12 +10121,13 @@ function StaffWarehouseInventory() {
     });
     const stockSummary = {
         total: donations.length,
-        available: donations.reduce((total, item) => total + (item.available_quantity ?? item.quantity), 0),
+        available: donations.filter((item) => item.status === 'pending_match').reduce((total, item) => total + (item.available_quantity ?? item.quantity), 0),
         low: donations.filter((item) => { const availableQuantity = item.available_quantity ?? item.quantity; return availableQuantity > 0 && availableQuantity <= 2; }).length,
         expiring: donations.filter((item) => item.expiry_date && new Date(item.expiry_date).getTime() - Date.now() <= 30 * 86400000 && new Date(item.expiry_date).getTime() >= Date.now()).length,
         attention: donations.filter((item) => item.condition_grade === 'damaged' || (item.expiry_date && new Date(item.expiry_date) < new Date())).length,
     };
     const stockSignal = (item) => {
+        if (item.status === 'pending_intake') return 'Awaiting intake';
         if (item.condition_grade === 'damaged') return 'Damaged';
         if (item.expiry_date && new Date(item.expiry_date) < new Date()) return 'Expired';
         if (item.expiry_date && new Date(item.expiry_date).getTime() - Date.now() <= 30 * 86400000) return 'Expiring soon';
@@ -10038,7 +10162,7 @@ function StaffWarehouseInventory() {
 
                 <section aria-label="Inventory summary" className="staff-inventory-summary grid grid-cols-2 gap-3 lg:grid-cols-5">
                     {[
-                        ['Stocked items', stockSummary.total, 'Unique inventory records', 'box', 'all'],
+                        ['Donation records', stockSummary.total, 'Includes items awaiting staff intake', 'box', 'all'],
                         ['Available units', stockSummary.available, 'Ready for matching', 'check', 'all'],
                         ['Low stock', stockSummary.low, 'Two units or fewer', 'alert', 'low'],
                         ['Expiring soon', stockSummary.expiring, 'Within 30 days', 'clock', 'expiring'],
@@ -10132,7 +10256,7 @@ function StaffWarehouseInventory() {
                                     <tr key={item.id}>
                                         <td>
                                             <strong className="block text-xs font-bold text-[#2563EB]">{item.item_name}</strong>
-                                            <div className="text-[10px] text-[#2563EB]/70">Donor: {item.donor?.name || 'Donor'}</div>
+                                            <div className="text-[10px] text-[#2563EB]/70">Donor: {item.donor?.name || item.external_donor_name || 'Donor'}</div>
                                         </td>
                                         <td>
                                             <span className="text-xs font-bold text-[#2563EB]">{item.category}</span>
@@ -10243,11 +10367,13 @@ function StaffWarehouseInventory() {
                                 </DropdownSelect>
                             </div>
                             <div>
-                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Donor Name</label>
+                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Outside Donor Name *</label>
                                 <input
                                     type="text"
+                                    required
                                     value={intakeForm.donor_name}
                                     onChange={(e) => setIntakeForm({ ...intakeForm, donor_name: e.target.value })}
+                                    placeholder="Enter the donor's name, or Anonymous"
                                     className="input text-xs w-full mt-1"
                                 />
                             </div>
@@ -10355,6 +10481,14 @@ function StaffWarehouseInventory() {
                             />
                         </div>
 
+                        {editingStock.status === 'pending_intake' && <div>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Intake Review *</label>
+                            <DropdownSelect value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} className="input text-xs w-full mt-1">
+                                <option value="pending_intake">Still awaiting physical intake</option>
+                                <option value="pending_match">Received and verified by staff, ready for matching</option>
+                            </DropdownSelect>
+                        </div>}
+
                         <div>
                             <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Expiry Date</label>
                             <input type="date" value={editForm.expiry_date || ''} onChange={(e) => setEditForm({ ...editForm, expiry_date: e.target.value })} className="input text-xs w-full mt-1"/>
@@ -10386,9 +10520,10 @@ function StaffWalkInDesk() {
     const [error, setError] = useState('');
 
     const [form, setForm] = useState({
-        student_name: '',
-        student_email: '',
-        student_id_number: '',
+        beneficiary_name: '',
+        beneficiary_email: '',
+        beneficiary_type: 'student',
+        beneficiary_id_number: '',
         category: 'Food & Meals',
         quantity_needed: 1,
         urgency: 'high',
@@ -10407,7 +10542,7 @@ function StaffWalkInDesk() {
     }, []);
 
     const availableDonations = donations.filter((d) => d.status === 'pending_match' && (d.available_quantity ?? d.quantity) >= form.quantity_needed && d.category === form.category);
-    const existingStudentRequests = requests.filter((request) => (form.student_email && request.beneficiary?.email?.toLowerCase() === form.student_email.toLowerCase()) || (form.student_id_number && request.student_id_number?.toLowerCase() === form.student_id_number.toLowerCase()));
+    const existingBeneficiaryRequests = requests.filter((request) => (form.beneficiary_email && request.beneficiary?.email?.toLowerCase() === form.beneficiary_email.toLowerCase()) || (form.beneficiary_id_number && request.student_id_number?.toLowerCase() === form.beneficiary_id_number.toLowerCase()));
     const walkIns = requests.filter((request) => request.is_walk_in);
     const deskSummary = { waiting: walkIns.filter((request) => request.walk_in_status === 'waiting').length, processing: walkIns.filter((request) => request.walk_in_status === 'processing').length, completed: walkIns.filter((request) => ['allocated', 'completed'].includes(request.walk_in_status)).length, urgent: walkIns.filter((request) => request.urgency === 'high' && !['allocated', 'completed'].includes(request.walk_in_status)).length, referred: walkIns.filter((request) => request.walk_in_status === 'referred').length };
 
@@ -10419,12 +10554,13 @@ function StaffWalkInDesk() {
 
         try {
             const res = await api.post('/admin/requests/walk-in', form);
-            setSuccessMessage(`Walk-in aid request logged successfully for ${res.data.data?.beneficiary?.name || 'student'}!`);
+            setSuccessMessage(`Walk-in aid request logged successfully for ${res.data.data?.beneficiary?.name || 'beneficiary'}!`);
             setReceipt(res.data.data || res.data);
             setForm({
-                student_name: '',
-                student_email: '',
-                student_id_number: '',
+                beneficiary_name: '',
+                beneficiary_email: '',
+                beneficiary_type: 'student',
+                beneficiary_id_number: '',
                 category: 'Food & Meals',
                 quantity_needed: 1,
                 urgency: 'high',
@@ -10448,9 +10584,9 @@ function StaffWalkInDesk() {
             <div className="staff-module-sections w-full">
                 <div className="staff-module-hero staff-walkin-hero border-b border-[#2563EB]/20 pb-4 space-y-2">
                     <span className="eyebrow staff-module-badge">MODULE 3: ON-SITE ASSISTANCE</span>
-                    <h1 className="text-2xl font-extrabold text-[#2563EB]">Walk-In Student Relief Desk</h1>
+                    <h1 className="text-2xl font-extrabold text-[#2563EB]">Walk-In Campus Relief Desk</h1>
                     <p className="text-xs font-semibold text-[#2563EB]/80">
-                        Process offline student requests on behalf of beneficiaries visiting the campus relief office in person.
+                        Process offline requests on behalf of beneficiaries visiting the campus relief office in person.
                     </p>
                 </div>
 
@@ -10464,7 +10600,7 @@ function StaffWalkInDesk() {
                     ].map(([label, value, detail, icon, tone]) => <article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex items-start justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}
                 </section>
 
-                <section aria-label="Walk-in assistance steps" className="staff-walkin-steps"><div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">{['Identify student', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex min-w-0 items-center gap-2 rounded-xl border border-[#2563EB]/15 bg-white px-3 py-3 text-xs font-extrabold shadow-[0_6px_20px_rgba(30,80,180,0.055)]"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB] text-[10px] text-white">{index + 1}</span><span className="min-w-0 leading-snug">{step}</span></div>)}</div></section>
+                <section aria-label="Walk-in assistance steps" className="staff-walkin-steps"><div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">{['Identify beneficiary', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex min-w-0 items-center gap-2 rounded-xl border border-[#2563EB]/15 bg-white px-3 py-3 text-xs font-extrabold shadow-[0_6px_20px_rgba(30,80,180,0.055)]"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB] text-[10px] text-white">{index + 1}</span><span className="min-w-0 leading-snug">{step}</span></div>)}</div></section>
 
                 {successMessage && (
                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
@@ -10476,41 +10612,48 @@ function StaffWalkInDesk() {
 
                 {receipt && <div className="rounded-xl border border-[#22C55E] bg-[#22C55E]/10 p-4 text-xs"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-extrabold text-[#22C55E]">Walk-in assistance recorded · Receipt #{receipt.id}</p><p className="mt-1 font-semibold text-[#2563EB]/75">Status: {(receipt.walk_in_status || 'waiting').replace('_', ' ')} · {receipt.category} · {receipt.quantity_needed} unit{receipt.quantity_needed === 1 ? '' : 's'}</p></div><button onClick={() => setReceipt(null)} className="text-xs font-extrabold underline">Dismiss receipt</button></div></div>}
 
-                {existingStudentRequests.length > 0 && <div className="rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-4"><div className="flex items-start gap-3"><Icon name="info" className="mt-0.5"/><div><p className="text-xs font-extrabold">Existing request found for this student</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Review the active record before creating another request to avoid duplicate assistance.</p><div className="mt-2 flex flex-wrap gap-2">{existingStudentRequests.map((request) => <span key={request.id} className="rounded-full border border-[#2563EB]/20 bg-white px-2 py-1 text-[10px] font-extrabold">#{request.id} · {request.category} · {request.status.replace('_', ' ')}</span>)}</div></div></div></div>}
+                {existingBeneficiaryRequests.length > 0 && <div className="rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-4"><div className="flex items-start gap-3"><Icon name="info" className="mt-0.5"/><div><p className="text-xs font-extrabold">Existing request found for this beneficiary</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Review the active record before creating another request to avoid duplicate assistance.</p><div className="mt-2 flex flex-wrap gap-2">{existingBeneficiaryRequests.map((request) => <span key={request.id} className="rounded-full border border-[#2563EB]/20 bg-white px-2 py-1 text-[10px] font-extrabold">#{request.id} · {request.category} · {request.status.replace('_', ' ')}</span>)}</div></div></div></div>}
 
                 <form onSubmit={handleSubmit} className="staff-walkin-form staff-module-form-sections">
-                    <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">1</span><div><h2 className="text-sm font-extrabold">Identify and verify the student</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Check campus details before recording a new request.</p></div></div>
+                    <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">1</span><div><h2 className="text-sm font-extrabold">Identify and verify the beneficiary</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Check campus details before recording a new request.</p></div></div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student Full Name </label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Beneficiary Full Name *</label>
                             <input
                                 type="text"
                                 required
                                 placeholder="Student name"
-                                value={form.student_name}
-                                onChange={(e) => setForm({ ...form, student_name: e.target.value })}
+                                value={form.beneficiary_name}
+                                onChange={(e) => setForm({ ...form, beneficiary_name: e.target.value })}
                                 className="input text-xs w-full mt-1"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student Campus Email </label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Campus Email *</label>
                             <input
                                 type="email"
                                 required
                                 placeholder="student@university.edu"
-                                value={form.student_email}
-                                onChange={(e) => setForm({ ...form, student_email: e.target.value })}
+                                value={form.beneficiary_email}
+                                onChange={(e) => setForm({ ...form, beneficiary_email: e.target.value })}
                                 className="input text-xs w-full mt-1"
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student ID Number </label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Beneficiary Type *</label>
+                            <DropdownSelect value={form.beneficiary_type} onChange={(e) => setForm({ ...form, beneficiary_type: e.target.value })} className="input text-xs w-full mt-1">
+                                <option value="student">Student</option>
+                                <option value="faculty_staff">Faculty or Staff</option>
+                            </DropdownSelect>
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">{form.beneficiary_type === 'student' ? 'Student ID Number' : 'Campus ID'} *</label>
                             <input
                                 type="text"
                                 required
                                 placeholder="e.g. STU-2026-9041"
-                                value={form.student_id_number}
-                                onChange={(e) => setForm({ ...form, student_id_number: e.target.value })}
+                                value={form.beneficiary_id_number}
+                                onChange={(e) => setForm({ ...form, beneficiary_id_number: e.target.value })}
                                 className="input text-xs w-full mt-1"
                             />
                         </div>
@@ -10564,7 +10707,7 @@ function StaffWalkInDesk() {
                         <textarea
                             rows="3"
                             required
-                            placeholder="Explain the student's on-site request..."
+                            placeholder="Explain on-site request..."
                             value={form.justification}
                             onChange={(e) => setForm({ ...form, justification: e.target.value })}
                             className="input text-xs w-full mt-1"
@@ -10678,8 +10821,7 @@ function StaffHandoffDispatch() {
         const item = (m.donation?.item_name || '').toLowerCase();
         const recipient = (m.request?.beneficiary?.name || '').toLowerCase();
         const donor = (m.donation?.donor?.name || '').toLowerCase();
-        const pin = (m.verification_pin || '').toLowerCase();
-        return item.includes(q) || recipient.includes(q) || donor.includes(q) || pin.includes(q);
+        return item.includes(q) || recipient.includes(q) || donor.includes(q);
     });
     const hubs = [...new Set(matches.map((match) => match.pickup_hub || 'Main Relief Desk Hub'))];
     const dispatchSummary = { pending: activeMatches.filter((match) => match.status === 'proposed').length, ready: activeMatches.filter((match) => match.status === 'confirmed').length, inProgress: verifyingMatch ? 1 : 0, completed: matches.filter((match) => match.status === 'fulfilled').length, expired: matches.filter((match) => match.pin_expires_at && new Date(match.pin_expires_at) < new Date() && match.status !== 'fulfilled').length };
@@ -10712,7 +10854,7 @@ function StaffHandoffDispatch() {
                 <div className="staff-dispatch-filters grid gap-3 sm:grid-cols-3">
                     <input
                         type="text"
-                        placeholder="Search by student recipient, item name, or 6-digit PIN..."
+                        placeholder="Search by recipient or item name..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="input text-xs w-full"
@@ -11109,7 +11251,7 @@ function DonorDashboard(){
                                         </p>
                                     )}
                                     {m.handoff_notes && (
-                                        <p className="text-xs italic text-[#2563EB]/70">ðŸ“ Location/Notes: {m.handoff_notes}</p>
+                                        <p className="text-xs italic text-[#2563EB]/70">Ã°Å¸â€œÂ Location/Notes: {m.handoff_notes}</p>
                                     )}
                                 </div>
                                 <div>
@@ -11643,7 +11785,7 @@ function BeneficiaryDashboard() {
                                                 </p>
                                                 {m.handoff_notes && (
                                                     <p className="text-[10px] text-[#2563EB] opacity-80 truncate max-w-xs">
-                                                        ðŸ“ {m.handoff_notes}
+                                                        Ã°Å¸â€œÂ {m.handoff_notes}
                                                     </p>
                                                 )}
                                             </div>
@@ -11682,7 +11824,7 @@ function BeneficiaryDashboard() {
                                 <Icon name="link" className="mx-auto mb-2 text-[#2563EB]" size={28} />
                                 <p className="text-xs font-bold text-[#2563EB]">No support matches established yet.</p>
                                 <p className="mt-1 text-[11px] text-[#2563EB] opacity-75 max-w-xs mx-auto">
-                                    ReliefLink matches student requests with campus donors automatically. Submit requests to receive support.
+                                    ReliefLink matches campus beneficiary requests with campus donors automatically. Submit a request to receive support.
                                 </p>
                                 <Link to="/request-help" className="mt-4 inline-block no-underline"><Button variant="primary" className="px-3 py-2 text-xs">Create a request</Button></Link>
                             </div>
@@ -12193,7 +12335,7 @@ function DonorNeeds() {
             <p className="eyebrow">COMMUNITY IMPACT</p>
             <h1 className="page-title">Requests & Campus Needs</h1>
             <p className="page-copy">
-                Explore student support requests and campus needs to provide physical goods or direct financial assistance.
+                Explore verified campus needs and offer physical goods or financial assistance. Financial contributions are coordinated with campus staff; ReliefLink does not process payments.
             </p>
 
             {/* Controls Bar: Search, Filters & Sorting */}
@@ -12668,6 +12810,11 @@ function DonorNeeds() {
                             </div>
                         ) : (
                             <form className="mt-4 space-y-4" onSubmit={handleQuickDonationSubmit}>
+                                {donatingRequest.request_type === 'financial' && (
+                                    <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs font-semibold text-amber-900">
+                                        ReliefLink records the donation and coordinates campus review; it does not transfer money. Make any payment through the campus-approved channel and provide a receipt for staff verification.
+                                    </p>
+                                )}
                                 <div className="rounded-xl border border-[#2563EB] bg-white p-3 text-xs font-bold">
                                     <span className="text-[#2563EB] opacity-70 block">Target Request</span>
                                     <span>
@@ -14779,7 +14926,7 @@ function AdminCategories(){
                         </p>
                         {getItemCount(deletingCategory.slug) > 0 ? (
                             <p className="text-xs font-extrabold text-[#2563EB] bg-[#2563EB]/5 p-3 rounded-lg border border-[#2563EB]/20">
-                                ⚠️ Warning: This category currently has {getItemCount(deletingCategory.slug)} active listing(s). You must reassign or clear these items before deletion.
+                                âš ï¸ Warning: This category currently has {getItemCount(deletingCategory.slug)} active listing(s). You must reassign or clear these items before deletion.
                             </p>
                         ) : (
                             <p className="text-xs font-bold text-[#2563EB]/70">
@@ -16280,8 +16427,8 @@ function Profile(){
         department:user?.department||'',
         course:user?.course||'',
         year_level:user?.year_level||'',
-        country:user?.country||'',
-        country_code:user?.country_code||'',
+        country:user?.role === 'donor' ? 'Philippines' : (user?.country||''),
+        country_code:user?.role === 'donor' ? 'PH' : (user?.country_code||''),
         password:'',
         password_confirmation:''
     });
@@ -16317,8 +16464,8 @@ function Profile(){
                 department:user.department||'',
                 course:user.course||'',
                 year_level:user.year_level||'',
-                country:user.country||'',
-                country_code:user.country_code||'',
+                country:user.role === 'donor' ? 'Philippines' : (user.country||''),
+                country_code:user.role === 'donor' ? 'PH' : (user.country_code||''),
                 password:'',
                 password_confirmation:''
             });
@@ -16587,24 +16734,30 @@ function Profile(){
 
                                     <div className="grid gap-5 sm:grid-cols-2">
                                         <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region </label>
-                                            <CountrySelect
-                                                id="profile_country"
-                                                value={f.country}
-                                                onChange={(name, code) => setF(prev => ({ ...prev, country: name, country_code: code }))}
-                                            />
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region {user.role === 'donor' && <span className="text-[#22C55E]">*</span>}</label>
+                                            {user.role === 'donor' ? (
+                                                <div className="field mt-1 flex w-full items-center gap-2 text-xs font-semibold" aria-label="Country: Philippines">
+                                                    <span aria-hidden="true">🇵🇭</span><span>Philippines</span>
+                                                </div>
+                                            ) : (
+                                                <CountrySelect
+                                                    id="profile_country"
+                                                    value={f.country}
+                                                    onChange={(name, code) => setF(prev => ({ ...prev, country: name, country_code: code }))}
+                                                />
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Contact Number</label>
                                             <InternationalPhoneInput
                                                 id="profile_contact_number"
                                                 value={f.contact_number}
-                                                defaultCountry={f.country_code || 'PH'}
+                                                defaultCountry={user.role === 'donor' ? 'PH' : (f.country_code || 'PH')}
                                                 onChange={(val, valid, meta={})=>setF(prev=>({
                                                     ...prev,
                                                     contact_number:val,
-                                                    country:meta.country ? (findCountry(meta.country)?.name || prev.country) : prev.country,
-                                                    country_code:meta.country || prev.country_code,
+                                                    country:user.role === 'donor' ? 'Philippines' : (meta.country ? (findCountry(meta.country)?.name || prev.country) : prev.country),
+                                                    country_code:user.role === 'donor' ? 'PH' : (meta.country || prev.country_code),
                                                 }))}
                                                 placeholder="Enter contact number"
                                             />
@@ -17899,7 +18052,7 @@ function NotificationsPage(){
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Notifications</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{totalCount}</strong>
                     </div>
-                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
+                    <span className="grid h-10 w-10 place-items-ce nter rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
                         <Icon name="bell"/>
                     </span>
                 </article>

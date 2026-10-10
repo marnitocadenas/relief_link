@@ -11,10 +11,23 @@ use App\Http\Controllers\Api\{
     SystemSettingsController
 };
 
+Route::get('/debug-user', function () {
+    $u = App\Models\User::where('email', 'admin@relieflink.test')->first();
+    return [
+        'email' => $u->email ?? 'not found',
+        'role' => $u->role ?? null,
+        'is_active' => $u->is_active ?? null,
+        'exists' => $u ? true : false,
+    ];
+});
+
+Route::get('/api-test', function () { return 'api works'; });
+Route::post('/api-post-test', function () { return 'post works'; })->middleware('web');
+
 Route::post('register', [AuthController::class, 'register']);
 Route::post('register/check-availability', [AuthController::class, 'checkRegistrationAvailability'])
     ->middleware('throttle:30,1');
-Route::post('login', [AuthController::class, 'login']);
+Route::post('login', [AuthController::class, 'login'])->middleware('throttle:60,1');
 
 // OTP Password Reset Routes
 Route::post('forgot-password/send-otp', [AuthController::class, 'sendOtp']);

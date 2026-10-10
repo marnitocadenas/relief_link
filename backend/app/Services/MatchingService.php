@@ -29,6 +29,7 @@ class MatchingService
                             $q->whereNull('request_type')->orWhere('request_type', 'physical');
                         })
                         ->whereIn('status', ['approved', 'partially_fulfilled'])
+                        ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$donation->preferred_request_id])
                         ->orderByRaw("CASE urgency WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")
                         ->oldest()
                         ->lockForUpdate()
@@ -55,14 +56,16 @@ class MatchingService
                             $match,
                             '/matches'
                         );
-                        AlertService::send(
-                            $donation->donor,
-                            "Your {$qty}-unit donation has been proposed for a verified request.",
-                            'match',
-                            'normal',
-                            $match,
-                            '/matches'
-                        );
+                        if ($donation->donor) {
+                            AlertService::send(
+                                $donation->donor,
+                                "Your {$qty}-unit donation has been proposed for a verified request.",
+                                'match',
+                                'normal',
+                                $match,
+                                '/matches'
+                            );
+                        }
 
                         $available -= $qty;
                         $created++;
@@ -88,6 +91,7 @@ class MatchingService
                     $requests = AidRequest::where('request_type', 'financial')
                         ->where('category', $donation->category)
                         ->whereIn('status', ['approved', 'partially_fulfilled'])
+                        ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$donation->preferred_request_id])
                         ->orderByRaw("CASE urgency WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")
                         ->oldest()
                         ->lockForUpdate()
@@ -115,14 +119,16 @@ class MatchingService
                             $match,
                             '/matches'
                         );
-                        AlertService::send(
-                            $donation->donor,
-                            "Your {$donation->currency} " . number_format($amt, 2) . " donation has been proposed for a verified request.",
-                            'match',
-                            'normal',
-                            $match,
-                            '/matches'
-                        );
+                        if ($donation->donor) {
+                            AlertService::send(
+                                $donation->donor,
+                                "Your {$donation->currency} " . number_format($amt, 2) . " donation has been proposed for a verified request.",
+                                'match',
+                                'normal',
+                                $match,
+                                '/matches'
+                            );
+                        }
 
                         $availableAmt -= $amt;
                         $created++;

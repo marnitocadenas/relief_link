@@ -121,6 +121,9 @@ class AdminController extends Controller
         $isAdminOrStaff = $isAdmin || $isStaff;
         $isBeneficiary = $role === 'beneficiary';
         $isDonor = $role === 'donor';
+        $beneficiaryType = $r->input('beneficiary_type');
+        $isStudentBeneficiary = $isBeneficiary && $beneficiaryType === 'student';
+        $isEmployeeBeneficiary = $isBeneficiary && $beneficiaryType === 'faculty';
 
         // Use full strong password rules for beneficiary and donor (same as user-side RegisterRequest),
         // and a simpler rule for admin/staff (internal accounts).
@@ -182,18 +185,20 @@ class AdminController extends Controller
             $rules['department'] = 'required|string|max:255';
             $rules['contact_number'] = 'required|string|max:30|unique:users,contact_number';
         } elseif ($isBeneficiary) {
-            $rules['student_id_number'] = ['required', 'string', 'max:9', 'regex:/^\d{2}-\d{6}$/', 'unique:users,student_id_number'];
+            $rules['beneficiary_type'] = ['required', Rule::in(['student', 'faculty'])];
+            $rules['student_id_number'] = [$isStudentBeneficiary ? 'required' : 'nullable', 'string', 'max:9', $isStudentBeneficiary ? 'regex:/^\d{2}-\d{6}$/' : 'nullable', 'unique:users,student_id_number'];
+            $rules['campus_id'] = [$isEmployeeBeneficiary ? 'required' : 'nullable', 'string', 'min:3', 'max:50', 'unique:users,campus_id'];
             $rules['email'] = 'required|email|max:255|unique:users,email';
             $rules['school_email'] = 'nullable|email|max:255';
-            $rules['department'] = ['required', 'string', Rule::in(RegisterRequest::BENEFICIARY_DEPARTMENTS)];
-            $rules['course'] = ['required', 'string', function ($attribute, $value, $fail) use ($r) {
+            $rules['department'] = ['required', 'string', 'max:255', ...($isStudentBeneficiary ? [Rule::in(RegisterRequest::BENEFICIARY_DEPARTMENTS)] : [])];
+            $rules['course'] = [$isStudentBeneficiary ? 'required' : 'nullable', 'string', 'max:255', ...($isStudentBeneficiary ? [function ($attribute, $value, $fail) use ($r) {
                 $dept = $r->input('department');
                 $allowed = RegisterRequest::DEPARTMENT_COURSES[$dept] ?? [];
                 if (!in_array($value, $allowed, true)) {
                     $fail('The selected course does not belong to the selected department. Please choose a valid course.');
                 }
-            }];
-            $rules['year_level'] = ['required', 'string', Rule::in(RegisterRequest::BENEFICIARY_YEAR_LEVELS)];
+            }] : [])];
+            $rules['year_level'] = [$isStudentBeneficiary ? 'required' : 'nullable', 'string', 'max:50', ...($isStudentBeneficiary ? [Rule::in(RegisterRequest::BENEFICIARY_YEAR_LEVELS)] : [])];
             $rules['contact_number'] = ['required', 'string', 'regex:/^09[0-9]{9}$/', 'unique:users,contact_number'];
         } elseif ($isDonor) {
             $rules['email'] = 'required|email|max:255|unique:users,email';
@@ -218,7 +223,7 @@ class AdminController extends Controller
             'last_name.required' => 'Last Name is required.',
             'email.required' => 'Email Address is required.',
             'email.unique' => 'This email address is already registered.',
-            'campus_id.required' => ($isAdmin ? 'Administrator ID / Campus ID Number' : 'Staff ID / Campus ID Number') . ' is required.',
+            'campus_id.required' => ($isBeneficiary ? 'Campus ID Number' : ($isAdmin ? 'Administrator ID / Campus ID Number' : 'Staff ID / Campus ID Number')) . ' is required.',
             'campus_id.unique' => 'This Campus ID number is already taken.',
             'student_id_number.required' => 'Student ID Number is required.',
             'student_id_number.regex' => 'Please enter a valid Student ID Number in the format YY-###### (e.g., 21-010956).',
@@ -254,7 +259,8 @@ class AdminController extends Controller
         }
 
         if ($role === 'beneficiary') {
-            $d['campus_id'] = null;
+            $d['campus_id'] = $isEmployeeBeneficiary ? $d['campus_id'] : null;
+            $d['student_id_number'] = $isStudentBeneficiary ? $d['student_id_number'] : null;
             $d['address'] = null;
             $d['address_line_1'] = null;
             $d['state_province_region'] = null;
@@ -269,6 +275,7 @@ class AdminController extends Controller
         } elseif ($role === 'donor') {
             $d['campus_id'] = null;
             $d['student_id_number'] = null;
+            $d['beneficiary_type'] = null;
             $d['school_email'] = null;
             $d['department'] = null;
             $d['course'] = null;
@@ -294,6 +301,7 @@ class AdminController extends Controller
             $d['valid_id_type'] = null;
             $d['valid_id_number'] = null;
             $d['student_id_number'] = null;
+            $d['beneficiary_type'] = null;
             $d['school_email'] = null;
             $d['course'] = null;
             $d['year_level'] = null;
@@ -317,6 +325,8 @@ class AdminController extends Controller
         }
         $role = $rawRole;
         $isAdminOrStaff = in_array($role, ['admin', 'staff'], true);
+        $beneficiaryType = $r->input('beneficiary_type', $user->beneficiary_type);
+        $isStudentBeneficiary = $role === 'beneficiary' && $beneficiaryType === 'student';
 
         $d = $r->validate([
             'name' => 'sometimes|nullable|string|max:255',
@@ -327,10 +337,11 @@ class AdminController extends Controller
             'password' => 'nullable|string|min:8',
             'role' => 'sometimes|required|in:donor,beneficiary,staff,admin',
             'account_type' => 'nullable|in:donor,beneficiary,staff,admin',
+            'beneficiary_type' => ['sometimes', 'nullable', Rule::in(['student', 'faculty', 'staff'])],
             'contact_number' => 'nullable|string|max:30|unique:users,contact_number,' . $user->id,
             'country' => 'nullable|string|max:100',
             'country_code' => 'nullable|string|size:2',
-            'campus_id' => 'sometimes|nullable|string|max:50|unique:users,campus_id,' . $user->id,
+            'campus_id' => 'sometimes|nullable|string|min:3|max:50|unique:users,campus_id,' . $user->id,
             'address' => 'nullable|string|max:255',
             'address_line_1' => 'nullable|string|max:255',
             'state_province_region' => 'nullable|string|max:255',
@@ -339,11 +350,11 @@ class AdminController extends Controller
             'postal_zip_code' => 'nullable|string|max:50',
             'valid_id_type' => 'nullable|string|max:100',
             'valid_id_number' => $role === 'donor' ? 'nullable|string|max:50|unique:users,valid_id_number,' . $user->id : 'nullable|string|max:50|unique:users,valid_id_number,' . $user->id,
-            'student_id_number' => ['nullable', 'string', 'max:50', 'regex:/^\d{2}-\d{6}$/', 'unique:users,student_id_number,' . $user->id],
+            'student_id_number' => ['nullable', 'string', 'max:50', $isStudentBeneficiary ? 'regex:/^\d{2}-\d{6}$/' : 'nullable', 'unique:users,student_id_number,' . $user->id],
             'school_email' => 'nullable|email|max:255',
-            'department' => $role === 'beneficiary' ? ['nullable', 'string', Rule::in(RegisterRequest::BENEFICIARY_DEPARTMENTS)] : 'nullable|string|max:255',
-            'course' => ['nullable', 'string', function ($attribute, $value, $fail) use ($r, $user, $role) {
-                if (!empty($value) && $role === 'beneficiary') {
+            'department' => $role === 'beneficiary' && $isStudentBeneficiary ? ['nullable', 'string', Rule::in(RegisterRequest::BENEFICIARY_DEPARTMENTS)] : 'nullable|string|max:255',
+            'course' => ['nullable', 'string', function ($attribute, $value, $fail) use ($r, $user, $isStudentBeneficiary) {
+                if (!empty($value) && $isStudentBeneficiary) {
                     $dept = $r->input('department', $user->department);
                     $allowed = RegisterRequest::DEPARTMENT_COURSES[$dept] ?? [];
                     if (!in_array($value, $allowed, true)) {
@@ -351,7 +362,7 @@ class AdminController extends Controller
                     }
                 }
             }],
-            'year_level' => $role === 'beneficiary' ? ['nullable', 'string', Rule::in(RegisterRequest::BENEFICIARY_YEAR_LEVELS)] : 'nullable|string|max:255',
+            'year_level' => $isStudentBeneficiary ? ['nullable', 'string', Rule::in(RegisterRequest::BENEFICIARY_YEAR_LEVELS)] : 'nullable|string|max:255',
         ]);
 
         if (empty($d['name']) && (!empty($d['first_name']) || !empty($d['last_name']))) {
@@ -378,6 +389,7 @@ class AdminController extends Controller
             } elseif ($effectiveRole === 'donor') {
                 $d['campus_id'] = null;
                 $d['student_id_number'] = null;
+                $d['beneficiary_type'] = null;
                 $d['school_email'] = null;
                 $d['department'] = null;
                 $d['course'] = null;
@@ -405,6 +417,7 @@ class AdminController extends Controller
                 $d['valid_id_type'] = null;
                 $d['valid_id_number'] = null;
                 $d['student_id_number'] = null;
+                $d['beneficiary_type'] = null;
                 $d['school_email'] = null;
                 $d['course'] = null;
                 $d['year_level'] = null;
@@ -482,7 +495,7 @@ class AdminController extends Controller
         }
 
         $d = $r->validate([
-            'status' => 'required|in:approved,rejected,pending_review,under_review,matched,partially_fulfilled,fulfilled',
+            'status' => 'required|in:approved,rejected,pending_review,under_review',
             'verification_tier' => 'nullable|in:unverified,identity_verified,financial_hardship,emergency',
             'verification_state' => 'nullable|in:pending,under_review,needs_revision,approved,rejected',
             'verification_checklist' => 'nullable|array',
@@ -490,6 +503,12 @@ class AdminController extends Controller
             'verification_decision_reason' => 'nullable|string|max:1000',
             'student_id_number' => 'nullable|string|max:100',
         ]);
+
+        if ($d['status'] === 'rejected' && $aidRequest->matches()->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->exists()) {
+            throw ValidationException::withMessages([
+                'status' => 'This request already has aid reserved or distributed. Cancel or resolve its matches before rejecting it.',
+            ]);
+        }
 
         // The verification decision is authoritative. Keeping status in sync prevents
         // an "approved" message from being sent for a rejected/revision decision.
@@ -552,6 +571,21 @@ class AdminController extends Controller
             'staff_internal_notes'      => 'nullable|string|max:2000',
         ]);
 
+        $activeMatches = $aidRequest->matches()->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->get();
+        if ($activeMatches->isNotEmpty()) {
+            $allocationChanged = (isset($validated['category']) && $validated['category'] !== $aidRequest->category)
+                || (isset($validated['request_type']) && $validated['request_type'] !== $aidRequest->request_type);
+            $reservedQuantity = (int) $activeMatches->sum('matched_quantity');
+            $reservedAmount = (float) $activeMatches->sum('matched_amount');
+            if ($allocationChanged
+                || (isset($validated['quantity_needed']) && $validated['quantity_needed'] < $reservedQuantity)
+                || (isset($validated['amount_requested']) && $validated['amount_requested'] < $reservedAmount)) {
+                throw ValidationException::withMessages([
+                    'request' => 'Category and request type cannot change while aid is matched, and the requested total cannot be reduced below the amount already reserved or distributed.',
+                ]);
+            }
+        }
+
         $aidRequest->update($validated);
         ActivityService::log($r->user(), 'edited support request content', $aidRequest);
 
@@ -561,9 +595,10 @@ class AdminController extends Controller
     public function storeWalkInRequest(Request $r, MatchingService $s)
     {
         $d = $r->validate([
-            'student_name' => 'required|string|max:255',
-            'student_email' => 'required|email',
-            'student_id_number' => 'required|string|max:100',
+            'beneficiary_name' => 'required|string|max:255',
+            'beneficiary_email' => 'required|email',
+            'beneficiary_type' => 'required|in:student,faculty_staff',
+            'beneficiary_id_number' => 'required|string|max:100',
             'category' => 'required|string',
             'quantity_needed' => 'required|integer|min:1',
             'urgency' => 'required|in:low,medium,high',
@@ -594,17 +629,33 @@ class AdminController extends Controller
         }
 
         // Find or register beneficiary
-        $user = User::where('email', $d['student_email'])->first();
+        $user = User::where('email', $d['beneficiary_email'])->first();
+        $identifierField = $d['beneficiary_type'] === 'student' ? 'student_id_number' : 'campus_id';
+        $identifierOwner = User::where($identifierField, $d['beneficiary_id_number'])->first();
+        if ($identifierOwner && (!$user || $identifierOwner->id !== $user->id)) {
+            throw ValidationException::withMessages([
+                'beneficiary_id_number' => 'This campus ID is already assigned to another account.',
+            ]);
+        }
         if (!$user) {
             $user = User::create([
-                'name' => $d['student_name'],
-                'email' => $d['student_email'],
+                'name' => $d['beneficiary_name'],
+                'email' => $d['beneficiary_email'],
                 'password' => Hash::make(Str::password(32)),
                 'role' => 'beneficiary',
+                'beneficiary_type' => $d['beneficiary_type'],
+                'student_id_number' => $d['beneficiary_type'] === 'student' ? $d['beneficiary_id_number'] : null,
+                'campus_id' => $d['beneficiary_type'] === 'faculty_staff' ? $d['beneficiary_id_number'] : null,
             ]);
         } elseif ($user->role !== 'beneficiary') {
             throw ValidationException::withMessages([
-                'student_email' => 'This email belongs to a non-beneficiary account and cannot be used for a walk-in student request.',
+                'beneficiary_email' => 'This email belongs to a non-beneficiary account and cannot be used for a walk-in request.',
+            ]);
+        } else {
+            $user->update([
+                'beneficiary_type' => $d['beneficiary_type'],
+                'student_id_number' => $d['beneficiary_type'] === 'student' ? $d['beneficiary_id_number'] : null,
+                'campus_id' => $d['beneficiary_type'] === 'faculty_staff' ? $d['beneficiary_id_number'] : null,
             ]);
         }
 
@@ -627,7 +678,7 @@ class AdminController extends Controller
             'is_walk_in' => true,
             'walk_in_status' => !empty($d['referral_destination']) ? 'referred' : (!empty($d['instant_donation_id']) ? 'allocated' : 'waiting'),
             'created_by_staff_id' => $r->user()->id,
-            'student_id_number' => $d['student_id_number'],
+            'student_id_number' => $d['beneficiary_id_number'],
             'verification_tier' => $d['verification_tier'] ?? 'identity_verified',
             'verified_by_user_id' => $r->user()->id,
             'verification_notes' => 'Walk-in on-site request verified by staff desk.',
@@ -668,7 +719,7 @@ class AdminController extends Controller
     public function storeStaffIntake(Request $r)
     {
         $d = $r->validate([
-            'donor_id' => 'nullable|exists:users,id',
+            'donor_id' => 'nullable|exists:users,id,role,donor',
             'donor_name' => 'required_without:donor_id|string|max:255',
             'item_name' => 'required|string|max:255',
             'category' => 'required|string',
@@ -680,14 +731,9 @@ class AdminController extends Controller
             'expiry_date' => 'nullable|date',
         ]);
 
-        $donorId = $d['donor_id'] ?? null;
-        if (!$donorId) {
-            $donor = User::where('role', 'donor')->first() ?: $r->user();
-            $donorId = $donor->id;
-        }
-
         $donation = Donation::create([
-            'donor_id' => $donorId,
+            'donor_id' => $d['donor_id'] ?? null,
+            'external_donor_name' => empty($d['donor_id']) ? trim($d['donor_name']) : null,
             'item_name' => $d['item_name'],
             'category' => $d['category'],
             'quantity' => $d['quantity'],
@@ -723,7 +769,7 @@ class AdminController extends Controller
             'quantity' => 'sometimes|required|integer|min:0',
             'intake_notes' => 'nullable|string',
             'expiry_date' => 'nullable|date',
-            'status' => 'sometimes|required|in:pending_match,proposed,matched,fulfilled',
+            'status' => 'sometimes|required|in:pending_intake,pending_match',
         ]);
 
         if (array_key_exists('quantity', $d)) {
@@ -737,7 +783,30 @@ class AdminController extends Controller
             }
         }
 
+        if (($d['status'] ?? null) === 'pending_intake'
+            && $donation->status !== 'pending_intake'
+            && $donation->matches()->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->exists()) {
+            throw ValidationException::withMessages([
+                'status' => 'An item with reserved or distributed aid cannot be returned to intake review.',
+            ]);
+        }
+
+        $previousStatus = $donation->status;
         $donation->update($d);
+        if ($previousStatus === 'pending_intake' && $donation->status === 'pending_match') {
+            InventoryMovement::create([
+                'donation_id' => $donation->id,
+                'staff_user_id' => $r->user()->id,
+                'movement_type' => 'intake',
+                'quantity_delta' => (int) $donation->quantity,
+                'quantity_after' => (int) $donation->quantity,
+                'reason' => 'Donor-submitted contribution received and inspected by staff.',
+            ]);
+            ActivityService::log($r->user(), 'verified donation intake and released it for matching', $donation);
+            if ($donation->donor) {
+                AlertService::send($donation->donor, 'Campus staff received and verified your donation. It is now available for matching.', 'donation', 'normal', $donation, '/donations');
+            }
+        }
         if (array_key_exists('quantity', $d) && $quantityBefore !== $donation->quantity) {
             InventoryMovement::create([
                 'donation_id' => $donation->id,
@@ -777,12 +846,16 @@ class AdminController extends Controller
         $match->update($d);
 
         if ($d['status'] === 'confirmed' && $previousStatus !== 'confirmed') {
-            AlertService::send($match->donation->donor, 'Your donation match was confirmed.', 'match', 'normal', $match, '/matches');
+            if ($match->donation->donor) {
+                AlertService::send($match->donation->donor, 'Your donation match was confirmed.', 'match', 'normal', $match, '/matches');
+            }
             AlertService::send($match->request->beneficiary, 'Your donation match was confirmed.', 'match', 'normal', $match, '/matches');
         }
 
         if ($d['status'] === 'rejected' && $previousStatus !== 'rejected') {
-            AlertService::send($match->donation->donor, 'A donation match was cancelled by the operations team.', 'match', 'normal', $match, '/matches');
+            if ($match->donation->donor) {
+                AlertService::send($match->donation->donor, 'A donation match was cancelled by the operations team.', 'match', 'normal', $match, '/matches');
+            }
             AlertService::send($match->request->beneficiary, 'A proposed support match was cancelled. Your request remains eligible for matching.', 'match', 'normal', $match, '/matches');
         }
 
@@ -800,6 +873,9 @@ class AdminController extends Controller
         ]);
 
         abort_if($match->status === 'fulfilled', 422, 'This handoff has already been completed.');
+        abort_unless($match->status === 'confirmed', 422, 'Confirm and schedule this match before completing the handoff.');
+        abort_unless($match->handoff_scheduled_at, 422, 'Schedule the pickup before completing the handoff.');
+        abort_if($match->handoff_scheduled_at->isFuture(), 422, 'This pickup is scheduled for a later time.');
         abort_if($match->pin_locked_at, 422, 'PIN verification is locked after too many invalid attempts. Escalate to a supervisor.');
         abort_if($match->pin_expires_at && $match->pin_expires_at->isPast(), 422, 'This pickup PIN has expired. Reschedule the pickup before releasing the item.');
         if (trim($d['pin']) !== trim($match->verification_pin)) {
@@ -838,7 +914,9 @@ class AdminController extends Controller
         ]);
 
         $s->refreshStatuses($match);
-        AlertService::send($match->donation->donor, 'Your donation has been physically collected and handed off!', 'handoff', 'normal', $match, '/donor/fulfillment');
+        if ($match->donation->donor) {
+            AlertService::send($match->donation->donor, 'Your donation has been physically collected and handed off!', 'handoff', 'normal', $match, '/donor/fulfillment');
+        }
         AlertService::send($match->request->beneficiary, 'Your aid request item has been successfully handed off to you!', 'handoff', 'normal', $match, '/beneficiary/fulfillment');
 
         ActivityService::log($r->user(), 'completed handoff with PIN clearance', $match);
@@ -849,26 +927,29 @@ class AdminController extends Controller
     public function exportReportCsv()
     {
         $requests = AidRequest::with(['beneficiary', 'verifiedBy'])->get();
-        $csvHeader = "ID,Beneficiary Name,Category,Quantity Needed,Urgency,Status,Verification Tier,Verified By,Created At\n";
-        $csvData = "";
+        $stream = fopen('php://temp', 'r+');
+        fputcsv($stream, ['ID', 'Beneficiary Name', 'Category', 'Quantity Needed', 'Urgency', 'Status', 'Verification Tier', 'Verified By', 'Created At'], ',', '"', '');
 
         foreach ($requests as $req) {
-            $csvData .= sprintf(
-                "%d,\"%s\",\"%s\",%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+            fputcsv($stream, [
                 $req->id,
-                addslashes($req->beneficiary->name ?? 'N/A'),
-                addslashes($req->category),
+                $req->beneficiary->name ?? 'N/A',
+                $req->category,
                 $req->quantity_needed,
                 $req->urgency,
                 $req->status,
                 $req->verification_tier ?? 'unverified',
-                addslashes($req->verifiedBy->name ?? 'N/A'),
-                $req->created_at
-            );
+                $req->verifiedBy->name ?? 'N/A',
+                $req->created_at,
+            ], ',', '"', '');
         }
 
-        return Response::make($csvHeader . $csvData, 200, [
-            'Content-Type' => 'text/csv',
+        rewind($stream);
+        $csv = stream_get_contents($stream);
+        fclose($stream);
+
+        return Response::make($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="relieflink_staff_report_' . date('Y-m-d') . '.csv"',
         ]);
     }

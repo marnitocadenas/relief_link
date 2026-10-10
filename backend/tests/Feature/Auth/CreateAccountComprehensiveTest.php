@@ -155,6 +155,36 @@ class CreateAccountComprehensiveTest extends TestCase
             ->assertJsonPath('user.name', 'Alex Reyes');
     }
 
+    public function test_faculty_and_staff_can_register_as_campus_beneficiaries(): void
+    {
+        foreach ([
+            ['type' => 'faculty', 'id' => 'FAC-1001', 'email' => 'faculty1001@tmc.edu.ph', 'phone' => '09181234001'],
+            ['type' => 'staff', 'id' => 'STF-1002', 'email' => 'staff1002@tmc.edu.ph', 'phone' => '09181234002'],
+        ] as $member) {
+            $response = $this->postJson('/api/register', [
+                'role' => 'beneficiary',
+                'account_type' => 'beneficiary',
+                'beneficiary_type' => $member['type'],
+                'first_name' => ucfirst($member['type']),
+                'last_name' => 'Member',
+                'campus_id' => $member['id'],
+                'school_email' => $member['email'],
+                'email' => $member['email'],
+                'department' => 'Campus Administration',
+                'contact_number' => $member['phone'],
+                'password' => 'Secure#Pass2026',
+                'password_confirmation' => 'Secure#Pass2026',
+            ]);
+
+            $response->assertCreated()
+                ->assertJsonPath('user.beneficiary_type', $member['type'])
+                ->assertJsonPath('user.campus_id', $member['id'])
+                ->assertJsonPath('user.student_id_number', null)
+                ->assertJsonPath('user.course', null)
+                ->assertJsonPath('user.year_level', null);
+        }
+    }
+
     /**
      * Requirement 4: Donor Form Registration with all 16 ranked fields.
      */
@@ -653,9 +683,9 @@ class CreateAccountComprehensiveTest extends TestCase
     }
 
     /**
-     * International Donor Registration - United States.
+     * Donor registration rejects a foreign country and number.
      */
-    public function test_international_donor_registration_united_states(): void
+    public function test_donor_registration_rejects_united_states(): void
     {
         $password = 'US#Donor2026';
 
@@ -682,46 +712,13 @@ class CreateAccountComprehensiveTest extends TestCase
 
         $response = $this->postJson('/api/register', $payload);
 
-        $response->assertCreated()
-            ->assertJsonStructure(['user', 'token'])
-            ->assertJsonPath('user.first_name', 'John')
-            ->assertJsonPath('user.middle_name', 'Fitzgerald')
-            ->assertJsonPath('user.last_name', 'Smith')
-            ->assertJsonPath('user.name', 'John Fitzgerald Smith')
-            ->assertJsonPath('user.email', 'john.smith@us-donor.org')
-            ->assertJsonPath('user.role', 'donor')
-            ->assertJsonPath('user.country', 'United States')
-            ->assertJsonPath('user.country_code', 'US')
-            ->assertJsonPath('user.contact_number', '+12025550143')
-            ->assertJsonPath('user.address_line_1', '742 Evergreen Terrace')
-            ->assertJsonPath('user.state_province_region', 'California')
-            ->assertJsonPath('user.city_municipality', 'Springfield')
-            ->assertJsonPath('user.district_local_area', 'West District')
-            ->assertJsonPath('user.postal_zip_code', '97477')
-            ->assertJsonPath('user.valid_id_type', 'Passport')
-            ->assertJsonPath('user.valid_id_number', 'US987654321');
-
-        $this->assertDatabaseHas('users', [
-            'email' => 'john.smith@us-donor.org',
-            'role' => 'donor',
-            'country' => 'United States',
-            'country_code' => 'US',
-            'contact_number' => '+12025550143',
-            'address_line_1' => '742 Evergreen Terrace',
-            'state_province_region' => 'California',
-            'city_municipality' => 'Springfield',
-            'district_local_area' => 'West District',
-            'postal_zip_code' => '97477',
-            'valid_id_type' => 'Passport',
-            'valid_id_number' => 'US987654321',
-            'campus_id' => 'US987654321',
-        ]);
+        $response->assertUnprocessable()->assertJsonValidationErrors(['country', 'country_code', 'contact_number']);
     }
 
     /**
-     * International Donor Registration - Japan with local number normalization to E.164.
+     * Donor registration rejects a foreign country even when its number is locally formatted.
      */
-    public function test_international_donor_registration_japan_with_normalization(): void
+    public function test_donor_registration_rejects_japan(): void
     {
         $password = 'Japan#Donor2026';
 
@@ -745,21 +742,7 @@ class CreateAccountComprehensiveTest extends TestCase
 
         $response = $this->postJson('/api/register', $payload);
 
-        $response->assertCreated()
-            ->assertJsonPath('user.country', 'Japan')
-            ->assertJsonPath('user.country_code', 'JP')
-            ->assertJsonPath('user.contact_number', '+819012345678')
-            ->assertJsonPath('user.valid_id_type', 'Residence Permit')
-            ->assertJsonPath('user.valid_id_number', 'JP123456789');
-
-        $this->assertDatabaseHas('users', [
-            'email' => 'kenji.sato@jp-donor.co.jp',
-            'country' => 'Japan',
-            'country_code' => 'JP',
-            'contact_number' => '+819012345678',
-            'valid_id_type' => 'Residence Permit',
-            'valid_id_number' => 'JP123456789',
-        ]);
+        $response->assertUnprocessable()->assertJsonValidationErrors(['country', 'country_code', 'contact_number']);
     }
 
     /**
@@ -785,13 +768,13 @@ class CreateAccountComprehensiveTest extends TestCase
         ]);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['country' => 'Please select your Country / Region before continuing.']);
+            ->assertJsonValidationErrors(['country' => 'Donor registration is limited to the Philippines.']);
     }
 
     /**
-     * International phone number validation rejects invalid numbers for selected country with exact message.
+     * Donor registration rejects invalid Philippine mobile numbers.
      */
-    public function test_international_phone_number_rejection_for_invalid_numbers(): void
+    public function test_donor_phone_number_rejection_for_invalid_numbers(): void
     {
         $password = 'Secure!Pass2026';
 
@@ -800,9 +783,9 @@ class CreateAccountComprehensiveTest extends TestCase
             'first_name' => 'Invalid',
             'last_name' => 'Phone',
             'email' => 'invalid.phone@example.com',
-            'country' => 'United States',
-            'country_code' => 'US',
-            'contact_number' => '12345', // Too short / invalid US number
+            'country' => 'Philippines',
+            'country_code' => 'PH',
+            'contact_number' => '12345', // Too short / invalid Philippine number
             'address_line_1' => '123 Main St',
             'valid_id_type' => 'Passport',
             'valid_id_number' => 'PASS-123456',
@@ -811,7 +794,7 @@ class CreateAccountComprehensiveTest extends TestCase
         ]);
 
         $response->assertUnprocessable()
-            ->assertJsonValidationErrors(['contact_number' => 'Please enter a valid contact number for the selected Country / Region.']);
+            ->assertJsonValidationErrors(['contact_number' => 'Please enter a valid Philippine mobile number (09XXXXXXXXX).']);
     }
 
     /**
@@ -864,7 +847,7 @@ class CreateAccountComprehensiveTest extends TestCase
         $res3->assertOk()
             ->assertJson([
                 'available' => false,
-                'message' => 'Please enter a valid contact number for the selected Country / Region.',
+                'message' => 'Donor registration is limited to the Philippines.',
             ]);
     }
 
@@ -929,9 +912,9 @@ class CreateAccountComprehensiveTest extends TestCase
     }
 
     /**
-     * International Donor Profile Update.
+     * Donors cannot change their profile to international country or phone details.
      */
-    public function test_international_donor_can_update_profile_with_international_fields(): void
+    public function test_donor_cannot_update_profile_with_international_fields(): void
     {
         $donor = User::factory()->create([
             'role' => 'donor',
@@ -960,23 +943,13 @@ class CreateAccountComprehensiveTest extends TestCase
             'valid_id_number' => 'SMITH905204JK9AB',
         ]);
 
-        $updateResponse->assertOk()
-            ->assertJsonPath('data.country', 'United Kingdom')
-            ->assertJsonPath('data.country_code', 'GB')
-            ->assertJsonPath('data.contact_number', '+447911123456')
-            ->assertJsonPath('data.valid_id_type', 'UK Driving Licence')
-            ->assertJsonPath('data.valid_id_number', 'SMITH905204JK9AB');
+        $updateResponse->assertUnprocessable()->assertJsonValidationErrors(['country', 'country_code', 'contact_number']);
 
         $this->assertDatabaseHas('users', [
             'id' => $donor->id,
-            'country' => 'United Kingdom',
-            'country_code' => 'GB',
-            'contact_number' => '+447911123456',
-            'address_line_1' => '10 Downing Street',
-            'city_municipality' => 'London',
-            'postal_zip_code' => 'SW1A 2AA',
-            'valid_id_type' => 'UK Driving Licence',
-            'valid_id_number' => 'SMITH905204JK9AB',
+            'country' => 'Philippines',
+            'country_code' => 'PH',
+            'contact_number' => '+639171234567',
         ]);
     }
 }

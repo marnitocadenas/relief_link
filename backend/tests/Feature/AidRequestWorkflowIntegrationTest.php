@@ -8,6 +8,7 @@ use App\Models\Donation;
 use App\Models\DonationMatch;
 use App\Models\ReliefNotification;
 use App\Models\User;
+use App\Services\MatchingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -211,6 +212,42 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             ->assertJsonPath('data.verification_state', 'approved');
     }
 
+    public function test_donors_only_see_approved_requests_and_cannot_direct_match_pending_or_mismatched_needs(): void
+    {
+        $request = AidRequest::create([
+            'beneficiary_id' => $this->beneficiary->id,
+            'request_type' => 'physical',
+            'category' => 'books',
+            'quantity_needed' => 2,
+            'urgency' => 'medium',
+            'status' => 'pending_review',
+            'verification_state' => 'pending_review',
+            'justification' => 'Needs books for class.',
+        ]);
+
+        $this->actingAs($this->donor, 'sanctum')
+            ->getJson('/api/requests')->assertOk()->assertJsonCount(0, 'data');
+
+        $donation = [
+            'donation_type' => 'physical',
+            'category' => 'books',
+            'item_name' => 'Textbooks',
+            'quantity' => 2,
+            'request_id' => $request->id,
+        ];
+        $this->postJson('/api/donations', $donation)
+            ->assertUnprocessable()->assertJsonValidationErrors('request_id');
+        $this->assertDatabaseCount('donations', 0);
+        $this->assertDatabaseCount('matches', 0);
+
+        $request->update(['status' => 'approved', 'verification_state' => 'approved']);
+        $donation['category'] = 'clothing';
+        $this->postJson('/api/donations', $donation)
+            ->assertUnprocessable()->assertJsonValidationErrors('request_id');
+        $this->assertDatabaseCount('donations', 0);
+        $this->assertDatabaseCount('matches', 0);
+    }
+
     public function test_donor_can_fulfill_physical_request_and_update_remaining_quantities(): void
     {
         $request = AidRequest::create([
@@ -226,7 +263,7 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             'justification' => 'Required textbooks for team study group.',
         ]);
 
-        // Donor donates 2 units towards the request (partial match)
+        // Donor pledges 2 units; campus staff receives them before matching.
         $response = $this->actingAs($this->donor, 'sanctum')
             ->postJson('/api/donations', [
                 'donation_type' => 'physical',
@@ -241,13 +278,20 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             ]);
 
         $response->assertStatus(201);
+        $firstDonation = Donation::orderByDesc('id')->firstOrFail();
+        $this->assertSame('pending_intake', $firstDonation->status);
+        $this->assertSame($request->id, $firstDonation->preferred_request_id);
+        $this->assertSame(0, $request->getActiveMatchedQuantity());
+        $this->actingAs($this->staff, 'sanctum')
+            ->patchJson('/api/admin/donations/'.$firstDonation->id.'/stock', ['status' => 'pending_match'])->assertOk();
+        app(MatchingService::class)->run();
 
         $request->refresh();
         $this->assertEquals(2, $request->getActiveMatchedQuantity());
         $this->assertEquals(2, $request->getRemainingQuantity());
         $this->assertEquals('partially_fulfilled', $request->status);
 
-        // Donor donates another 2 units (full match)
+        // A second pledge is also held until staff receives it.
         $response2 = $this->actingAs($this->donor, 'sanctum')
             ->postJson('/api/donations', [
                 'donation_type' => 'physical',
@@ -261,11 +305,15 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             ]);
 
         $response2->assertStatus(201);
+        $secondDonation = Donation::orderByDesc('id')->firstOrFail();
+        $this->actingAs($this->staff, 'sanctum')
+            ->patchJson('/api/admin/donations/'.$secondDonation->id.'/stock', ['status' => 'pending_match'])->assertOk();
+        app(MatchingService::class)->run();
 
         $request->refresh();
         $this->assertEquals(4, $request->getActiveMatchedQuantity());
         $this->assertEquals(0, $request->getRemainingQuantity());
-        $this->assertEquals('matched', $request->status);
+        $this->assertEquals('proposed', $request->status);
     }
 
     public function test_donor_can_fulfill_financial_request_and_update_remaining_amounts(): void
@@ -299,6 +347,11 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             ]);
 
         $response->assertStatus(201);
+        $firstDonation = Donation::orderByDesc('id')->firstOrFail();
+        $this->assertSame('pending_intake', $firstDonation->status);
+        $this->actingAs($this->staff, 'sanctum')
+            ->patchJson('/api/admin/donations/'.$firstDonation->id.'/stock', ['status' => 'pending_match'])->assertOk();
+        app(MatchingService::class)->run();
 
         $request->refresh();
         $this->assertEquals(2000.00, $request->getActiveMatchedAmount());
@@ -320,11 +373,15 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             ]);
 
         $response2->assertStatus(201);
+        $secondDonation = Donation::orderByDesc('id')->firstOrFail();
+        $this->actingAs($this->staff, 'sanctum')
+            ->patchJson('/api/admin/donations/'.$secondDonation->id.'/stock', ['status' => 'pending_match'])->assertOk();
+        app(MatchingService::class)->run();
 
         $request->refresh();
         $this->assertEquals(5000.00, $request->getActiveMatchedAmount());
         $this->assertEquals(0.00, $request->getRemainingAmount());
-        $this->assertEquals('matched', $request->status);
+        $this->assertEquals('proposed', $request->status);
     }
 
     public function test_beneficiary_can_cancel_own_pending_request_with_reason(): void

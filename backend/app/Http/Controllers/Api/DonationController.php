@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreDonationRequest;
 use App\Http\Resources\DonationResource;
-use App\Models\{AidRequest, Donation, DonationMatch};
-use App\Services\{ActivityService, AlertService, MatchingService};
+use App\Models\{AidRequest, Donation};
+use App\Services\{ActivityService, AlertService};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class DonationController extends Controller
 {
@@ -38,15 +39,29 @@ class DonationController extends Controller
         return $d;
     }
 
-    public function store(StoreDonationRequest $r, MatchingService $matchingService)
+    public function store(StoreDonationRequest $r)
     {
         $this->authorize('create', Donation::class);
 
         $data = $this->data($r);
         $requestId = $data['request_id'] ?? null;
         unset($data['request_id']);
+        // Donor submissions are pledges until campus staff receives and checks the item.
+        $data['status'] = 'pending_intake';
+        $data['preferred_request_id'] = $requestId;
 
-        $donation = DB::transaction(function () use ($r, $data, $requestId, $matchingService) {
+        $donation = DB::transaction(function () use ($r, $data, $requestId) {
+            if ($requestId) {
+                $targetRequest = AidRequest::lockForUpdate()->find($requestId);
+                $donationType = $data['donation_type'] ?? 'physical';
+                if (!$targetRequest || !in_array($targetRequest->status, ['approved', 'partially_fulfilled'], true)
+                    || ($targetRequest->request_type ?? 'physical') !== $donationType
+                    || $targetRequest->category !== $data['category']) {
+                    throw ValidationException::withMessages([
+                        'request_id' => 'Choose an approved request that matches this donation type and category.',
+                    ]);
+                }
+            }
             $d = $r->user()->donations()->create($data);
             ActivityService::log($r->user(), 'created donation', $d);
 
@@ -67,45 +82,15 @@ class DonationController extends Controller
                 '/staff/inventory'
             );
 
-            // If donor is donating towards a specific request
             if ($requestId) {
-                $targetRequest = AidRequest::lockForUpdate()->find($requestId);
-                if ($targetRequest && in_array($targetRequest->status, ['pending_review', 'under_review', 'approved', 'proposed', 'matched', 'partially_fulfilled'], true)) {
-                    $isFinancial = ($d->donation_type === 'financial' || $targetRequest->request_type === 'financial');
-
-                    if ($isFinancial) {
-                        $remAmt = $targetRequest->getRemainingAmount();
-                        $matchAmt = min((float) $d->amount, $remAmt > 0 ? $remAmt : (float) $d->amount);
-                        $match = DonationMatch::create([
-                            'donation_id' => $d->id,
-                            'request_id' => $targetRequest->id,
-                            'matched_quantity' => 1,
-                            'matched_amount' => $matchAmt,
-                            'status' => 'proposed',
-                        ]);
-                    } else {
-                        $remQty = $targetRequest->getRemainingQuantity();
-                        $matchQty = min((int) $d->quantity, $remQty > 0 ? $remQty : (int) $d->quantity);
-                        $match = DonationMatch::create([
-                            'donation_id' => $d->id,
-                            'request_id' => $targetRequest->id,
-                            'matched_quantity' => $matchQty,
-                            'status' => 'proposed',
-                        ]);
-                    }
-
-                    $matchingService->refreshStatuses($match);
-
-                    AlertService::send(
-                        $targetRequest->beneficiary,
-                        "A donor submitted assistance towards your request (#REQ-" . str_pad($targetRequest->id, 3, '0', STR_PAD_LEFT) . ").",
-                        'match',
-                        'normal',
-                        $match,
-                        '/matches'
-                    );
-                    ActivityService::log($r->user(), 'matched donation to request', $match);
-                }
+                AlertService::send(
+                    $targetRequest->beneficiary,
+                    "A donor pledged support for your request (#REQ-" . str_pad($targetRequest->id, 3, '0', STR_PAD_LEFT) . "). Campus staff will verify it before matching.",
+                    'donation',
+                    'normal',
+                    $d,
+                    '/matches'
+                );
             }
 
             return $d;
@@ -116,7 +101,7 @@ class DonationController extends Controller
 
     public function update(StoreDonationRequest $r, Donation $donation)
     {
-        abort_unless($donation->donor_id === $r->user()->id && $donation->status === 'pending_match', 403);
+        abort_unless($donation->donor_id === $r->user()->id && in_array($donation->status, ['pending_intake', 'pending_match'], true), 403);
         $data = $this->data($r);
         unset($data['request_id']);
 
@@ -140,7 +125,7 @@ class DonationController extends Controller
             return response()->noContent();
         }
 
-        abort_unless($donation->donor_id === $r->user()->id && $donation->status === 'pending_match', 403);
+        abort_unless($donation->donor_id === $r->user()->id && in_array($donation->status, ['pending_intake', 'pending_match'], true), 403);
         if ($donation->image_path) {
             Storage::disk('public')->delete($donation->image_path);
         }

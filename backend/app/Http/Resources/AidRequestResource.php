@@ -95,7 +95,12 @@ class AidRequestResource extends JsonResource
                 'verification_checklist' => $this->verification_checklist,
                 'verification_notes' => $this->verification_notes,
                 'verified_by_user_id' => $this->verified_by_user_id,
-                'verified_by' => new UserResource($this->whenLoaded('verifiedBy')),
+                'verified_by' => $this->whenLoaded('verifiedBy', function ($verifiedBy) {
+                    return $verifiedBy ? [
+                        'id' => $verifiedBy->id,
+                        'name' => $verifiedBy->name,
+                    ] : null;
+                }),
             ];
         }
 

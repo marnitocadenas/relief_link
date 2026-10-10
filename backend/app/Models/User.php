@@ -39,6 +39,7 @@ class User extends Authenticatable
         'valid_id_type',
         'valid_id_number',
         'student_id_number',
+        'beneficiary_type',
         'school_email',
         'department',
         'course',

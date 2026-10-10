@@ -22,6 +22,13 @@
 /backend/storage/*.key
 /backend/storage/pail
 /backend/vendor
+/bootstrap/cache/*.php
+/public/build
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*.log
 Homestead.json
 Homestead.yaml
 Thumbs.db

@@ -37,8 +37,8 @@ class AidRequestController extends Controller
         } elseif ($request->user()->role === 'beneficiary') {
             $query->where('beneficiary_id', $request->user()->id);
         } else {
-            // Donors only see eligible verified/active requests
-            $query->whereIn('status', ['pending_review', 'approved', 'proposed', 'matched', 'partially_fulfilled']);
+            // Donors only see verified requests that still have unmet need.
+            $query->whereIn('status', ['approved', 'partially_fulfilled']);
         }
 
         return AidRequestResource::collection($query->latest()->paginate(20));

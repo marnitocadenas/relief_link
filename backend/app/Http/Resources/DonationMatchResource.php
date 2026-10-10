@@ -8,7 +8,10 @@ class DonationMatchResource extends JsonResource
 {
     public function toArray($r): array
     {
-        return [
+        $viewer = $r->user();
+        $isBeneficiary = $viewer && $viewer->id === $this->request?->beneficiary_id;
+
+        $data = [
             'id' => $this->id,
             'matched_quantity' => (int) $this->matched_quantity,
             'matched_amount' => $this->matched_amount ? (float) $this->matched_amount : null,
@@ -27,5 +30,11 @@ class DonationMatchResource extends JsonResource
             'donation' => new DonationResource($this->whenLoaded('donation')),
             'request' => new AidRequestResource($this->whenLoaded('request')),
         ];
+
+        if ($isBeneficiary) {
+            $data['verification_pin'] = $this->verification_pin;
+        }
+
+        return $data;
     }
 }

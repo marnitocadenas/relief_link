@@ -114,6 +114,7 @@ class ReliefLinkWorkflowTest extends TestCase
         $this->assertDatabaseHas('requests', ['id' => $request->id, 'status' => 'approved', 'verification_state' => 'approved']);
 
         Sanctum::actingAs($admin);
+        $this->patchJson('/api/admin/donations/'.$donation->id.'/stock', ['status' => 'pending_match'])->assertOk();
         $this->postJson('/api/admin/matches/run')->assertOk();
         $match = DonationMatch::firstOrFail();
         $this->assertSame('proposed', $match->status);
@@ -129,12 +130,21 @@ class ReliefLinkWorkflowTest extends TestCase
             'handoff_notes' => 'Campus Student Center pickup desk.',
         ])->assertOk();
         $this->assertDatabaseHas('matches', ['id' => $match->id, 'status' => 'confirmed']);
+        $match->refresh();
+        $this->assertNotNull($match->pin_expires_at);
+        $pickupPin = $match->verification_pin;
         $this->getJson('/api/donations')->assertOk()->assertJsonPath('data.0.id', $donation->id);
         $this->getJson('/api/matches')->assertOk()->assertJsonPath('data.0.id', $match->id)
             ->assertJsonMissing(['beneficiary_id' => $beneficiary->id]);
 
+        Sanctum::actingAs($beneficiary);
+        $this->getJson('/api/matches')->assertOk()->assertJsonPath('data.0.verification_pin', $pickupPin);
+
         Sanctum::actingAs($staff);
-        $this->postJson('/api/admin/matches/'.$match->id.'/verify-handoff', ['pin' => $match->verification_pin, 'pickup_notes' => 'ID and quantity checked.'])
+        $staffMatches = $this->getJson('/api/admin/matches')->assertOk()->json('data');
+        $this->assertArrayNotHasKey('verification_pin', $staffMatches[0]);
+        $this->travel(2)->days();
+        $this->postJson('/api/admin/matches/'.$match->id.'/verify-handoff', ['pin' => $pickupPin, 'pickup_notes' => 'ID and quantity checked.'])
             ->assertOk();
         $this->assertDatabaseHas('matches', ['id' => $match->id, 'status' => 'fulfilled', 'handed_off_by_user_id' => $staff->id]);
         $this->assertDatabaseHas('donations', ['id' => $donation->id, 'status' => 'pending_match']);
@@ -155,7 +165,7 @@ class ReliefLinkWorkflowTest extends TestCase
 
         Sanctum::actingAs($otherDonor);
         $this->getJson('/api/donations')->assertOk()->assertJsonCount(0, 'data');
-        $this->getJson('/api/requests')->assertOk()->assertJsonPath('data.0.id', $request->id)->assertJsonMissing(['staff_internal_notes' => 'Sensitive staff note']);
+        $this->getJson('/api/requests')->assertOk()->assertJsonCount(0, 'data');
 
         Sanctum::actingAs($beneficiary);
         $this->getJson('/api/requests')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $request->id);
@@ -174,6 +184,13 @@ class ReliefLinkWorkflowTest extends TestCase
         $donation = Donation::create(['donor_id' => $donor->id, 'item_name' => 'Hygiene Kit', 'category' => 'Personal Care & Hygiene', 'quantity' => 1, 'status' => 'proposed']);
         $request = AidRequest::create(['beneficiary_id' => $beneficiary->id, 'category' => 'Personal Care & Hygiene', 'quantity_needed' => 1, 'urgency' => 'medium', 'justification' => 'Need supplies.', 'status' => 'proposed']);
         $match = DonationMatch::create(['donation_id' => $donation->id, 'request_id' => $request->id, 'matched_quantity' => 1, 'status' => 'confirmed']);
+
+        Sanctum::actingAs($donor);
+        $this->patchJson('/api/matches/'.$match->id.'/schedule', [
+            'handoff_scheduled_at' => now()->addHour()->toIso8601String(),
+        ])->assertOk();
+        $this->assertNotNull($match->fresh()->pin_expires_at);
+        $this->travel(2)->hours();
 
         Sanctum::actingAs($staff);
         $this->postJson('/api/admin/matches/'.$match->id.'/verify-handoff', ['pin' => 'not-a-pin'])
@@ -205,9 +222,13 @@ class ReliefLinkWorkflowTest extends TestCase
             'storage_location' => 'Depot A / Shelf 2B',
             'condition_grade' => 'new',
             'intake_notes' => 'Counted at receiving desk.',
-        ])->assertCreated();
+        ])->assertCreated()
+            ->assertJsonPath('data.external_donor_name', 'Campus Health Office')
+            ->assertJsonPath('data.donor', null);
 
         $donation = Donation::firstOrFail();
+        $this->assertNull($donation->donor_id, 'An outside donor must not be linked to a campus donor account.');
+        $this->assertSame('Campus Health Office', $donation->external_donor_name);
         $this->assertDatabaseHas('inventory_movements', [
             'donation_id' => $donation->id, 'staff_user_id' => $staff->id,
             'movement_type' => 'intake', 'quantity_delta' => 12, 'quantity_after' => 12,
@@ -251,8 +272,9 @@ class ReliefLinkWorkflowTest extends TestCase
         Sanctum::actingAs($staff);
 
         $base = [
-            'student_name' => 'Walk In Student', 'student_email' => 'walkin@example.test',
-            'student_id_number' => 'STU-WALK-1', 'quantity_needed' => 1, 'urgency' => 'high',
+            'beneficiary_name' => 'Walk In Student', 'beneficiary_email' => 'walkin@example.test',
+            'beneficiary_type' => 'student', 'beneficiary_id_number' => 'STU-WALK-1',
+            'quantity_needed' => 1, 'urgency' => 'high',
             'justification' => 'Student needs immediate support.', 'instant_donation_id' => $donation->id,
         ];
         $this->postJson('/api/admin/requests/walk-in', $base + ['category' => 'Medical & Health'])
@@ -365,6 +387,10 @@ class ReliefLinkWorkflowTest extends TestCase
             'item_name' => 'Vegetarian Meal Pack', 'category' => 'food', 'quantity' => 1,
             'condition_notes' => 'Sealed meal pack.', 'pickup_location' => 'Campus Student Center',
         ])->assertCreated();
+        $donation = Donation::orderByDesc('id')->firstOrFail();
+
+        Sanctum::actingAs($staff);
+        $this->patchJson('/api/admin/donations/'.$donation->id.'/stock', ['status' => 'pending_match'])->assertOk();
 
         Sanctum::actingAs($admin);
         $this->postJson('/api/admin/matches/run')->assertOk();
@@ -726,51 +752,60 @@ class ReliefLinkWorkflowTest extends TestCase
             ->assertJsonPath('data.student_id_number', '24-019854');
     }
 
-    public function test_international_phone_number_registration_and_validation(): void
+    public function test_donor_registration_is_limited_to_philippine_country_and_mobile_numbers(): void
     {
         $password = 'Secure!PassWord2026';
 
-        // 1. Valid International Registration: United Kingdom Donor
-        $ukRes = $this->postJson('/api/register', [
+        // Donors cannot register from another country.
+        $this->postJson('/api/register', [
             'role' => 'donor',
             'first_name' => 'UK',
             'last_name' => 'Donor',
             'email' => 'uk.donor@example.test',
             'country' => 'United Kingdom',
             'country_code' => 'GB',
-            'address_line_1' => '10 Downing Street',
-            'city_municipality' => 'London',
-            'postal_zip_code' => 'SW1A 2AA',
+            'address_line_1' => '10 Example Street',
             'valid_id_type' => 'Passport',
             'valid_id_number' => 'UK998877',
             'contact_number' => '+447911123456',
             'password' => $password,
             'password_confirmation' => $password,
-        ]);
-        $ukRes->assertCreated()
-            ->assertJsonPath('user.contact_number', '+447911123456');
+        ])->assertUnprocessable()->assertJsonValidationErrors(['country', 'country_code', 'contact_number']);
 
-        // 2. Valid International Registration: Singapore Donor
-        $sgRes = $this->postJson('/api/register', [
+        // A foreign number is rejected even if the payload claims Philippines.
+        $this->postJson('/api/register', [
             'role' => 'donor',
-            'first_name' => 'SG',
+            'first_name' => 'Foreign',
             'last_name' => 'Donor',
-            'email' => 'sg.donor@example.test',
-            'country' => 'Singapore',
-            'country_code' => 'SG',
-            'address_line_1' => '1 Marina Boulevard',
-            'city_municipality' => 'Singapore',
-            'postal_zip_code' => '018989',
-            'valid_id_type' => 'National ID',
-            'valid_id_number' => 'S1234567A',
-            'contact_number' => '+6581234567',
+            'email' => 'foreign.number@example.test',
+            'country' => 'Philippines',
+            'country_code' => 'PH',
+            'address_line_1' => '1 Example Street',
+            'valid_id_type' => 'Passport',
+            'valid_id_number' => 'FOREIGN123',
+            'contact_number' => '+447911123456',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ])->assertUnprocessable()->assertJsonValidationErrors('contact_number');
+
+        // Philippine donor number is accepted and kept in normalized E.164 form.
+        $phDonor = $this->postJson('/api/register', [
+            'role' => 'donor',
+            'first_name' => 'Local',
+            'last_name' => 'Donor',
+            'email' => 'local.donor@example.test',
+            'country' => 'Philippines',
+            'country_code' => 'PH',
+            'address_line_1' => '1 Campus Road',
+            'valid_id_type' => 'Campus ID',
+            'valid_id_number' => 'LOCAL123',
+            'contact_number' => '+639181234567',
             'password' => $password,
             'password_confirmation' => $password,
         ]);
-        $sgRes->assertCreated()
-            ->assertJsonPath('user.contact_number', '+6581234567');
+        $phDonor->assertCreated()->assertJsonPath('user.contact_number', '+639181234567');
 
-        // 3. National number with leading zero auto-normalized to raw 09 format for PH Beneficiary
+        // Philippine beneficiary numbers remain local 09 format.
         $phRes = $this->postJson('/api/register', [
             'role' => 'beneficiary',
             'first_name' => 'PH',
@@ -789,22 +824,22 @@ class ReliefLinkWorkflowTest extends TestCase
         $phRes->assertCreated()
             ->assertJsonPath('user.contact_number', '09171234567');
 
-        // 4. Incomplete Singapore number (only 4 digits) -> rejected
+        // Invalid local donor number is rejected.
         $this->postJson('/api/register', [
             'role' => 'donor',
             'first_name' => 'Incomplete',
-            'last_name' => 'SG',
-            'email' => 'incompletesg@example.test',
-            'country' => 'Singapore',
-            'country_code' => 'SG',
-            'address_line_1' => '1 Marina Boulevard',
-            'valid_id_type' => 'Passport',
-            'valid_id_number' => 'S7654321B',
-            'contact_number' => '+658123',
+            'last_name' => 'PH',
+            'email' => 'incompleteph@example.test',
+            'country' => 'Philippines',
+            'country_code' => 'PH',
+            'address_line_1' => '1 Campus Road',
+            'valid_id_type' => 'Campus ID',
+            'valid_id_number' => 'INCOMPLETEPH',
+            'contact_number' => '+63912',
             'password' => $password,
             'password_confirmation' => $password,
         ])->assertUnprocessable()
             ->assertJsonValidationErrors('contact_number')
-            ->assertJsonFragment(['contact_number' => ['Please enter a valid contact number for the selected Country / Region.']]);
+            ->assertJsonFragment(['contact_number' => ['Please enter a valid Philippine mobile number (09XXXXXXXXX).']]);
     }
 }

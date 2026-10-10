@@ -27,11 +27,11 @@ class DonationResource extends JsonResource
             'category' => $this->category,
             'quantity' => (int) $this->quantity,
             'reserved_quantity' => $reservedQty,
-            'available_quantity' => max(0, (int) $this->quantity - $reservedQty),
+            'available_quantity' => $this->status === 'pending_intake' ? 0 : max(0, (int) $this->quantity - $reservedQty),
             'amount' => $this->amount ? (float) $this->amount : null,
             'currency' => $this->currency ?? 'PHP',
             'reserved_amount' => $reservedAmt,
-            'available_amount' => max(0.0, round((float) ($this->amount ?? 0) - $reservedAmt, 2)),
+            'available_amount' => $this->status === 'pending_intake' ? 0.0 : max(0.0, round((float) ($this->amount ?? 0) - $reservedAmt, 2)),
             'condition_notes' => $this->condition_notes,
             'availability_window' => $this->availability_window,
             'pickup_location' => $this->pickup_location,
@@ -47,6 +47,8 @@ class DonationResource extends JsonResource
 
         if ($operations) {
             $data += [
+                'external_donor_name' => $this->external_donor_name,
+                'preferred_request_id' => $this->preferred_request_id,
                 'storage_location' => $this->storage_location,
                 'condition_grade' => $this->condition_grade,
                 'intake_notes' => $this->intake_notes,

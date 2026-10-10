@@ -11,6 +11,8 @@ class Donation extends Model
 
     protected $fillable = [
         'donor_id',
+        'external_donor_name',
+        'preferred_request_id',
         'donation_type',
         'item_name',
         'category',

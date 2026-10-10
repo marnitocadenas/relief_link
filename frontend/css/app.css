@@ -1606,16 +1606,54 @@ table[class*="border-collapse"]:not(.data-table) tbody tr:hover {
   background: var(--blue-dark);
 }
 
+.panel-modal-close {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  min-width: 2.25rem;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: #F1F5F9;
+  color: #64748B;
+  box-shadow: none;
+  line-height: 1;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.panel-modal-close:hover {
+  border-color: #FECACA;
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+.panel-modal-close:active {
+  transform: scale(0.92);
+}
+
+.panel-modal-close:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: 2px;
+}
+
+.panel-modal-close svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke-width: 2.25;
+}
+
 .dark .panel-modal-close {
-  border-color: #475569;
-  background-color: #1E293B;
-  color: #E2E8F0;
+  border-color: transparent;
+  background-color: #273449;
+  color: #CBD5E1;
 }
 
 .dark .panel-modal-close:hover {
-  border-color: #64748B;
-  background-color: #334155;
-  color: #FFFFFF;
+  border-color: #7F1D1D;
+  background-color: #451A1A;
+  color: #FECACA;
 }
 
 .dark .panel-modal-close:focus-visible {
@@ -2472,9 +2510,9 @@ body,
 
 .admin-sidebar-link[aria-current='page'] {
   position: relative;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 3px 0 0 #fff;
+  color: #1D4ED8;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
 }
 
 .admin-sidebar-link:not([aria-current='page']):hover {
@@ -4937,9 +4975,9 @@ html.dark .admin-sidebar-link:not([aria-current='page']):hover {
 
 html.dark .admin-sidebar-link[aria-current='page'],
 html.dark .admin-sidebar-link.active {
-  color: #FFFFFF !important;
-  background-color: rgba(255, 255, 255, 0.14) !important;
-  box-shadow: inset 3px 0 0 #60A5FA !important;
+  color: #F1F5F9 !important;
+  background-color: #334155 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28) !important;
 }
 
 /* ==========================================================================

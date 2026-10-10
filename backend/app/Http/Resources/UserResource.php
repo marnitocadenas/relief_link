@@ -29,6 +29,7 @@ class UserResource extends JsonResource
             'valid_id_type' => $this->valid_id_type,
             'valid_id_number' => $this->valid_id_number,
             'student_id_number' => $this->student_id_number,
+            'beneficiary_type' => $this->beneficiary_type,
             'school_email' => $this->school_email,
             'department' => $this->department,
             'course' => $this->course,
