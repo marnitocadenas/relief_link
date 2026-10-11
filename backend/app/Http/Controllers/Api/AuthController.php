@@ -171,7 +171,8 @@ class AuthController extends Controller
             'remember' => 'nullable|boolean',
         ]);
         $u = User::where('email', $d['email'])->first();
-        abort_unless($u && $u->is_active && Hash::check($d['password'], $u->password), 422, 'Invalid credentials.');
+        abort_unless($u && Hash::check($d['password'], $u->password), 422, 'Invalid credentials.');
+        abort_if(! $u->is_active, 403, 'Your account has been deactivated. Please contact the administrator for assistance.');
 
         if (is_null($u->email_verified_at)) {
             $u->email_verified_at = now();
@@ -360,7 +361,14 @@ class AuthController extends Controller
             $address = $providedAddress;
         }
 
-        $validIdNum = RegisterRequest::normalizeId((string) ($r->input('valid_id_number', '') ?: $r->input('campus_id', '')));
+        $validIdInput = $r->input('valid_id_number', '');
+        // Legacy donor profiles used campus_id for the donor's valid ID. Do not
+        // apply that fallback to staff, admins, or beneficiaries where campus
+        // ID and valid ID are different account fields.
+        if ($u->role === 'donor' && $validIdInput === '') {
+            $validIdInput = $r->input('campus_id', '');
+        }
+        $validIdNum = RegisterRequest::normalizeId((string) $validIdInput);
         $contactRaw = trim((string) $r->input('contact_number', ''));
         $contactNormalized = $u->role === 'beneficiary'
             ? $contactRaw
@@ -373,25 +381,25 @@ class AuthController extends Controller
             'last_name' => $lastName ?: $u->last_name,
             'email' => RegisterRequest::normalizeEmail((string) $r->input('email', '')),
             'contact_number' => $contactNormalized ?: null,
-            'campus_id' => ($u->role === 'beneficiary'
+            'campus_id' => (in_array($u->role, ['admin', 'staff', 'beneficiary'], true)
                 ? RegisterRequest::normalizeId((string) $r->input('campus_id', ''))
                 : $validIdNum) ?: null,
-            'valid_id_number' => $u->role === 'beneficiary' ? null : ($validIdNum ?: null),
-            'valid_id_type' => $u->role === 'beneficiary' ? null : (trim((string) $r->input('valid_id_type', '')) ?: null),
-            'student_id_number' => RegisterRequest::normalizeId((string) $r->input('student_id_number', '')) ?: null,
+            'valid_id_number' => $u->role === 'donor' ? ($validIdNum ?: null) : null,
+            'valid_id_type' => $u->role === 'donor' ? (trim((string) $r->input('valid_id_type', '')) ?: null) : null,
+            'student_id_number' => $u->role === 'beneficiary' ? (RegisterRequest::normalizeId((string) $r->input('student_id_number', '')) ?: null) : null,
             'beneficiary_type' => in_array($u->role, ['beneficiary'], true) ? ($r->input('beneficiary_type') ?: $u->beneficiary_type) : null,
-            'school_email' => RegisterRequest::normalizeEmail((string) $r->input('school_email', '')) ?: null,
-            'address' => $address ?: null,
-            'address_line_1' => $addr1 ?: null,
-            'state_province_region' => $state ?: null,
-            'city_municipality' => $city ?: null,
-            'district_local_area' => $district ?: null,
-            'postal_zip_code' => $postal ?: null,
-            'department' => trim((string) $r->input('department', '')) ?: null,
-            'course' => trim((string) $r->input('course', '')) ?: null,
-            'year_level' => trim((string) $r->input('year_level', '')) ?: null,
-            'country' => $country ?: null,
-            'country_code' => RegisterRequest::resolveCountryIso($country, $r->input('country_code')),
+            'school_email' => $u->role === 'beneficiary' ? (RegisterRequest::normalizeEmail((string) $r->input('school_email', '')) ?: null) : null,
+            'address' => $u->role === 'donor' ? ($address ?: null) : null,
+            'address_line_1' => $u->role === 'donor' ? ($addr1 ?: null) : null,
+            'state_province_region' => $u->role === 'donor' ? ($state ?: null) : null,
+            'city_municipality' => $u->role === 'donor' ? ($city ?: null) : null,
+            'district_local_area' => $u->role === 'donor' ? ($district ?: null) : null,
+            'postal_zip_code' => $u->role === 'donor' ? ($postal ?: null) : null,
+            'department' => in_array($u->role, ['admin', 'staff', 'beneficiary'], true) ? (trim((string) $r->input('department', '')) ?: null) : null,
+            'course' => $u->role === 'beneficiary' ? (trim((string) $r->input('course', '')) ?: null) : null,
+            'year_level' => $u->role === 'beneficiary' ? (trim((string) $r->input('year_level', '')) ?: null) : null,
+            'country' => $u->role === 'donor' ? ($country ?: null) : null,
+            'country_code' => $u->role === 'donor' ? RegisterRequest::resolveCountryIso($country, $r->input('country_code')) : null,
         ];
         if ($r->has('country_code') && !empty($r->input('country_code'))) {
             $normalized['country_code'] = strtoupper(trim((string) $r->input('country_code')));

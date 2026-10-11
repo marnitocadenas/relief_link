@@ -363,7 +363,7 @@ class RegisterRequest extends FormRequest
         return [
             'role' => ['required', Rule::in(['beneficiary', 'donor'])],
             'account_type' => ['nullable', Rule::in(['beneficiary', 'donor'])],
-            'beneficiary_type' => [$isBeneficiary ? 'required' : 'nullable', 'nullable', Rule::in(['student', 'faculty'])],
+            'beneficiary_type' => [$isBeneficiary ? 'required' : 'nullable', 'nullable', Rule::in(['student', 'faculty', 'staff'])],
             'first_name' => ['required', 'string', 'max:100'],
             'middle_name' => ['nullable', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],

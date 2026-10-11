@@ -12,6 +12,42 @@ class AdminAddMemberComprehensiveTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_deactivated_users_cannot_log_in_and_reactivation_restores_access(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $member = User::factory()->create([
+            'role' => 'staff',
+            'is_active' => true,
+            'email' => 'status.member@example.test',
+            'password' => Hash::make('Member#Pass2026'),
+        ]);
+        $existingToken = $member->createToken('existing-session');
+        Sanctum::actingAs($admin);
+
+        $this->patchJson("/api/admin/users/{$member->id}/status", ['is_active' => false])
+            ->assertOk()
+            ->assertJsonPath('data.is_active', false);
+
+        $this->assertDatabaseHas('users', ['id' => $member->id, 'is_active' => false]);
+        $this->assertDatabaseMissing('personal_access_tokens', ['id' => $existingToken->accessToken->id]);
+
+        $this->postJson('/api/login', [
+            'email' => $member->email,
+            'password' => 'Member#Pass2026',
+        ])->assertForbidden()
+            ->assertJsonPath('message', 'Your account has been deactivated. Please contact the administrator for assistance.');
+
+        $this->patchJson("/api/admin/users/{$member->id}/status", ['is_active' => true])
+            ->assertOk()
+            ->assertJsonPath('data.is_active', true);
+
+        $this->assertDatabaseHas('users', ['id' => $member->id, 'is_active' => true]);
+        $this->postJson('/api/login', [
+            'email' => $member->email,
+            'password' => 'Member#Pass2026',
+        ])->assertOk()->assertJsonStructure(['user', 'token']);
+    }
+
     /**
      * Requirement 10: Backend Authorization - Only Administrators can create accounts via Admin Panel.
      * Guests, Donors, Beneficiaries, and Staff must be forbidden.
@@ -180,6 +216,7 @@ class AdminAddMemberComprehensiveTest extends TestCase
         $payload = [
             'role' => 'beneficiary',
             'account_type' => 'Beneficiary',
+            'beneficiary_type' => 'student',
             'first_name' => 'Beatriz',
             'middle_name' => '', // Optional middle name omitted
             'last_name' => 'Mendoza',
@@ -218,6 +255,75 @@ class AdminAddMemberComprehensiveTest extends TestCase
             'year_level' => '3rd Year',
             'campus_id' => null,
             'address_line_1' => null,
+        ]);
+    }
+
+    public function test_updating_a_faculty_beneficiary_preserves_campus_id_and_clears_student_fields(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $faculty = User::factory()->create([
+            'role' => 'beneficiary',
+            'account_type' => 'beneficiary',
+            'beneficiary_type' => 'faculty',
+            'campus_id' => 'FAC-2026-041',
+            'student_id_number' => null,
+            'course' => null,
+            'year_level' => null,
+            'department' => 'College of Arts and Sciences',
+        ]);
+        Sanctum::actingAs($admin);
+
+        $this->patchJson("/api/admin/users/{$faculty->id}", [
+            'role' => 'beneficiary',
+            'account_type' => 'beneficiary',
+            'beneficiary_type' => 'faculty',
+            'campus_id' => 'FAC-2026-041',
+            'department' => 'College of Arts and Sciences',
+        ])->assertOk()
+            ->assertJsonPath('data.beneficiary_type', 'faculty')
+            ->assertJsonPath('data.campus_id', 'FAC-2026-041')
+            ->assertJsonPath('data.student_id_number', null)
+            ->assertJsonPath('data.course', null)
+            ->assertJsonPath('data.year_level', null);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $faculty->id,
+            'campus_id' => 'FAC-2026-041',
+            'student_id_number' => null,
+            'course' => null,
+            'year_level' => null,
+        ]);
+    }
+
+    public function test_staff_profile_update_keeps_campus_id_separate_from_donor_valid_id(): void
+    {
+        $staff = User::factory()->create([
+            'role' => 'staff',
+            'account_type' => 'staff',
+            'campus_id' => 'STF-2026-088',
+            'valid_id_number' => null,
+            'department' => 'Campus Operations',
+        ]);
+        Sanctum::actingAs($staff);
+
+        $this->postJson('/api/profile', [
+            'name' => $staff->name,
+            'email' => $staff->email,
+            'contact_number' => '+639176543210',
+            'campus_id' => 'STF-2026-088',
+            'department' => 'Campus Operations',
+        ])->assertOk()
+            ->assertJsonPath('data.campus_id', 'STF-2026-088')
+            ->assertJsonPath('data.valid_id_number', null)
+            ->assertJsonPath('data.contact_number', '+639176543210')
+            ->assertJsonPath('data.department', 'Campus Operations');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $staff->id,
+            'campus_id' => 'STF-2026-088',
+            'valid_id_number' => null,
+            'contact_number' => '+639176543210',
+            'department' => 'Campus Operations',
         ]);
     }
 
@@ -379,6 +485,15 @@ class AdminAddMemberComprehensiveTest extends TestCase
             ->assertJsonPath('data.department', 'Senior Relief Operations')
             ->assertJsonPath('data.contact_number', '+639179990000');
 
+        // The updated record is also returned by the User Management list.
+        $updatedListRes = $this->getJson('/api/admin/users');
+        $updatedListRes->assertOk();
+        $updatedStaffInList = collect($updatedListRes->json('data'))->firstWhere('id', $createdUserId);
+        $this->assertNotNull($updatedStaffInList);
+        $this->assertSame('Marissa G. Santos-Cruz', $updatedStaffInList['name']);
+        $this->assertSame('Senior Relief Operations', $updatedStaffInList['department']);
+        $this->assertSame('+639179990000', $updatedStaffInList['contact_number']);
+
         // 5. Staff re-verifies updated Profile (Single Source of Truth)
         Sanctum::actingAs($staffUser->fresh());
         $this->getJson('/api/user')
@@ -398,6 +513,7 @@ class AdminAddMemberComprehensiveTest extends TestCase
 
         $response = $this->postJson('/api/admin/users', [
             'role' => 'beneficiary',
+            'beneficiary_type' => 'student',
             'first_name' => 'Invalid',
             'last_name' => 'StudentId',
             'student_id_number' => '21-0956A',
@@ -425,6 +541,7 @@ class AdminAddMemberComprehensiveTest extends TestCase
 
         $response = $this->postJson('/api/admin/users', [
             'role' => 'beneficiary',
+            'beneficiary_type' => 'student',
             'first_name' => 'Mismatch',
             'last_name' => 'Course',
             'student_id_number' => '21-010961',

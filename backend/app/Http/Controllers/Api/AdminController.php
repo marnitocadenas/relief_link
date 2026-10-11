@@ -86,21 +86,32 @@ class AdminController extends Controller
 
     public function users()
     {
-        return UserResource::collection(User::latest()->paginate(30));
+        return UserResource::collection(User::latest()->get());
     }
 
     public function updateUserStatus(Request $r, User $user)
     {
         $data = $r->validate(['is_active' => 'required|boolean']);
-        $user->is_active = $data['is_active'];
-        $user->save();
+        try {
+            $updatedUser = DB::transaction(function () use ($r, $user, $data) {
+                $user->is_active = $data['is_active'];
+                if (! $user->save()) {
+                    throw new \RuntimeException('Could not update account status.');
+                }
 
-        if (! $user->is_active) {
-            $user->tokens()->delete();
+                if (! $user->is_active) {
+                    $user->tokens()->delete();
+                }
+
+                ActivityService::log($r->user(), $user->is_active ? 'reactivated user' : 'deactivated user', $user);
+                return $user->fresh();
+            });
+
+            return new UserResource($updatedUser);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['message' => 'Could not update account status. Please try again.'], 500);
         }
-
-        ActivityService::log($r->user(), $user->is_active ? 'reactivated user' : 'deactivated user', $user);
-        return new UserResource($user->fresh());
     }
 
     public function storeUser(Request $r)
@@ -375,7 +386,14 @@ class AdminController extends Controller
             $d['account_type'] = $effectiveRole;
 
             if ($effectiveRole === 'beneficiary') {
-                $d['campus_id'] = null;
+                $effectiveBeneficiaryType = $d['beneficiary_type'] ?? $user->beneficiary_type;
+                if ($effectiveBeneficiaryType === 'student') {
+                    $d['campus_id'] = null;
+                } else {
+                    $d['student_id_number'] = null;
+                    $d['course'] = null;
+                    $d['year_level'] = null;
+                }
                 $d['address'] = null;
                 $d['address_line_1'] = null;
                 $d['state_province_region'] = null;
@@ -431,9 +449,11 @@ class AdminController extends Controller
         } else {
             unset($d['password']);
         }
-        $user->update($d);
+        if (!$user->update($d)) {
+            return response()->json(['message' => 'Could not save user changes. Please try again.'], 500);
+        }
         ActivityService::log($r->user(), 'updated user', $user);
-        return new UserResource($user);
+        return new UserResource($user->fresh());
     }
 
     public function destroyUser(Request $r, User $user)

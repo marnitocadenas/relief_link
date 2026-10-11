@@ -1194,11 +1194,11 @@ function Auth({ register = false }) {
     // Sequential unlocks for Donor:
     // 1. Email field unlocks after First Name + Last Name are complete
     const canEnterDonorEmail = regNamesValid;
-    // 2. The donor's local country and calling code are fixed to the Philippines.
-    const canEnterDonorCountry = regNamesValid && regDonorEmailValid;
+    // 2. Donor country/calling-code context stays fixed to the Philippines internally.
+    const canEnterDonorIdentity = regNamesValid && regDonorEmailValid;
     const regCountryValid = isDonor && f.country_code === 'PH';
     // 3. Contact Number uses the fixed Philippine +63 calling code.
-    const canEnterDonorContact = canEnterDonorCountry && regCountryValid;
+    const canEnterDonorContact = canEnterDonorIdentity && regCountryValid;
     const regDonorContactValid = isPhoneValid === true && Boolean((f.contact_number || '').trim());
     const isDonorContactAvailable = uniqueness.contact_number.status === 'available';
     // 4. Address Line 1 and subsequent fields unlock ONLY after Contact Number is entered, valid for selected country, and available
@@ -2744,17 +2744,6 @@ function Auth({ register = false }) {
                                                     {uniqueness.email.message || 'Could not verify this email address.'}
                                                 </p>
                                             )}
-                                        </div>
-
-                                        {/* Rank #6: Country is fixed because ReliefLink serves the Philippines campus. */}
-                                        <div>
-                                            <label htmlFor="reg_country_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Country / Region
-                                            </label>
-                                            <div className={`field mt-1 flex w-full items-center gap-2 text-xs py-2 font-semibold ${!canEnterDonorCountry ? 'opacity-60 bg-gray-50' : ''}`} aria-label="Country: Philippines">
-                                                <span aria-hidden="true">🇵🇭</span>
-                                                <span>Philippines</span>
-                                            </div>
                                         </div>
 
                                         {/* Rank #7: Contact Number */}
@@ -5071,6 +5060,7 @@ function ResourceForm({ donation }) {
 
 function EditModal({item, kind, admin, close, done}){
     const isUserKind = kind === 'users';
+    const errorRef = useRef(null);
     const [f, setF] = useState({
         ...item,
         first_name: item.first_name || (item.name ? item.name.split(' ')[0] : ''),
@@ -5102,6 +5092,13 @@ function EditModal({item, kind, admin, close, done}){
     });
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+
+    // Scroll the error banner into view whenever a new error is set
+    useEffect(() => {
+        if (error && errorRef.current) {
+            errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }, [error]);
 
     // Real-time uniqueness checking for Beneficiary fields (mirrors user-side registration)
     const [adminUniqueness, setAdminUniqueness] = useState({
@@ -5244,78 +5241,34 @@ function EditModal({item, kind, admin, close, done}){
             contact_number: { status: 'idle', message: '', checkedValue: '' },
         });
         setF(prev => {
-            const base = {
+            // All visible role-specific inputs are reset on a type change. In
+            // particular, department is shared in storage but represents two
+            // different form values for beneficiaries and staff/admins.
+            return {
                 ...prev,
                 role: newRole,
                 account_type: newRole,
+                email: '',
+                contact_number: '',
+                campus_id: '',
+                student_id_number: '',
+                school_email: '',
+                beneficiary_type: newRole === 'beneficiary' ? 'student' : '',
+                department: '',
+                course: '',
+                year_level: '',
+                address_line_1: '',
+                state_province_region: '',
+                city_municipality: '',
+                district_local_area: '',
+                postal_zip_code: '',
+                valid_id_type: '',
+                valid_id_number: '',
+                country: newRole === 'donor' ? 'Philippines' : '',
+                country_code: newRole === 'donor' ? 'PH' : '',
+                password: '',
+                password_confirmation: '',
             };
-            if (newRole === 'admin' || newRole === 'staff') {
-                return {
-                    ...base,
-                    beneficiary_type: '',
-                    student_id_number: '',
-                    school_email: '',
-                    course: '',
-                    year_level: '',
-                    address_line_1: '',
-                    state_province_region: '',
-                    city_municipality: '',
-                    district_local_area: '',
-                    postal_zip_code: '',
-                    valid_id_type: '',
-                    valid_id_number: '',
-                    country: '',
-                    country_code: '',
-                };
-            } else if (newRole === 'beneficiary') {
-                return {
-                    ...base,
-                    beneficiary_type: prev.beneficiary_type || 'student',
-                    campus_id: '',
-                    address_line_1: '',
-                    state_province_region: '',
-                    city_municipality: '',
-                    district_local_area: '',
-                    postal_zip_code: '',
-                    valid_id_type: '',
-                    valid_id_number: '',
-                    country: '',
-                    country_code: '',
-                };
-            } else if (newRole === 'donor') {
-                return {
-                    ...base,
-                    campus_id: '',
-                    student_id_number: '',
-                    beneficiary_type: '',
-                    school_email: '',
-                    department: '',
-                    course: '',
-                    year_level: '',
-                    country: prev.country || 'Philippines',
-                    country_code: prev.country_code || 'PH',
-                };
-            } else {
-                return {
-                    ...base,
-                    campus_id: '',
-                    student_id_number: '',
-                    beneficiary_type: '',
-                    school_email: '',
-                    department: '',
-                    course: '',
-                    year_level: '',
-                    address_line_1: '',
-                    state_province_region: '',
-                    city_municipality: '',
-                    district_local_area: '',
-                    postal_zip_code: '',
-                    valid_id_type: '',
-                    valid_id_number: '',
-                    country: '',
-                    country_code: '',
-                };
-            }
         });
     };
 
@@ -5400,7 +5353,7 @@ function EditModal({item, kind, admin, close, done}){
                     setError('Please select whether the beneficiary is a student or faculty member.');
                     return;
                 }
-                if (f.beneficiary_type === 'student' && (!f.student_id_number?.trim() || !STUDENT_ID_REGEX.test(f.student_id_number.trim()))) {
+                if (f.beneficiary_type === 'student' && (!f.student_id_number?.trim() || !STUDENT_ID_REGEX_MODAL.test(f.student_id_number.trim()))) {
                     setError('Please enter a valid Student ID Number in the format YY-###### (e.g., 21-010956).');
                     return;
                 }
@@ -5529,7 +5482,10 @@ function EditModal({item, kind, admin, close, done}){
         try {
             const path = admin && isUserKind ? `/admin/users${item.id ? `/${item.id}` : ''}` : `/${kind}/${item.id}`;
             const response = await (item.id ? api.patch(path, payload) : api.post(path, payload));
-            await done(response.data?.data || response.data, isUserKind && !item.id);
+            const savedItem = response.data?.data || response.data;
+            // A successful write response confirms persistence. Apply the saved
+            // record and refresh the list without making the modal wait on GET.
+            try { void Promise.resolve(done(savedItem, isUserKind && !item.id)).catch(() => {}); } catch (_) { /* the saved response remains authoritative */ }
             close();
         } catch (e) {
             const valMsg = e.response?.data?.errors ? Object.values(e.response.data.errors).flat().join(' ') : null;
@@ -6157,11 +6113,13 @@ function EditModal({item, kind, admin, close, done}){
                     </div>
                 )}
 
-                <Error>{error}</Error>
+                <div ref={errorRef}>
+                    <Error>{error}</Error>
+                </div>
 
                 <div className="mt-5 flex flex-wrap justify-end gap-3 border-t border-[#2563EB]/20 pt-3">
                     <Button type="button" variant="secondary" onClick={close}><Icon name="close"/><span className="ml-1.5">Cancel</span></Button>
-                    <Button loading={saving}><Icon name="save"/><span className="ml-1.5">{item.id ? 'Save Changes' : 'Create Account'}</span></Button>
+                    <Button type="submit" loading={saving}><Icon name="save"/><span className="ml-1.5">{item.id ? 'Save Changes' : 'Create Account'}</span></Button>
                 </div>
             </form>
         </div>
@@ -6169,7 +6127,7 @@ function EditModal({item, kind, admin, close, done}){
 }
 
 function PeopleManager(){
-    const {user} = useAuth();
+    const {user, refresh} = useAuth();
     const [state, setState] = useState({loading: true, data: [], error: ''});
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
@@ -6203,13 +6161,26 @@ function PeopleManager(){
 
     const load = (savedMember = null, isNewMember = false) => {
         if(!user) return Promise.resolve([]);
-        setState(s => ({...s, loading: true}));
+        if (savedMember?.id) {
+            // The write response is already persisted; show it now while the
+            // canonical list refresh runs in the background.
+            setState(current => ({
+                ...current,
+                loading: false,
+                data: [savedMember, ...current.data.filter(member => member.id !== savedMember.id)],
+                error: '',
+            }));
+        } else {
+            setState(s => ({...s, loading: true}));
+        }
         return api.get('/admin/users')
             .then(r => {
                 const members = r.data.data || r.data || [];
                 const alreadyListed = savedMember?.id && members.some(member => member.id === savedMember.id);
-                const nextMembers = isNewMember && savedMember?.id && !alreadyListed
-                    ? [savedMember, ...members]
+                const nextMembers = savedMember?.id
+                    ? alreadyListed
+                        ? members.map(member => member.id === savedMember.id ? savedMember : member)
+                        : [savedMember, ...members]
                     : members;
                 setState({loading: false, data: nextMembers, error: ''});
                 return nextMembers;
@@ -6218,11 +6189,11 @@ function PeopleManager(){
                 setState(current => ({
                     ...current,
                     loading: false,
-                    data: isNewMember && savedMember?.id
+                    data: savedMember?.id
                         ? [savedMember, ...current.data.filter(member => member.id !== savedMember.id)]
                         : current.data,
-                    error: isNewMember
-                        ? 'The member was saved, but the list could not be refreshed. Reload the member list to see the latest data.'
+                    error: savedMember?.id
+                        ? 'The change was saved, but the list could not be refreshed. The saved record is shown below.'
                         : 'Could not load members.',
                 }));
                 return [];
@@ -6235,6 +6206,26 @@ function PeopleManager(){
             setRoleFilter('all');
             setSortBy('date_desc');
             setPage(1);
+            const accountType = {
+                admin: 'Administrator',
+                staff: 'Staff',
+                beneficiary: 'Beneficiary',
+                donor: 'Donor',
+            }[savedMember?.role] || 'Member';
+            setSuccessMessage(`${accountType} account for "${savedMember?.name || 'new member'}" was created successfully.`);
+            setTimeout(() => setSuccessMessage(''), 7000);
+        } else {
+            // Keep the edited record visible even if its changed email or role
+            // no longer matches the filters that were active before saving.
+            setSearch(savedMember?.name || '');
+            setRoleFilter('all');
+            setSortBy('name_asc');
+            setPage(1);
+            setSuccessMessage(`Changes to "${savedMember?.name || 'member account'}" were saved successfully.`);
+            setTimeout(() => setSuccessMessage(''), 7000);
+            if (savedMember?.id === user?.id) {
+                void refresh().catch(() => {});
+            }
         }
         return load(savedMember, isNewMember);
     };
@@ -6649,7 +6640,7 @@ function PeopleManager(){
                                 <p className="text-xs font-semibold text-[#2563EB]/80 truncate">{viewingUser.email}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                     <Badge status={viewingUser.role}/>
-                                    <span className="rounded bg-[#22C55E] px-2 py-0.5 text-[10px] font-extrabold text-white uppercase">Active</span>
+                                    <span className={`rounded px-2 py-0.5 text-[10px] font-extrabold text-white uppercase ${viewingUser.is_active ? 'bg-[#22C55E]' : 'bg-gray-500'}`}>{viewingUser.is_active ? 'Active' : 'Inactive'}</span>
                                 </div>
                             </div>
                         </div>
@@ -6663,6 +6654,18 @@ function PeopleManager(){
                                 <span className="font-extrabold text-[#2563EB]">{viewingUser.name}</span>
                             </div>
                             <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">First Name:</span>
+                                <span className="font-semibold text-[#2563EB]">{viewingUser.first_name || 'Not provided'}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">Middle Name:</span>
+                                <span className="font-semibold text-[#2563EB]">{viewingUser.middle_name || 'Not provided'}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                <span className="font-bold text-[#2563EB]/70">Last Name:</span>
+                                <span className="font-semibold text-[#2563EB]">{viewingUser.last_name || 'Not provided'}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                 <span className="font-bold text-[#2563EB]/70">Email Address:</span>
                                 <span className="font-semibold text-[#2563EB]">{viewingUser.email}</span>
                             </div>
@@ -6670,11 +6673,28 @@ function PeopleManager(){
                                 <span className="font-bold text-[#2563EB]/70">Contact Number:</span>
                                 <span className="font-semibold text-[#2563EB]">{viewingUser.contact_number || 'Not provided'}</span>
                             </div>
-                            <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
-                                <span className="font-bold text-[#2563EB]/70">Country / Code:</span>
-                                <span className="font-semibold text-[#2563EB]">{viewingUser.country || 'Not provided'}{viewingUser.country_code ? ` (${viewingUser.country_code})` : ''}</span>
-                            </div>
                             {viewingUser.role === 'donor' && (<>
+
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Address Line:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.address_line_1 || 'Not provided'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">District / Local Area:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.district_local_area || 'Not provided'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">City / Municipality:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.city_municipality || 'Not provided'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">State / Province / Region:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.state_province_region || 'Not provided'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Postal / ZIP Code:</span>
+                                    <span className="font-semibold text-[#2563EB]">{viewingUser.postal_zip_code || 'Not provided'}</span>
+                                </div>
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                     <span className="font-bold text-[#2563EB]/70">Address:</span>
                                     <span className="font-semibold text-[#2563EB]">{viewingUser.address || 'Not provided'}</span>
@@ -6693,10 +6713,14 @@ function PeopleManager(){
                                     <span className="font-bold text-[#2563EB]/70">Campus Role:</span>
                                     <span className="font-semibold text-[#2563EB]">{{ student: 'Student', faculty: 'Faculty', staff: 'Staff' }[viewingUser.beneficiary_type] || 'Campus Member'}</span>
                                 </div>
-                                <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                {viewingUser.student_id_number && <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
+                                    <span className="font-bold text-[#2563EB]/70">Student ID Number:</span>
+                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.student_id_number}</span>
+                                </div>}
+                                {viewingUser.campus_id && <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                     <span className="font-bold text-[#2563EB]/70">Campus ID:</span>
-                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.student_id_number || viewingUser.campus_id || 'N/A'}</span>
-                                </div>
+                                    <span className="font-mono font-bold text-[#2563EB]">{viewingUser.campus_id}</span>
+                                </div>}
                                 <div className="flex justify-between py-1 border-b border-[#2563EB]/10">
                                     <span className="font-bold text-[#2563EB]/70">School Email:</span>
                                     <span className="font-semibold text-[#2563EB]">{viewingUser.school_email || 'Not provided'}</span>
@@ -16465,7 +16489,7 @@ function Profile(){
         name:user?.name||'',
         email:user?.email||'',
         contact_number:user?.contact_number||'',
-        campus_id:user?.campus_id||user?.valid_id_number||'',
+        campus_id:user?.campus_id||'',
         address:user?.address||'',
         address_line_1:user?.address_line_1||'',
         state_province_region:user?.state_province_region||'',
@@ -16473,7 +16497,7 @@ function Profile(){
         district_local_area:user?.district_local_area||'',
         postal_zip_code:user?.postal_zip_code||'',
         valid_id_type:user?.valid_id_type||'',
-        valid_id_number:user?.valid_id_number||user?.campus_id||'',
+        valid_id_number:user?.valid_id_number||'',
         student_id_number:user?.student_id_number||'',
         school_email:user?.school_email||'',
         department:user?.department||'',
@@ -16502,7 +16526,7 @@ function Profile(){
                 name:user.name||'',
                 email:user.email||'',
                 contact_number:user.contact_number||'',
-                campus_id:user.campus_id||user.valid_id_number||'',
+                campus_id:user.campus_id||'',
                 address:user.address||'',
                 address_line_1:user.address_line_1||'',
                 state_province_region:user.state_province_region||'',
@@ -16510,7 +16534,7 @@ function Profile(){
                 district_local_area:user.district_local_area||'',
                 postal_zip_code:user.postal_zip_code||'',
                 valid_id_type:user.valid_id_type||'',
-                valid_id_number:user.valid_id_number||user.campus_id||'',
+                valid_id_number:user.valid_id_number||'',
                 student_id_number:user.student_id_number||'',
                 school_email:user.school_email||'',
                 department:user.department||'',
@@ -16620,7 +16644,7 @@ function Profile(){
         data.append('name',f.name.trim());
         data.append('email',f.email.trim());
         if(f.contact_number) data.append('contact_number',f.contact_number.trim());
-        if(f.campus_id) data.append('campus_id',f.campus_id.trim());
+        if(['admin','staff','beneficiary'].includes(user.role) && f.campus_id) data.append('campus_id',f.campus_id.trim());
         if(f.address) data.append('address',f.address.trim());
         if(f.address_line_1) data.append('address_line_1',f.address_line_1.trim());
         if(f.state_province_region) data.append('state_province_region',f.state_province_region.trim());
@@ -16630,7 +16654,6 @@ function Profile(){
         if(f.valid_id_type) data.append('valid_id_type',f.valid_id_type.trim());
         if(f.valid_id_number){
             data.append('valid_id_number',f.valid_id_number.trim());
-            data.append('campus_id',f.valid_id_number.trim());
         }
         if(f.student_id_number) data.append('student_id_number',f.student_id_number.trim());
         if(f.school_email) data.append('school_email',f.school_email.trim());
@@ -16802,7 +16825,7 @@ function Profile(){
                                         </div>
                                     </div>
 
-                                    <div className="grid gap-5 sm:grid-cols-1">
+                                    <div className="grid gap-5 sm:grid-cols-2">
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Contact Number</label>
                                             <InternationalPhoneInput
@@ -16894,7 +16917,7 @@ function Profile(){
                                                 className="field w-full"
                                                 placeholder="e.g. Passport number, driver license number, national ID"
                                                 value={f.valid_id_number}
-                                                onChange={e=>setF({...f,valid_id_number:e.target.value,campus_id:e.target.value})}
+                                                onChange={e=>setF({...f,valid_id_number:e.target.value})}
                                             />
                                         </div>
                                     </div>
@@ -16925,7 +16948,7 @@ function Profile(){
                                         </div>
                                     </div>
 
-                                    <div className="grid gap-5 sm:grid-cols-1">
+                                    <div className="grid gap-5 sm:grid-cols-2">
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Contact Number</label>
                                             {user.role === 'beneficiary' ? (
@@ -17183,7 +17206,6 @@ function Profile(){
                                     {label:'Account ID',value:`#${user.id||'—'}`},
                                     {label:'Full Name',value:user.name||'—'},
                                     {label:'Email Address',value:user.email||'—'},
-                                    {label:'Country / Region',value:user.country||'Campus Resident'},
                                     {label:'Contact Number',value:user.contact_number||'Not provided'},
                                     {label:'Account Type',value:user.role==='beneficiary'?'Request Support (Beneficiary)':user.role==='donor'?'Make a Donation (Donor)':title(user.role)},
                                     ...(user.role==='donor'?[
@@ -17197,14 +17219,22 @@ function Profile(){
                                         {label:'Valid ID Number',value:user.valid_id_number||user.campus_id||'N/A',isMono:true},
                                     ]:[]),
                                     ...(user.role==='beneficiary'?[
-                                        {label:'Student ID Number',value:user.student_id_number||'N/A',isMono:true},
+                                        {label:'Beneficiary Campus Role',value:title(user.beneficiary_type||'student')},
+                                        ...(user.beneficiary_type==='student'?[{label:'Student ID Number',value:user.student_id_number||'N/A',isMono:true}]:[]),
+                                        ...(user.campus_id?[{label:'Campus ID Number',value:user.campus_id,isMono:true}]:[]),
                                         {label:'School Email',value:user.school_email||'Not provided'},
                                         {label:'Department',value:user.department||'Not provided'},
-                                        {label:'Course',value:user.course||'Not provided'},
-                                        {label:'Year Level',value:user.year_level||'Not provided'},
+                                        ...(user.beneficiary_type==='student'?[
+                                            {label:'Course',value:user.course||'Not provided'},
+                                            {label:'Year Level',value:user.year_level||'Not provided'},
+                                        ]:[]),
+                                    ]:[]),
+                                    ...(['admin','staff'].includes(user.role)?[
+                                        {label:user.role==='admin'?'Administrator ID':'Staff ID',value:user.campus_id||'Not provided',isMono:true},
+                                        {label:'Department / Office',value:user.department||'Not provided'},
                                     ]:[]),
                                     {label:'Member Since',value:memberSince},
-                                    {label:'Account Status',value:'Active',accent:true}
+                                    {label:'Account Status',value:user.is_active?'Active':'Inactive',accent:!!user.is_active}
                                 ].map((item,i)=>(
                                     <div key={i} className="bg-[#2563EB]/5 rounded-xl p-4 border border-[#2563EB]/10">
                                         <p className="text-[10px] font-bold uppercase tracking-wider text-[#2563EB]/60 mb-1">{item.label}</p>
