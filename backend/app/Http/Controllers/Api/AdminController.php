@@ -50,38 +50,121 @@ class AdminController extends Controller
         ];
     }
 
-    public function report()
+    public function report(Request $request)
     {
+        $period = $request->validate(['period' => ['sometimes', 'in:all_time,today,this_week,this_month']])['period'] ?? 'all_time';
+        $start = match ($period) {
+            'today' => now()->startOfDay(),
+            'this_week' => now()->startOfWeek(),
+            'this_month' => now()->startOfMonth(),
+            default => null,
+        };
+        $requests = AidRequest::query()->when($start, fn ($q) => $q->where('created_at', '>=', $start));
+        $donations = Donation::query()->when($start, fn ($q) => $q->where('created_at', '>=', $start));
+        $matches = DonationMatch::query()->when($start, fn ($q) => $q->where('created_at', '>=', $start));
+        $physicalRequests = (clone $requests)->where(fn ($q) => $q->whereNull('request_type')->orWhere('request_type', 'physical'));
+        $physicalDonations = (clone $donations)->where(fn ($q) => $q->whereNull('donation_type')->orWhere('donation_type', 'physical'));
+        $reviewedRequests = (clone $requests)->whereNotIn('status', ['pending_review', 'under_review']);
+        $approvedRequests = (clone $reviewedRequests)->whereNotIn('status', ['rejected', 'cancelled']);
+
+        $categoryNames = (clone $physicalDonations)->select('category')->distinct()->pluck('category')
+            ->merge((clone $physicalRequests)->select('category')->distinct()->pluck('category'))->unique()->values();
+
         return [
-            'approval_rate' => AidRequest::count() ? round(AidRequest::whereNotIn('status', ['pending_review', 'under_review'])->count() / AidRequest::count() * 100) : 0,
-            'confirmation_rate' => DonationMatch::count() ? round(DonationMatch::whereIn('status', ['confirmed', 'fulfilled'])->count() / DonationMatch::count() * 100) : 0,
+            'period' => $period,
+            'approval_rate' => $reviewedRequests->count() ? round($approvedRequests->count() / $reviewedRequests->count() * 100) : 0,
+            'confirmation_rate' => (clone $matches)->count() ? round((clone $matches)->whereIn('status', ['confirmed', 'fulfilled'])->count() / (clone $matches)->count() * 100) : 0,
             'coverage' => [
-                'active_donors' => User::where('role', 'donor')->count(),
-                'active_beneficiaries' => User::where('role', 'beneficiary')->count(),
-                'fulfilled_donations' => Donation::where('status', 'fulfilled')->count(),
-                'fulfilled_requests' => AidRequest::where('status', 'fulfilled')->count(),
-                'physical_requests' => AidRequest::where(function ($q) {
+                'active_donors' => User::where('role', 'donor')->where('is_active', true)->count(),
+                'active_beneficiaries' => User::where('role', 'beneficiary')->where('is_active', true)->count(),
+                'fulfilled_donations' => (clone $donations)->where('status', 'fulfilled')->count(),
+                'fulfilled_requests' => (clone $requests)->where('status', 'fulfilled')->count(),
+                'physical_requests' => (clone $requests)->where(function ($q) {
                     $q->whereNull('request_type')->orWhere('request_type', 'physical');
                 })->count(),
-                'financial_requests' => AidRequest::where('request_type', 'financial')->count(),
-                'financial_amount_requested' => (float) AidRequest::where('request_type', 'financial')->sum('amount_requested'),
-                'financial_amount_fulfilled' => (float) DonationMatch::where('status', 'fulfilled')->sum('matched_amount'),
+                'financial_requests' => (clone $requests)->where('request_type', 'financial')->count(),
+                'financial_amount_requested' => (float) (clone $requests)->where('request_type', 'financial')->sum('amount_requested'),
+                'financial_amount_fulfilled' => (float) (clone $matches)->where('status', 'fulfilled')->sum('matched_amount'),
             ],
-            'category_balance' => Donation::selectRaw('category,sum(quantity) as donated_quantity')->groupBy('category')->get()->map(fn($d) => [
-                'category' => $d->category,
-                'donated_quantity' => $d->donated_quantity,
-                'requested_quantity' => AidRequest::where('category', $d->category)->sum('quantity_needed')
+            'category_balance' => $categoryNames->map(fn ($category) => [
+                'category' => $category,
+                'donated_quantity' => (int) (clone $physicalDonations)->where('category', $category)->sum('quantity'),
+                'requested_quantity' => (int) (clone $physicalRequests)->where('category', $category)->sum('quantity_needed'),
+                'fulfilled_quantity' => (int) DB::table('matches')->join('requests', 'matches.request_id', '=', 'requests.id')
+                    ->where('matches.status', 'fulfilled')->where(fn ($q) => $q->whereNull('requests.request_type')->orWhere('requests.request_type', '!=', 'financial'))
+                    ->where('requests.category', $category)->when($start, fn ($q) => $q->where('matches.created_at', '>=', $start))->sum('matches.matched_quantity'),
             ]),
         ];
     }
 
-    public function activities()
+    private function activityQuery(Request $request)
     {
-        $query = ActivityLog::with('user:id,name')->latest();
-        if (request()->user()->role === 'staff') {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'module' => ['nullable', 'in:all,users,requests,donations,matches,system'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'sort' => ['nullable', 'in:newest,oldest'],
+        ]);
+        $query = ActivityLog::with('user:id,name');
+        if ($request->user()->role === 'staff') {
             $query->whereIn('subject_type', [AidRequest::class, Donation::class, DonationMatch::class]);
+            abort_if(in_array($request->input('module'), ['users', 'system'], true), 403, 'Staff activity access is limited to requests, donations, and matches.');
         }
-        return $query->paginate(50);
+        $types = [
+            'users' => User::class,
+            'requests' => AidRequest::class,
+            'donations' => Donation::class,
+            'matches' => DonationMatch::class,
+            'system' => 'system',
+        ];
+        if (($filters['module'] ?? 'all') !== 'all') {
+            $module = $filters['module'];
+            $module === 'users'
+                ? $query->where(fn ($q) => $q->where('subject_type', User::class)->orWhere('action', 'like', '%user%'))
+                : $query->where('subject_type', $types[$module]);
+        }
+        $query->when($filters['from'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
+            ->when($filters['to'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date))
+            ->when($filters['q'] ?? null, function ($q, $term) {
+                $q->where(fn ($sub) => $sub->where('action', 'like', "%{$term}%")
+                    ->orWhere('subject_type', 'like', "%{$term}%")
+                    ->orWhere('subject_id', 'like', "%{$term}%")
+                    ->orWhereHas('user', fn ($user) => $user->where('name', 'like', "%{$term}%")));
+            });
+        return $query->orderBy('created_at', ($filters['sort'] ?? 'newest') === 'oldest' ? 'asc' : 'desc')->orderBy('id', 'desc');
+    }
+
+    public function activities(Request $request)
+    {
+        $request->validate(['per_page' => ['sometimes', 'integer', 'between:10,100']]);
+        $query = $this->activityQuery($request);
+        $summary = [
+            'total' => (clone $query)->count(),
+            'users' => (clone $query)->where('subject_type', User::class)->count(),
+            'requests' => (clone $query)->where('subject_type', AidRequest::class)->count(),
+            'donations' => (clone $query)->where('subject_type', Donation::class)->count(),
+            'matches' => (clone $query)->where('subject_type', DonationMatch::class)->count(),
+        ];
+        return $query->paginate($request->integer('per_page', 20))->toArray() + ['summary' => $summary];
+    }
+
+    public function exportActivities(Request $request)
+    {
+        $stream = fopen('php://temp', 'r+');
+        fputcsv($stream, ['Log ID', 'Action', 'Actor', 'Module', 'Target Type', 'Target ID', 'Metadata', 'Timestamp']);
+        $this->activityQuery($request)->chunk(500, function ($logs) use ($stream) {
+            foreach ($logs as $log) {
+                fputcsv($stream, [$log->id, $log->action, $log->user?->name ?? 'System', class_basename($log->subject_type), $log->subject_type, $log->subject_id, json_encode($log->metadata), $log->created_at?->toISOString()]);
+            }
+        });
+        rewind($stream);
+        $csv = stream_get_contents($stream);
+        fclose($stream);
+        return Response::make($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="relieflink_activity_logs_' . now()->format('Y-m-d') . '.csv"',
+        ]);
     }
 
     public function users()
@@ -552,6 +635,8 @@ class AdminController extends Controller
         if (in_array($d['verification_state'], ['approved', 'rejected', 'needs_revision', 'under_review'], true)) {
             $d['verification_decided_at'] = now();
         }
+        $previousStatus = $aidRequest->status;
+        $previousVerificationState = $aidRequest->verification_state;
         $aidRequest->update($d);
 
         $message = match ($d['verification_state']) {
@@ -562,7 +647,13 @@ class AdminController extends Controller
             default => 'Your help request was updated.',
         };
         AlertService::send($aidRequest->beneficiary, $message, 'request', $d['verification_state'] === 'rejected' ? 'high' : 'normal', $aidRequest, '/requests');
-        ActivityService::log($r->user(), $d['verification_state'] . ' support request', $aidRequest, ['checklist' => $d['verification_checklist'] ?? []]);
+        ActivityService::log($r->user(), $d['verification_state'] . ' support request', $aidRequest, [
+            'status_before' => $previousStatus,
+            'status_after' => $aidRequest->status,
+            'verification_state_before' => $previousVerificationState,
+            'verification_state_after' => $aidRequest->verification_state,
+            'checklist' => $d['verification_checklist'] ?? [],
+        ]);
 
         return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy']));
     }
@@ -767,7 +858,6 @@ class AdminController extends Controller
             'pickup_location' => $d['storage_location'],
         ]);
 
-        ActivityService::log($r->user(), 'processed physical item intake', $donation);
         InventoryMovement::create([
             'donation_id' => $donation->id,
             'staff_user_id' => $r->user()->id,
@@ -775,6 +865,10 @@ class AdminController extends Controller
             'quantity_delta' => $donation->quantity,
             'quantity_after' => $donation->quantity,
             'reason' => 'Physical warehouse intake',
+        ]);
+        ActivityService::log($r->user(), 'processed physical item intake', $donation, [
+            'movement_type' => 'intake', 'quantity_delta' => (int) $donation->quantity,
+            'quantity_after' => (int) $donation->quantity,
         ]);
 
         return new DonationResource($donation->load('donor'));
@@ -822,7 +916,10 @@ class AdminController extends Controller
                 'quantity_after' => (int) $donation->quantity,
                 'reason' => 'Donor-submitted contribution received and inspected by staff.',
             ]);
-            ActivityService::log($r->user(), 'verified donation intake and released it for matching', $donation);
+            ActivityService::log($r->user(), 'verified donation intake and released it for matching', $donation, [
+                'movement_type' => 'intake', 'quantity_delta' => (int) $donation->quantity,
+                'quantity_after' => (int) $donation->quantity,
+            ]);
             if ($donation->donor) {
                 AlertService::send($donation->donor, 'Campus staff received and verified your donation. It is now available for matching.', 'donation', 'normal', $donation, '/donations');
             }
@@ -837,7 +934,13 @@ class AdminController extends Controller
                 'reason' => $d['intake_notes'] ?? 'Staff stock adjustment',
             ]);
         }
-        ActivityService::log($r->user(), 'updated inventory stock item', $donation);
+        ActivityService::log($r->user(), 'updated inventory stock item', $donation, [
+            'quantity_before' => (int) $quantityBefore,
+            'quantity_after' => (int) $donation->quantity,
+            'quantity_delta' => (int) $donation->quantity - (int) $quantityBefore,
+            'status_before' => $previousStatus,
+            'status_after' => $donation->status,
+        ]);
 
         return new DonationResource($donation->load('donor'));
     }
@@ -880,7 +983,10 @@ class AdminController extends Controller
         }
 
         $s->refreshStatuses($match);
-        ActivityService::log($r->user(), $d['status'] . ' match', $match);
+        ActivityService::log($r->user(), $d['status'] . ' match', $match, [
+            'status_before' => $previousStatus,
+            'status_after' => $match->status,
+        ]);
 
         return new DonationMatchResource($match->load(['donation.donor', 'request.beneficiary', 'handedOffBy']));
     }

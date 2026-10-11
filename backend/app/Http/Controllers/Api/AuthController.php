@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
 use App\Services\SystemSettings;
+use App\Services\ActivityService;
 use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\NumberParseException;
@@ -181,6 +182,10 @@ class AuthController extends Controller
             $u->remember_token = \Illuminate\Support\Str::random(10);
         }
         $u->save();
+
+        if (in_array($u->role, ['admin', 'staff'], true)) {
+            ActivityService::log($u, 'signed in', $u);
+        }
 
         return [
             'user' => new UserResource($u),
@@ -523,11 +528,17 @@ class AuthController extends Controller
             \Illuminate\Support\Facades\Storage::disk('public')->delete($previousPhotoPath);
         }
         if (isset($data['password'])) $u->tokens()->where('id', '!=', $u->currentAccessToken()?->id)->delete();
+        if (in_array($u->role, ['admin', 'staff'], true)) {
+            ActivityService::log($u, 'updated profile', $u);
+        }
         return new UserResource($u->fresh());
     }
 
     public function logout(Request $r)
     {
+        if (in_array($r->user()->role, ['admin', 'staff'], true)) {
+            ActivityService::log($r->user(), 'signed out', $r->user());
+        }
         $r->user()->currentAccessToken()?->delete();
         return response()->noContent();
     }

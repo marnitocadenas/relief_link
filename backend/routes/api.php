@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', 'active-account'])->group(function () {
         Route::get('stats', [AdminController::class, 'stats']);
         Route::get('reports', [AdminController::class, 'report']);
         Route::get('activities', [AdminController::class, 'activities']);
+        Route::get('activities/export', [AdminController::class, 'exportActivities']);
         Route::get('donations', [AdminController::class, 'donations']);
         Route::get('inventory-movements', [AdminController::class, 'inventoryMovements']);
         Route::post('donations/intake', [AdminController::class, 'storeStaffIntake']);

@@ -6144,7 +6144,7 @@ function PeopleManager(){
     };
     const [successMessage, setSuccessMessage] = useState('');
     const [page, setPage] = useState(1);
-    const pageSize = 10;
+    const pageSize = 20;
 
     useEffect(() => {
         if (!viewingPhotoUrl) return undefined;
@@ -17322,7 +17322,7 @@ function Reports(){
         if (!['admin', 'staff'].includes(user?.role)) return;
         setLoading(true);
         setError('');
-        api.get('/admin/reports')
+        api.get('/admin/reports', { params: { period: timeframe } })
             .then(r => {
                 setReport(r.data);
                 setLoading(false);
@@ -17335,7 +17335,7 @@ function Reports(){
 
     useEffect(() => {
         loadReport();
-    }, [user]);
+    }, [user, timeframe]);
 
     if (!['admin', 'staff'].includes(user?.role)) return <Navigate to={getRoleDashboard(user?.role)} replace/>;
 
@@ -17346,7 +17346,8 @@ function Reports(){
             const donated = Number(row.donated_quantity || 0);
             const requested = Number(row.requested_quantity || 0);
             const balance = donated - requested;
-            const coverage = requested > 0 ? Math.min(100, Math.round((donated / requested) * 100)) : 100;
+            const fulfilled = Number(row.fulfilled_quantity || 0);
+            const coverage = requested > 0 ? Math.min(100, Math.round((fulfilled / requested) * 100)) : 0;
             csv += `"${row.category}",${donated},${requested},${balance},${coverage}%\n`;
         });
 
@@ -17363,7 +17364,8 @@ function Reports(){
     const categories = report?.category_balance || [];
     const totalDonated = categories.reduce((sum, c) => sum + Number(c.donated_quantity || 0), 0);
     const totalRequested = categories.reduce((sum, c) => sum + Number(c.requested_quantity || 0), 0);
-    const overallCoverage = totalRequested > 0 ? Math.min(100, Math.round((totalDonated / totalRequested) * 100)) : 100;
+    const totalFulfilled = categories.reduce((sum, c) => sum + Number(c.fulfilled_quantity || 0), 0);
+    const overallCoverage = totalRequested > 0 ? Math.min(100, Math.round((totalFulfilled / totalRequested) * 100)) : 0;
 
     return (
         <main className="page space-y-6">
@@ -17415,8 +17417,8 @@ function Reports(){
                                 <h2 className="text-xl font-extrabold text-[#2563EB]">Executive Performance Summary</h2>
                                 <p className="text-sm text-[#2563EB]/70 font-semibold leading-relaxed">Key insights computed from live campus exchange data</p>
                             </div>
-                            <span className="rounded-xl border border-[#22C55E] bg-[#22C55E] px-3 py-1 text-sm font-extrabold text-white">
-                                {overallCoverage}% Overall Demand Met
+                                <span className="rounded-xl border border-[#22C55E] bg-[#22C55E] px-3 py-1 text-sm font-extrabold text-white">
+                                {overallCoverage}% Fulfilled
                             </span>
                         </div>
 
@@ -17425,7 +17427,7 @@ function Reports(){
                                 <span className="text-[#2563EB]/70 block font-bold uppercase text-xs">Supply vs Demand Ratio</span>
                                 <p className="text-lg font-extrabold text-[#2563EB] mt-1 leading-snug">{totalDonated} Donated / {totalRequested} Requested</p>
                                 <p className="text-sm text-[#2563EB]/80 mt-1 leading-relaxed">
-                                    {totalDonated >= totalRequested ? 'Surplus available across categories.' : 'Demand exceeds current available donation items.'}
+                                    {totalDonated >= totalRequested ? 'Recorded donated quantity meets or exceeds recorded request quantity.' : 'Recorded request quantity exceeds donated quantity.'}
                                 </p>
                             </div>
 
@@ -17596,7 +17598,8 @@ function Reports(){
                                             const d = Number(x.donated_quantity || 0);
                                             const r = Number(x.requested_quantity || 0);
                                             const net = d - r;
-                                            const pct = r > 0 ? Math.min(100, Math.round((d / r) * 100)) : 100;
+                                            const fulfilled = Number(x.fulfilled_quantity || 0);
+                                            const pct = r > 0 ? Math.min(100, Math.round((fulfilled / r) * 100)) : 0;
 
                                             return (
                                                 <tr key={x.category}>
@@ -17613,7 +17616,7 @@ function Reports(){
                                                             <div className="w-24 h-2 rounded-full bg-[#2563EB]/10 overflow-hidden shrink-0">
                                                                 <div className="h-full bg-[#22C55E]" style={{ width: `${pct}%` }}/>
                                                             </div>
-                                                            <span className="text-xs font-extrabold text-[#2563EB]">{pct}%</span>
+                                                            <span className="text-xs font-extrabold text-[#2563EB]">{pct}% ({fulfilled}/{r})</span>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -17640,43 +17643,38 @@ function Activities(){
     const [sortBy, setSortBy] = useState('newest');
     const [viewingLog, setViewingLog] = useState(null);
     const [page, setPage] = useState(1);
-    const pageSize = 10;
+    const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0, per_page: 20 });
+    const [summary, setSummary] = useState({ total: 0, users: 0, requests: 0, donations: 0, matches: 0 });
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+    const pageSize = 20;
 
     const load = () => {
         if (!['admin', 'staff'].includes(user?.role)) return;
         setLoading(true);
         setError('');
-        api.get('/admin/activities')
+        api.get('/admin/activities', { params: { q: search || undefined, module: actionFilter, sort: sortBy, from: dateFrom || undefined, to: dateTo || undefined, page, per_page: 20 } })
             .then(r => {
                 setData(r.data.data || r.data || []);
+                setPagination(r.data);
+                setSummary(r.data.summary || { total: r.data.total || 0, users: 0, requests: 0, donations: 0, matches: 0 });
                 setLoading(false);
             })
-            .catch(() => {
-                setError('Could not load activity logs.');
+            .catch((requestError) => {
+                setError(requestError.response?.data?.message || 'Could not load activity logs.');
                 setLoading(false);
             });
     };
 
     useEffect(() => {
         load();
-    }, [user]);
+    }, [user, search, actionFilter, sortBy, dateFrom, dateTo, page]);
 
     if (!['admin', 'staff'].includes(user?.role)) return <Navigate to={getRoleDashboard(user?.role)} replace/>;
 
     const handleExportCSV = () => {
-        if (!data.length) return;
-        let csv = 'Log ID,Action,Performed By,Subject Type,Subject ID,Timestamp\n';
-        data.forEach(x => {
-            const id = x.id || '';
-            const action = `"${(x.action || '').replace(/"/g, '""')}"`;
-            const actor = `"${(x.user?.name || 'System').replace(/"/g, '""')}"`;
-            const subjectType = `"${(x.subject_type || 'N/A').replace(/"/g, '""')}"`;
-            const subjectId = x.subject_id || 'N/A';
-            const timestamp = `"${new Date(x.created_at).toLocaleString()}"`;
-            csv += `${id},${action},${actor},${subjectType},${subjectId},${timestamp}\n`;
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        if (!summary.total) return;
+        api.get('/admin/activities/export', { params: { q: search || undefined, module: actionFilter, sort: sortBy, from: dateFrom || undefined, to: dateTo || undefined }, responseType: 'blob' }).then(({ data: blob }) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.setAttribute('href', url);
@@ -17684,44 +17682,22 @@ function Activities(){
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        }).catch(() => setError('Could not export activity logs.'));
     };
-
-    let filtered = data.filter(x => {
-        const actionStr = (x.action || '').toLowerCase();
-        let matchesType = true;
-        if (actionFilter === 'users') matchesType = actionStr.includes('user');
-        else if (actionFilter === 'requests') matchesType = actionStr.includes('request');
-        else if (actionFilter === 'donations') matchesType = actionStr.includes('donation');
-        else if (actionFilter === 'matches') matchesType = actionStr.includes('match');
-
-        const q = search.toLowerCase();
-        const matchesSearch = !search ||
-            actionStr.includes(q) ||
-            (x.user?.name && x.user.name.toLowerCase().includes(q)) ||
-            (x.subject_type && x.subject_type.toLowerCase().includes(q)) ||
-            (x.subject_id && String(x.subject_id).includes(q));
-
-        return matchesType && matchesSearch;
-    });
-
-    filtered.sort((a, b) => {
-        if (sortBy === 'newest') return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-        if (sortBy === 'oldest') return new Date(a.created_at || 0) - new Date(b.created_at || 0);
-        return 0;
-    });
-
-    const totalPages = Math.ceil(filtered.length / pageSize) || 1;
-    const currentPage = Math.min(page, totalPages);
-    const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-    const userCount = data.filter(x => (x.action || '').toLowerCase().includes('user')).length;
-    const requestCount = data.filter(x => (x.action || '').toLowerCase().includes('request')).length;
-    const matchCount = data.filter(x => (x.action || '').toLowerCase().includes('match')).length;
+    const totalPages = pagination.last_page || 1;
+    const currentPage = pagination.current_page || 1;
+    const paginated = data;
+    const userCount = summary.users;
+    const requestCount = summary.requests;
+    const donationCount = summary.donations;
+    const matchCount = summary.matches;
 
     const getActionCategory = actionStr => {
         const act = (actionStr || '').toLowerCase();
         if (act.includes('user')) return 'User Management';
         if (act.includes('request')) return 'Support Request';
+        if (act.includes('inventory')) return 'Inventory';
         if (act.includes('donation')) return 'Donation Listing';
         if (act.includes('match')) return 'Match Engine';
         return 'System Audit';
@@ -17731,6 +17707,7 @@ function Activities(){
         const act = (actionStr || '').toLowerCase();
         if (act.includes('user')) return 'profile';
         if (act.includes('request')) return 'request';
+        if (act.includes('inventory')) return 'donation';
         if (act.includes('donation')) return 'donation';
         if (act.includes('match')) return 'match';
         return 'activity';
@@ -17743,7 +17720,9 @@ function Activities(){
                     <p className="eyebrow staff-module-badge">ACCOUNTABILITY & AUDIT TRAIL</p>
                     <h1 className="page-title">{user?.role === 'admin' ? 'Activity & Reports' : 'Activity Log'}</h1>
                     <p className="text-sm font-semibold text-[#2563EB]/80">
-                        Monitor system operations, administrative actions, account changes, and authorization records.
+                        {user?.role === 'staff'
+                            ? 'Monitor request reviews, donation and inventory changes, match decisions, and handoff operations.'
+                            : 'Monitor system operations, administrative actions, account changes, and authorization records.'}
                     </p>
                 </div>
                 <div className="staff-activity-actions flex flex-wrap items-center gap-3">
@@ -17751,7 +17730,7 @@ function Activities(){
                         <Icon name="activity"/>
                         <span className="ml-1 text-xs">Refresh Logs</span>
                     </Button>
-                    <Button onClick={handleExportCSV} disabled={!data.length}>
+                    <Button onClick={handleExportCSV} disabled={!summary.total}>
                         <Icon name="reports"/>
                         <span className="ml-1 text-xs">Export CSV</span>
                     </Button>
@@ -17764,7 +17743,7 @@ function Activities(){
                 <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Audit Logs</p>
-                        <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{data.length}</strong>
+                        <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{summary.total}</strong>
                     </div>
                     <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
                         <Icon name="activity"/>
@@ -17773,8 +17752,8 @@ function Activities(){
 
                 <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">User Account Events</p>
-                        <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{userCount}</strong>
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">{user?.role === 'staff' ? 'Donation & Inventory Events' : 'User Account Events'}</p>
+                        <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{user?.role === 'staff' ? donationCount : userCount}</strong>
                     </div>
                     <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
                         <Icon name="profile"/>
@@ -17822,7 +17801,7 @@ function Activities(){
                         onChange={e => { setActionFilter(e.target.value); setPage(1); }}
                     >
                         <option value="all">All Modules</option>
-                        <option value="users">User Accounts</option>
+                        {user?.role === 'admin' && <option value="users">User Accounts</option>}
                         <option value="requests">Support Requests</option>
                         <option value="donations">Donations</option>
                         <option value="matches">Match Operations</option>
@@ -17840,13 +17819,21 @@ function Activities(){
                         <option value="oldest">Oldest First</option>
                     </DropdownSelect>
                 </div>
+                <div className="staff-activity-filter-control min-w-[150px]">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">From</label>
+                    <input type="date" className="field w-full text-sm" value={dateFrom} max={dateTo || undefined} onChange={e => { setDateFrom(e.target.value); setPage(1); }}/>
+                </div>
+                <div className="staff-activity-filter-control min-w-[150px]">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">To</label>
+                    <input type="date" className="field w-full text-sm" value={dateTo} min={dateFrom || undefined} onChange={e => { setDateTo(e.target.value); setPage(1); }}/>
+                </div>
             </div>
 
             {loading ? (
                 <div className="panel p-8 text-center font-bold text-[#2563EB]">
                     Loading activity log history...
                 </div>
-            ) : !filtered.length ? (
+            ) : !data.length ? (
                 <div className="panel p-8 text-center">
                     <p className="font-bold text-[#2563EB] text-lg">No activity log entries found.</p>
                     <p className="text-xs text-[#2563EB]/80 font-semibold mt-1">Try adjusting your search query or module filter.</p>
@@ -17888,7 +17875,7 @@ function Activities(){
                     {
                         <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
-                                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} audit entries
+                                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, pagination.total)} of {pagination.total} audit entries
                             </p>
                             <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
