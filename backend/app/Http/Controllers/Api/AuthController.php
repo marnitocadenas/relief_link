@@ -333,7 +333,9 @@ class AuthController extends Controller
     public function updateProfile(Request $r)
     {
         $u = $r->user();
-        $country = trim((string) $r->input('country', ''));
+        // Country is no longer edited on the profile page. Keep the saved
+        // value for address and phone normalization when older clients omit it.
+        $country = trim((string) $r->input('country', $u->country ?? ($u->role === 'donor' ? 'Philippines' : '')));
         $firstName = RegisterRequest::normalizeName((string) $r->input('first_name', ''));
         $middleName = RegisterRequest::normalizeName((string) $r->input('middle_name', ''));
         $lastName = RegisterRequest::normalizeName((string) $r->input('last_name', ''));
@@ -480,8 +482,18 @@ class AuthController extends Controller
 
         $data = $r->validate($rules);
 
+        $previousPhotoPath = $u->profile_photo_path;
         if ($r->hasFile('profile_photo')) {
-            $data['profile_photo_path'] = $r->file('profile_photo')->store('profiles', 'public');
+            try {
+                $storedPhotoPath = $r->file('profile_photo')->store('profiles', 'public');
+            } catch (\Throwable $exception) {
+                report($exception);
+                return response()->json(['message' => 'The profile photo could not be saved. Please try again.'], 500);
+            }
+            if (!$storedPhotoPath) {
+                return response()->json(['message' => 'The profile photo could not be saved. Please try again.'], 500);
+            }
+            $data['profile_photo_path'] = $storedPhotoPath;
         } elseif ($r->boolean('remove_photo')) {
             $data['profile_photo_path'] = null;
         }
@@ -493,7 +505,15 @@ class AuthController extends Controller
         }
 
         unset($data['profile_photo'], $data['remove_photo']);
-        $u->update($data);
+        try {
+            $u->update($data);
+        } catch (\Throwable $exception) {
+            if (isset($storedPhotoPath)) \Illuminate\Support\Facades\Storage::disk('public')->delete($storedPhotoPath);
+            throw $exception;
+        }
+        if ($previousPhotoPath && ($r->hasFile('profile_photo') || $r->boolean('remove_photo'))) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($previousPhotoPath);
+        }
         if (isset($data['password'])) $u->tokens()->where('id', '!=', $u->currentAccessToken()?->id)->delete();
         return new UserResource($u->fresh());
     }

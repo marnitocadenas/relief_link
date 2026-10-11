@@ -238,7 +238,7 @@ class AdminController extends Controller
             'contact_number.regex' => 'Contact Number must begin with 09 and contain exactly 11 digits.',
             'contact_number.unique' => 'This Contact Number is already registered.',
             'country.required' => 'Country / Region is required.',
-            'address_line_1.required' => 'Address Line 1 is required.',
+            'address_line_1.required' => 'Address Line is required.',
             'valid_id_type.required' => 'Valid ID Type is required.',
             'valid_id_number.required' => 'Valid ID Number is required.',
             'valid_id_number.unique' => 'This Valid ID Number is already taken.',

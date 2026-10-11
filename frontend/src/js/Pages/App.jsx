@@ -19,7 +19,7 @@ import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieCh
 let openModalBackdropCount = 0;
 let previousBodyOverflow = '';
 
-function ModalBlurBackdrop() {
+function ModalBlurBackdrop({ className = '' }) {
     useEffect(() => {
         if (openModalBackdropCount === 0) {
             previousBodyOverflow = document.body.style.overflow;
@@ -36,7 +36,7 @@ function ModalBlurBackdrop() {
     }, []);
 
     return createPortal(
-        <div className="modal-blur-backdrop" aria-hidden="true" />,
+        <div className={`modal-blur-backdrop ${className}`.trim()} aria-hidden="true" />,
         document.body
     );
 }
@@ -2339,7 +2339,7 @@ function Auth({ register = false }) {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="reg_beneficiary_type" className="block text-xs font-bold text-[#2563EB]">Campus Role <span className="text-[#22C55E">*</span></label>
+                                            <label htmlFor="reg_beneficiary_type" className="block text-xs font-bold text-[#2563EB]">Campus Role</label>
                                             <DropdownSelect id="reg_beneficiary_type" className="field mt-1 text-xs py-2 font-semibold" value={f.beneficiary_type || 'student'} onChange={(e) => handleRegistrationFieldChange('beneficiary_type', e.target.value)} required>
                                                 <option value="student">Student</option>
                                                 <option value="faculty">Faculty</option>
@@ -2369,7 +2369,7 @@ function Auth({ register = false }) {
                                             {renderDuplicateStatus('student_id_number')}
                                         </div>}
                                         {isEmployeeBeneficiary && <div>
-                                            <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">Campus Employee ID <span className="text-[#22C55E">*</span></label>
+                                            <label htmlFor="reg_campus_id" className="block text-xs font-bold text-[#2563EB]">Campus Employee ID</label>
                                             <input id="reg_campus_id" type="text" disabled={!canEnterStudentId} placeholder="Enter your faculty ID" className={`field mt-1 text-xs py-2 font-semibold ${!canEnterStudentId ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''} ${uniqueness.campus_id?.status === 'taken' || uniqueness.campus_id?.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''}`} value={f.campus_id} onChange={(e) => handleRegistrationFieldChange('campus_id', e.target.value)} maxLength={50} required />
                                             {renderDuplicateStatus('campus_id')}
                                         </div>}
@@ -2749,7 +2749,7 @@ function Auth({ register = false }) {
                                         {/* Rank #6: Country is fixed because ReliefLink serves the Philippines campus. */}
                                         <div>
                                             <label htmlFor="reg_country_donor" className="block text-xs font-bold text-[#2563EB]">
-                                                Country / Region <span className="text-[#22C55E]">*</span>
+                                                Country / Region
                                             </label>
                                             <div className={`field mt-1 flex w-full items-center gap-2 text-xs py-2 font-semibold ${!canEnterDonorCountry ? 'opacity-60 bg-gray-50' : ''}`} aria-label="Country: Philippines">
                                                 <span aria-hidden="true">🇵🇭</span>
@@ -5380,11 +5380,11 @@ function EditModal({item, kind, admin, close, done}){
 
             if (f.role === 'admin' || f.role === 'staff') {
                 if (!f.campus_id?.trim()) {
-                    setError((f.role === 'admin' ? 'Administrator ID / Campus ID Number' : 'Staff ID / Campus ID Number') + ' is required.');
+                    setError('Campus ID Number is required.');
                     return;
                 }
                 if (!f.email?.trim()) {
-                    setError('TMC Email Address is required.');
+                    setError('Email Address is required.');
                     return;
                 }
                 if (!f.department?.trim()) {
@@ -5467,12 +5467,8 @@ function EditModal({item, kind, admin, close, done}){
                     setError('Contact Number is required.');
                     return;
                 }
-                if (!f.country?.trim()) {
-                    setError('Country / Region is required.');
-                    return;
-                }
                 if (!f.address_line_1?.trim()) {
-                    setError('Address Line 1 is required.');
+                    setError('Address Line is required.');
                     return;
                 }
                 if (!f.valid_id_type?.trim()) {
@@ -5518,8 +5514,8 @@ function EditModal({item, kind, admin, close, done}){
                 payload.course = f.beneficiary_type === 'student' ? f.course?.trim() || '' : '';
                 payload.year_level = f.beneficiary_type === 'student' ? f.year_level?.trim() || '' : '';
             } else if (f.role === 'donor') {
-                payload.country = f.country?.trim() || '';
-                payload.country_code = f.country_code?.trim() || '';
+                payload.country = f.country?.trim() || 'Philippines';
+                payload.country_code = f.country_code?.trim() || 'PH';
                 payload.address_line_1 = f.address_line_1?.trim() || '';
                 payload.state_province_region = f.state_province_region?.trim() || '';
                 payload.city_municipality = f.city_municipality?.trim() || '';
@@ -5634,14 +5630,14 @@ function EditModal({item, kind, admin, close, done}){
                             <>
                                 <div>
                                     <label htmlFor="modal_campus_id" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        {f.role === 'admin' ? 'Administrator ID / Campus ID Number' : 'Staff ID / Campus ID Number'}
+                                        Campus ID Number
                                     </label>
                                     <input
                                         id="modal_campus_id"
                                         type="text"
                                         required
                                         className="field w-full text-xs font-semibold"
-                                        placeholder={f.role === 'admin' ? 'e.g. ADM-2026-001' : 'e.g. STF-2026-001'}
+                                        placeholder="Enter campus ID"
                                         value={f.campus_id || ''}
                                         onChange={e => setF({...f, campus_id: e.target.value})}
                                         maxLength={50}
@@ -5649,14 +5645,14 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_admin_email" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        TMC Email Address
+                                        Email Address
                                     </label>
                                     <input
                                         id="modal_admin_email"
                                         required
                                         type="email"
                                         className="field w-full text-xs font-semibold"
-                                        placeholder="e.g. user@tmc.edu.ph"
+                                        placeholder="Enter email address"
                                         value={f.email || ''}
                                         onChange={e => setF({...f, email: e.target.value})}
                                     />
@@ -5714,7 +5710,7 @@ function EditModal({item, kind, admin, close, done}){
                             return (
                                 <>
                                     <div>
-                                        <label htmlFor="modal_beneficiary_type" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Beneficiary Campus Role <span className="text-[#22C55E]">*</span></label>
+                                        <label htmlFor="modal_beneficiary_type" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Beneficiary Campus Role</label>
                                         <DropdownSelect
                                             id="modal_beneficiary_type"
                                             required
@@ -5729,7 +5725,7 @@ function EditModal({item, kind, admin, close, done}){
                                     </div>
 
                                     {['faculty', 'staff'].includes(f.beneficiary_type) && <div>
-                                        <label htmlFor="modal_beneficiary_campus_id" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Campus ID Number <span className="text-[#22C55E]">*</span></label>
+                                        <label htmlFor="modal_beneficiary_campus_id" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Campus ID Number</label>
                                         <input id="modal_beneficiary_campus_id" required type="text" className="field w-full text-xs font-semibold" placeholder="Enter faculty campus ID" value={f.campus_id || ''} onChange={e => setF({ ...f, campus_id: e.target.value })} maxLength={50}/>
                                     </div>}
 
@@ -5766,7 +5762,7 @@ function EditModal({item, kind, admin, close, done}){
                                     {/* Rank #6: Member Email Address */}
                                     <div>
                                         <label htmlFor="modal_ben_email" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                            Email Address <span className="text-[#22C55E]">*</span>
+                                            Email Address
                                         </label>
                                         <input
                                             id="modal_ben_email"
@@ -5808,7 +5804,7 @@ function EditModal({item, kind, admin, close, done}){
                                             ))}
                                         </DropdownSelect>
                                     </div> : <div>
-                                        <label htmlFor="modal_ben_dept" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Department / Office <span className="text-[#22C55E]">*</span></label>
+                                        <label htmlFor="modal_ben_dept" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">Department / Office</label>
                                         <input id="modal_ben_dept" required type="text" className="field w-full text-xs font-semibold" placeholder="Enter department or office" value={f.department || ''} onChange={e => setF({ ...f, department: e.target.value })} maxLength={255}/>
                                     </div>}
 
@@ -5896,7 +5892,9 @@ function EditModal({item, kind, admin, close, done}){
                             );
                         })()}
 
-                        {/* DONOR: Rank #5 Email, Rank #6 Country, Rank #7 Contact, Rank #8 Addr1, Rank #9 State, Rank #10 City, Rank #11 District, Rank #12 Postal, Rank #13 ID Type, Rank #14 ID Num */}
+                        {f.role === 'beneficiary' && <div aria-hidden="true" className="hidden sm:block" />}
+
+                        {/* DONOR: Email, Contact, Address, State, City, District, Postal, Valid ID Type, Valid ID Number */}
                         {f.role === 'donor' && (
                             <>
                                 <div>
@@ -5913,20 +5911,7 @@ function EditModal({item, kind, admin, close, done}){
                                         onChange={e => setF({...f, email: e.target.value})}
                                     />
                                 </div>
-                                <div>
-                                    <label htmlFor="modal_donor_country" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Country / Region
-                                    </label>
-                                    <CountrySelect
-                                        id="modal_donor_country"
-                                        value={f.country || ''}
-                                        onChange={(countryName, countryCode) => setF({
-                                            ...f,
-                                            country: countryName,
-                                            country_code: countryCode || f.country_code
-                                        })}
-                                    />
-                                </div>
+                                <div aria-hidden="true" className="hidden sm:block" />
                                 <div>
                                     <label htmlFor="modal_donor_contact" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                         Contact Number
@@ -5945,7 +5930,7 @@ function EditModal({item, kind, admin, close, done}){
                                 </div>
                                 <div>
                                     <label htmlFor="modal_donor_addr1" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Address Line 1
+                                        Address Line
                                     </label>
                                     <input
                                         id="modal_donor_addr1"
@@ -6127,7 +6112,7 @@ function EditModal({item, kind, admin, close, done}){
                             )}
                         </div>
 
-                        <div>
+                        <div className={f.role === 'beneficiary' ? 'sm:col-start-2' : ''}>
                             <label htmlFor="modal_confirm_pwd" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
                                 {item.id ? 'Confirm New Password' : 'Confirm Password'}
                             </label>
@@ -6191,6 +6176,7 @@ function PeopleManager(){
     const [sortBy, setSortBy] = useState('name_asc');
     const [editing, setEditing] = useState(null);
     const [viewingUser, setViewingUser] = useState(null);
+    const [viewingPhotoUrl, setViewingPhotoUrl] = useState(null);
     const [deletingUser, setDeletingUser] = useState(null);
     const [deleting, setDeleting] = useState(false);
     const [updatingStatus, setUpdatingStatus] = useState(null);
@@ -6201,6 +6187,19 @@ function PeopleManager(){
     const [successMessage, setSuccessMessage] = useState('');
     const [page, setPage] = useState(1);
     const pageSize = 10;
+
+    useEffect(() => {
+        if (!viewingPhotoUrl) return undefined;
+        document.documentElement.classList.add('profile-photo-viewer-open');
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') setViewingPhotoUrl(null);
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            document.documentElement.classList.remove('profile-photo-viewer-open');
+        };
+    }, [viewingPhotoUrl]);
 
     const load = (savedMember = null, isNewMember = false) => {
         if(!user) return Promise.resolve([]);
@@ -6458,11 +6457,18 @@ function PeopleManager(){
                                             <td>
                                                 <div className="flex items-center gap-2.5">
                                                     {userItem.profile_photo_url ? (
-                                                        <img
-                                                            src={userItem.profile_photo_url}
-                                                            alt={userItem.name}
-                                                            className="h-8 w-8 rounded-full object-cover border border-[#2563EB]/20 shrink-0"
-                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className="p-0 bg-transparent border-0 rounded-full cursor-pointer hover:opacity-80 transition inline-flex items-center justify-center shrink-0"
+                                                            onClick={() => setViewingPhotoUrl(userItem.profile_photo_url)}
+                                                            title="Click to view full-size photo"
+                                                        >
+                                                            <img
+                                                                src={userItem.profile_photo_url}
+                                                                alt={userItem.name}
+                                                                className="h-8 w-8 rounded-full object-cover border border-[#2563EB]/20 shrink-0"
+                                                            />
+                                                        </button>
                                                     ) : (
                                                         <span className="grid h-8 w-8 place-items-center rounded-full bg-[#2563EB] text-xs font-extrabold text-white shrink-0">
                                                             {initial}
@@ -6532,11 +6538,18 @@ function PeopleManager(){
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex items-center gap-3">
                                             {userItem.profile_photo_url ? (
-                                                <img
-                                                    src={userItem.profile_photo_url}
-                                                    alt={userItem.name}
-                                                    className="h-10 w-10 rounded-full object-cover border border-[#2563EB]/20 shrink-0"
-                                                />
+                                                <button
+                                                    type="button"
+                                                    className="p-0 bg-transparent border-0 rounded-full cursor-pointer hover:opacity-80 transition inline-flex items-center justify-center shrink-0"
+                                                    onClick={() => setViewingPhotoUrl(userItem.profile_photo_url)}
+                                                    title="Click to view full-size photo"
+                                                >
+                                                    <img
+                                                        src={userItem.profile_photo_url}
+                                                        alt={userItem.name}
+                                                        className="h-10 w-10 rounded-full object-cover border border-[#2563EB]/20 shrink-0"
+                                                    />
+                                                </button>
                                             ) : (
                                                 <span className="grid h-10 w-10 place-items-center rounded-full bg-[#2563EB] text-sm font-extrabold text-white shrink-0">
                                                     {initial}
@@ -6614,11 +6627,18 @@ function PeopleManager(){
                         </div>
                         <div className="flex items-center gap-4 pb-2">
                             {viewingUser.profile_photo_url ? (
-                                <img
-                                    src={viewingUser.profile_photo_url}
-                                    alt={viewingUser.name}
-                                    className="h-16 w-16 rounded-2xl border-2 border-[#2563EB] object-cover shrink-0"
-                                />
+                                <button
+                                    type="button"
+                                    className="p-0 bg-transparent border-0 rounded-2xl cursor-pointer hover:opacity-80 transition inline-flex items-center justify-center shrink-0"
+                                    onClick={() => setViewingPhotoUrl(viewingUser.profile_photo_url)}
+                                    title="Click to view full-size photo"
+                                >
+                                    <img
+                                        src={viewingUser.profile_photo_url}
+                                        alt={viewingUser.name}
+                                        className="h-16 w-16 rounded-2xl border-2 border-[#2563EB] object-cover shrink-0"
+                                    />
+                                </button>
                             ) : (
                                 <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#2563EB] text-xl font-extrabold text-white shrink-0">
                                     {viewingUser.name ? viewingUser.name.charAt(0).toUpperCase() : 'U'}
@@ -6753,6 +6773,38 @@ function PeopleManager(){
             )}
 
             {editing && <EditModal item={editing} kind="users" admin={true} close={() => setEditing(null)} done={handleMemberSaved}/>}
+
+            {viewingPhotoUrl && createPortal(
+                <div
+                    className="fixed inset-0 z-[99999] grid place-items-center modal-overlay profile-photo-viewer p-4 select-none"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Full-size member profile photo"
+                    onMouseDown={() => setViewingPhotoUrl(null)}
+                >
+                    <div className="modal-blur-backdrop profile-photo-viewer-backdrop" aria-hidden="true" />
+                    <div
+                        className="profile-photo-viewer-content relative max-h-[90vh] max-w-[90vw] z-10"
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            className="profile-photo-viewer-close"
+                            onClick={() => setViewingPhotoUrl(null)}
+                            aria-label="Close photo preview"
+                            title="Close (Esc)"
+                        >
+                            <Icon name="close" size={18} />
+                        </button>
+                        <img
+                            src={viewingPhotoUrl}
+                            alt="Full-size profile photo"
+                            className="profile-photo-viewer-img"
+                        />
+                    </div>
+                </div>,
+                document.body
+            )}
         </main>
     );
 }
@@ -10367,7 +10419,7 @@ function StaffWarehouseInventory() {
                                 </DropdownSelect>
                             </div>
                             <div>
-                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Outside Donor Name *</label>
+                                <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Outside Donor Name</label>
                                 <input
                                     type="text"
                                     required
@@ -10482,7 +10534,7 @@ function StaffWarehouseInventory() {
                         </div>
 
                         {editingStock.status === 'pending_intake' && <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Intake Review *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Intake Review</label>
                             <DropdownSelect value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} className="input text-xs w-full mt-1">
                                 <option value="pending_intake">Still awaiting physical intake</option>
                                 <option value="pending_match">Received and verified by staff, ready for matching</option>
@@ -10618,7 +10670,7 @@ function StaffWalkInDesk() {
                     <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">1</span><div><h2 className="text-sm font-extrabold">Identify and verify the beneficiary</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Check campus details before recording a new request.</p></div></div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Beneficiary Full Name *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Beneficiary Full Name</label>
                             <input
                                 type="text"
                                 required
@@ -10629,7 +10681,7 @@ function StaffWalkInDesk() {
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Campus Email *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Campus Email</label>
                             <input
                                 type="email"
                                 required
@@ -10640,14 +10692,14 @@ function StaffWalkInDesk() {
                             />
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Beneficiary Type *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Beneficiary Type</label>
                             <DropdownSelect value={form.beneficiary_type} onChange={(e) => setForm({ ...form, beneficiary_type: e.target.value })} className="input text-xs w-full mt-1">
                                 <option value="student">Student</option>
                                 <option value="faculty_staff">Faculty or Staff</option>
                             </DropdownSelect>
                         </div>
                         <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">{form.beneficiary_type === 'student' ? 'Student ID Number' : 'Campus ID'} *</label>
+                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">{form.beneficiary_type === 'student' ? 'Student ID Number' : 'Campus ID'}</label>
                             <input
                                 type="text"
                                 required
@@ -16484,11 +16536,15 @@ function Profile(){
 
     useEffect(()=>{
         if(!isPhotoViewerOpen) return undefined;
+        document.documentElement.classList.add('profile-photo-viewer-open');
         const closeOnEscape=(event)=>{
             if(event.key==='Escape') setIsPhotoViewerOpen(false);
         };
         document.addEventListener('keydown',closeOnEscape);
-        return()=>document.removeEventListener('keydown',closeOnEscape);
+        return()=>{
+            document.removeEventListener('keydown',closeOnEscape);
+            document.documentElement.classList.remove('profile-photo-viewer-open');
+        };
     },[isPhotoViewerOpen]);
 
     if(!user)return <Navigate to="/login"/>;
@@ -16496,15 +16552,28 @@ function Profile(){
     const handlePhotoSelect=(e)=>{
         const file=e.target.files?.[0];
         if(!file) return;
-        if(file.size>2*1024*1024){
-            setMessage('Photo must be under 2MB.');
+        if(!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)){
+            setMessage('Choose a JPG, PNG, GIF, or WebP image.');
             setMessageType('error');
+            e.target.value='';
+            return;
+        }
+        if(file.size>2*1024*1024){
+            setMessage('Photo must be 2MB or smaller.');
+            setMessageType('error');
+            e.target.value='';
             return;
         }
         setPhotoFile(file);
         setPhotoRemoved(false);
         const reader=new FileReader();
         reader.onload=(ev)=>setPhotoPreview(ev.target.result);
+        reader.onerror=()=>{
+            setPhotoFile(null);
+            setPhotoPreview(null);
+            setMessage('This photo could not be previewed. Please choose another image.');
+            setMessageType('error');
+        };
         reader.readAsDataURL(file);
     };
 
@@ -16568,7 +16637,6 @@ function Profile(){
         if(f.department) data.append('department',f.department.trim());
         if(f.course) data.append('course',f.course.trim());
         if(f.year_level) data.append('year_level',f.year_level.trim());
-        if(f.country) data.append('country',f.country.trim());
         if(f.country_code) data.append('country_code',f.country_code.trim());
         if(f.password){
             data.append('password',f.password);
@@ -16580,7 +16648,7 @@ function Profile(){
         try{
             await api.post('/profile',data);
             await refresh();
-            setMessage('Profile updated successfully.');
+            setMessage(photoFile?'Profile photo uploaded and saved successfully.':(photoRemoved?'Profile photo removed successfully.':'Profile updated successfully.'));
             setMessageType('success');
             setF(prev=>({...prev,password:'',password_confirmation:''}));
             setPhotoFile(null);
@@ -16588,7 +16656,9 @@ function Profile(){
             setPhotoRemoved(false);
             if(fileRef.current)fileRef.current.value='';
         }catch(e){
-            setMessage(e.response?.data?.message||'Could not update profile. Please check your input and try again.');
+            const validationErrors=e.response?.data?.errors;
+            const firstValidationError=validationErrors?Object.values(validationErrors).flat()[0]:null;
+            setMessage(firstValidationError||e.response?.data?.message||'Could not update profile. Please check your input and try again.');
             setMessageType('error');
         }finally{
             setSaving(false);
@@ -16732,21 +16802,7 @@ function Profile(){
                                         </div>
                                     </div>
 
-                                    <div className="grid gap-5 sm:grid-cols-2">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region {user.role === 'donor' && <span className="text-[#22C55E]">*</span>}</label>
-                                            {user.role === 'donor' ? (
-                                                <div className="field mt-1 flex w-full items-center gap-2 text-xs font-semibold" aria-label="Country: Philippines">
-                                                    <span aria-hidden="true">🇵🇭</span><span>Philippines</span>
-                                                </div>
-                                            ) : (
-                                                <CountrySelect
-                                                    id="profile_country"
-                                                    value={f.country}
-                                                    onChange={(name, code) => setF(prev => ({ ...prev, country: name, country_code: code }))}
-                                                />
-                                            )}
-                                        </div>
+                                    <div className="grid gap-5 sm:grid-cols-1">
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Contact Number</label>
                                             <InternationalPhoneInput
@@ -16869,7 +16925,7 @@ function Profile(){
                                         </div>
                                     </div>
 
-                                    <div className="grid gap-5 sm:grid-cols-2">
+                                    <div className="grid gap-5 sm:grid-cols-1">
                                         <div>
                                             <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Contact Number</label>
                                             {user.role === 'beneficiary' ? (
@@ -16907,15 +16963,7 @@ function Profile(){
                                             />
                                             )}
                                         </div>
-                                        {user.role!=='beneficiary'&&<div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Country / Region</label>
-                                            <input
-                                                className="field w-full"
-                                                placeholder="Enter your country or region"
-                                                value={f.country}
-                                                onChange={e=>setF({...f,country:e.target.value})}
-                                            />
-                                        </div>}
+
                                     </div>
 
                                     {user.role==='beneficiary'&&<div className="grid gap-5 sm:grid-cols-2">
@@ -17196,31 +17244,38 @@ function Profile(){
                 )}
             </form>
 
-            {isPhotoViewerOpen&&profileImage&&(
+            {isPhotoViewerOpen && profileImage && createPortal(
                 <div
-                    className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"
+                    className="fixed inset-0 z-[99999] grid place-items-center modal-overlay profile-photo-viewer p-4 select-none"
                     role="dialog"
                     aria-modal="true"
                     aria-label="Full-size profile photo"
-                    onMouseDown={()=>setIsPhotoViewerOpen(false)}
+                    onMouseDown={() => setIsPhotoViewerOpen(false)}
                 >
-                    <ModalBlurBackdrop />
-                    <div className="relative max-h-[90vh] max-w-[90vw]" onMouseDown={event=>event.stopPropagation()}>
+                    {/* Absolute backdrop fills the fixed overlay — no global z-index competition */}
+                    <div className="absolute inset-0 z-0 photo-viewer-inner-backdrop" aria-hidden="true" />
+                    <div
+                        className="relative z-10 flex items-center justify-center"
+                        style={{ maxWidth: '90vw', maxHeight: '90vh' }}
+                        onMouseDown={(event) => event.stopPropagation()}
+                    >
                         <button
                             type="button"
-                            className="panel-modal-close absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border-2 border-[#2563EB] bg-white text-[#2563EB] shadow-sm"
-                            onClick={()=>setIsPhotoViewerOpen(false)}
+                            className="profile-photo-viewer-close"
+                            onClick={() => setIsPhotoViewerOpen(false)}
                             aria-label="Close photo preview"
+                            title="Close preview (Esc)"
                         >
-                            <Icon name="close" size={18}/>
+                            <Icon name="close" size={18} />
                         </button>
                         <img
                             src={profileImage}
                             alt={`${user.name}'s full-size profile photo`}
-                            className="max-h-[85vh] max-w-[85vw] rounded-2xl border-2 border-white object-contain bg-white"
+                            className="profile-photo-viewer-img"
                         />
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </main>
     );

@@ -1343,11 +1343,106 @@ table[class*="border-collapse"]:not(.data-table) tbody tr:hover {
 .modal-blur-backdrop {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   z-index: 9997;
   pointer-events: none;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   background: rgba(15, 23, 42, 0.15); /* very light tint to help compositing */
+}
+
+/* Full-Screen Image Viewer Backdrop — the old child-backdrop approach is replaced.
+   The fixed overlay itself carries the blur; a simple absolute inner div tints it.
+   No competing global z-indexes. */
+
+/* OLD class kept for legacy references — now a no-op (overlay IS the backdrop) */
+.modal-blur-backdrop.profile-photo-viewer-backdrop {
+  display: none !important;
+}
+
+/* The fixed overlay IS the blurred backdrop */
+.modal-overlay.profile-photo-viewer {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  z-index: 99999 !important;
+  display: grid !important;
+  place-items: center !important;
+  /* Backdrop blur lives here — no child element conflicts */
+  background: rgba(15, 23, 42, 0.80) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+  backdrop-filter: blur(14px) saturate(160%) !important;
+}
+
+/* Thin absolute tint overlay (z-0) inside the fixed overlay */
+.photo-viewer-inner-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none;
+  background: transparent;
+}
+
+/* Eliminate header and sidebar visible borders while the viewer is open */
+html.profile-photo-viewer-open header,
+html.profile-photo-viewer-open .admin-header,
+html.profile-photo-viewer-open aside,
+html.profile-photo-viewer-open .admin-sidebar {
+  border-color: transparent !important;
+  border-bottom-color: transparent !important;
+  border-right-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Image */
+.profile-photo-viewer-img {
+  max-width: 88vw;
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 1rem;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  user-select: none;
+  -webkit-user-drag: none;
+  background-color: transparent;
+  display: block;
+}
+
+/* Close button */
+.profile-photo-viewer-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 9999px;
+  background: #1e293b !important;
+  border: 2px solid rgba(255, 255, 255, 0.8) !important;
+  color: #ffffff !important;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  z-index: 20;
+  outline: none;
+}
+
+.profile-photo-viewer-close:hover {
+  transform: scale(1.1);
+  background: #0f172a !important;
+  color: #ffffff !important;
 }
 
 @keyframes fade-in {
@@ -5892,6 +5987,43 @@ html.dark .modal-overlay span {
 html.dark .modal-blur-backdrop {
   background: rgba(0, 0, 0, 0.75) !important;
   backdrop-filter: blur(4px) !important;
+}
+
+/* Full-Screen Image Viewer Backdrop (Dark Mode) - Seamless, deep frosted glass without lines */
+html.dark .modal-blur-backdrop.profile-photo-viewer-backdrop,
+.dark .modal-blur-backdrop.profile-photo-viewer-backdrop {
+  display: none !important;
+}
+
+html.dark .modal-overlay.profile-photo-viewer,
+.dark .modal-overlay.profile-photo-viewer {
+  background: rgba(5, 8, 14, 0.88) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+html.dark .profile-photo-viewer-img,
+.dark .profile-photo-viewer-img {
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 30px 70px -10px rgba(0, 0, 0, 0.9) !important;
+}
+
+html.dark .profile-photo-viewer-close,
+.dark .profile-photo-viewer-close {
+  background: #1e293b !important;
+  border: 2px solid rgba(255, 255, 255, 0.6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7) !important;
+}
+
+html.dark .profile-photo-viewer-close:hover,
+.dark .profile-photo-viewer-close:hover {
+  background: #334155 !important;
+  border-color: #ffffff !important;
+  transform: scale(1.1) !important;
 }
 
 /* ==========================================================================
