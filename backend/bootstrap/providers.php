@@ -6,4 +6,5 @@ use Laravel\Sanctum\SanctumServiceProvider;
 return [
     AppServiceProvider::class,
     SanctumServiceProvider::class,
+    Barryvdh\DomPDF\ServiceProvider::class,
 ];

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class DonationController extends Controller
 {
@@ -33,7 +34,9 @@ class DonationController extends Controller
             $d['quantity'] = $d['quantity'] ?? 1;
         }
         if ($r->hasFile('image')) {
-            $d['image_path'] = $r->file('image')->store('donations', 'public');
+            // Fail the request if the image cannot be written; never create a
+            // donation row that appears to have an image but has no stored file.
+            $d['image_path'] = $r->file('image')->storeOrFail('donations', 'public');
         }
         unset($d['image']);
         return $d;
@@ -50,51 +53,59 @@ class DonationController extends Controller
         $data['status'] = 'pending_intake';
         $data['preferred_request_id'] = $requestId;
 
-        $donation = DB::transaction(function () use ($r, $data, $requestId) {
-            if ($requestId) {
-                $targetRequest = AidRequest::lockForUpdate()->find($requestId);
-                $donationType = $data['donation_type'] ?? 'physical';
-                if (!$targetRequest || !in_array($targetRequest->status, ['approved', 'partially_fulfilled'], true)
-                    || ($targetRequest->request_type ?? 'physical') !== $donationType
-                    || $targetRequest->category !== $data['category']) {
-                    throw ValidationException::withMessages([
-                        'request_id' => 'Choose an approved request that matches this donation type and category.',
-                    ]);
+        try {
+            $donation = DB::transaction(function () use ($r, $data, $requestId) {
+                if ($requestId) {
+                    $targetRequest = AidRequest::lockForUpdate()->find($requestId);
+                    $donationType = $data['donation_type'] ?? 'physical';
+                    if (!$targetRequest || !in_array($targetRequest->status, ['approved', 'partially_fulfilled'], true)
+                        || ($targetRequest->request_type ?? 'physical') !== $donationType
+                        || $targetRequest->category !== $data['category']) {
+                        throw ValidationException::withMessages([
+                            'request_id' => 'Choose an approved request that matches this donation type and category.',
+                        ]);
+                    }
                 }
-            }
-            $d = $r->user()->donations()->create($data);
-            ActivityService::log($r->user(), 'created donation', $d);
+                $d = $r->user()->donations()->create($data);
+                ActivityService::log($r->user(), 'created donation', $d);
 
-            AlertService::send(
-                $r->user(),
-                'Your donation was submitted and is ready for staff intake.',
-                'donation',
-                'normal',
-                $d,
-                '/donations'
-            );
-            AlertService::sendToRoles(
-                ['staff', 'admin'],
-                'A new donation requires warehouse processing.',
-                'donation',
-                'normal',
-                $d,
-                '/staff/inventory'
-            );
-
-            if ($requestId) {
                 AlertService::send(
-                    $targetRequest->beneficiary,
-                    "A donor pledged support for your request (#REQ-" . str_pad($targetRequest->id, 3, '0', STR_PAD_LEFT) . "). Campus staff will verify it before matching.",
+                    $r->user(),
+                    'Your donation was submitted and is ready for staff intake.',
                     'donation',
                     'normal',
                     $d,
-                    '/matches'
+                    '/donations'
                 );
+                AlertService::sendToRoles(
+                    ['staff', 'admin'],
+                    'A new donation requires warehouse processing.',
+                    'donation',
+                    'normal',
+                    $d,
+                    '/staff/inventory'
+                );
+
+                if ($requestId) {
+                    AlertService::send(
+                        $targetRequest->beneficiary,
+                        "A donor pledged support for your request (#REQ-" . str_pad($targetRequest->id, 3, '0', STR_PAD_LEFT) . "). Campus staff will verify it before matching.",
+                        'donation',
+                        'normal',
+                        $d,
+                        '/matches'
+                    );
+                }
+
+                return $d;
+            });
+        } catch (Throwable $exception) {
+            if (!empty($data['image_path'])) {
+                Storage::disk('public')->delete($data['image_path']);
             }
 
-            return $d;
-        });
+            throw $exception;
+        }
 
         return new DonationResource($donation->load(['donor', 'matches']));
     }
@@ -105,11 +116,20 @@ class DonationController extends Controller
         $data = $this->data($r);
         unset($data['request_id']);
 
-        if ($r->hasFile('image') && $donation->image_path) {
-            Storage::disk('public')->delete($donation->image_path);
+        $previousImagePath = $donation->image_path;
+        try {
+            $donation->update($data);
+        } catch (Throwable $exception) {
+            if (!empty($data['image_path'])) {
+                Storage::disk('public')->delete($data['image_path']);
+            }
+
+            throw $exception;
         }
 
-        $donation->update($data);
+        if ($r->hasFile('image') && $previousImagePath) {
+            Storage::disk('public')->delete($previousImagePath);
+        }
         ActivityService::log($r->user(), 'updated donation', $donation);
         return new DonationResource($donation->load(['donor', 'matches']));
     }

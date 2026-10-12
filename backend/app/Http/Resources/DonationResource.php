@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class DonationResource extends JsonResource
 {
@@ -36,7 +37,9 @@ class DonationResource extends JsonResource
             'availability_window' => $this->availability_window,
             'pickup_location' => $this->pickup_location,
             'preferred_handoff_slots' => $this->preferred_handoff_slots,
-            'image_url' => $this->image_path ? url('storage/' . $this->image_path) : null,
+            // Generate the URL from the same disk used by the upload handler. This
+            // keeps image URLs aligned with the configured public storage disk.
+            'image_url' => $this->image_path ? Storage::disk('public')->url(ltrim(str_replace('storage/', '', $this->image_path), '/')) : null,
             'status' => $this->status,
             'created_at' => $this->created_at,
         ];

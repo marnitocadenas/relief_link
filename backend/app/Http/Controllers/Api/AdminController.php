@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\Settings;
 use App\Http\Requests\Api\RegisterRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -53,6 +57,34 @@ class AdminController extends Controller
     public function report(Request $request)
     {
         $period = $request->validate(['period' => ['sometimes', 'in:all_time,today,this_week,this_month']])['period'] ?? 'all_time';
+        return $this->buildPerformanceReport($period);
+    }
+
+    public function exportPerformanceReport(Request $request)
+    {
+        $data = $request->validate([
+            'period' => ['sometimes', 'in:all_time,today,this_week,this_month'],
+            'format' => ['required', 'in:csv,pdf,word'],
+        ]);
+        $period = $data['period'] ?? 'all_time';
+        $format = $data['format'];
+        $report = $this->buildPerformanceReport($period);
+        $filename = 'ReliefLink_Performance_Report_' . $period . '_' . now()->format('Y-m-d');
+
+        try {
+            return match ($format) {
+                'csv' => $this->downloadPerformanceReportCsv($report, $filename . '.csv'),
+                'pdf' => $this->downloadPerformanceReportPdf($report, $filename . '.pdf'),
+                'word' => $this->downloadPerformanceReportWord($report, $filename . '.docx'),
+            };
+        } catch (\Throwable $exception) {
+            report($exception);
+            return response()->json(['message' => 'Could not generate the requested report export.'], 500);
+        }
+    }
+
+    private function buildPerformanceReport(string $period): array
+    {
         $start = match ($period) {
             'today' => now()->startOfDay(),
             'this_week' => now()->startOfWeek(),
@@ -95,6 +127,123 @@ class AdminController extends Controller
                     ->where('requests.category', $category)->when($start, fn ($q) => $q->where('matches.created_at', '>=', $start))->sum('matches.matched_quantity'),
             ]),
         ];
+    }
+
+    private function reportRows(array $report): array
+    {
+        $rows = [
+            ['Metric', 'Value'],
+            ['Reporting period', str_replace('_', ' ', ucfirst($report['period']))],
+            ['Request approval rate', $report['approval_rate'] . '%'],
+            ['Match confirmation rate', $report['confirmation_rate'] . '%'],
+            ['Active donors', $report['coverage']['active_donors']],
+            ['Active beneficiaries', $report['coverage']['active_beneficiaries']],
+            ['Fulfilled donations', $report['coverage']['fulfilled_donations']],
+            ['Fulfilled requests', $report['coverage']['fulfilled_requests']],
+            ['Physical requests', $report['coverage']['physical_requests']],
+            ['Financial requests', $report['coverage']['financial_requests']],
+            ['Financial amount requested', number_format($report['coverage']['financial_amount_requested'], 2, '.', '')],
+            ['Financial amount fulfilled', number_format($report['coverage']['financial_amount_fulfilled'], 2, '.', '')],
+            [],
+            ['Category', 'Donated quantity', 'Requested quantity', 'Balance', 'Fulfilled quantity', 'Fulfillment coverage (%)'],
+        ];
+
+        foreach ($report['category_balance'] as $category) {
+            $requested = (int) $category['requested_quantity'];
+            $fulfilled = (int) $category['fulfilled_quantity'];
+            $rows[] = [
+                $category['category'],
+                (int) $category['donated_quantity'],
+                $requested,
+                (int) $category['donated_quantity'] - $requested,
+                $fulfilled,
+                $requested > 0 ? min(100, (int) round($fulfilled / $requested * 100)) : 0,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function downloadPerformanceReportCsv(array $report, string $filename)
+    {
+        $stream = fopen('php://temp', 'r+');
+        foreach ($this->reportRows($report) as $row) {
+            $row = array_map(static function ($value) {
+                if (is_string($value) && preg_match('/^[=+@\-\t\r]/', $value)) {
+                    return "'" . $value;
+                }
+                return $value;
+            }, $row);
+            fputcsv($stream, $row, ',', '"', '\\');
+        }
+        rewind($stream);
+        $csv = "\xEF\xBB\xBF" . stream_get_contents($stream);
+        fclose($stream);
+
+        return Response::make($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    private function downloadPerformanceReportPdf(array $report, string $filename)
+    {
+        $pdf = Pdf::loadView('reports.performance', ['report' => $report])
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download($filename);
+    }
+
+    private function downloadPerformanceReportWord(array $report, string $filename)
+    {
+        $word = new PhpWord();
+        $word->setDefaultFontName('Aptos');
+        $word->setDefaultFontSize(10);
+        $section = $word->addSection(['marginTop' => 900, 'marginBottom' => 900]);
+        $section->addTitle('ReliefLink Performance Report', 1);
+        $section->addText('Reporting period: ' . str_replace('_', ' ', ucfirst($report['period'])));
+        $section->addText('Generated: ' . now()->format('Y-m-d H:i:s'));
+        $section->addTitle('Performance Summary', 2);
+
+        $summary = $section->addTable(['borderSize' => 4, 'borderColor' => 'D6E2F1', 'cellMargin' => 80]);
+        foreach (array_slice($this->reportRows($report), 1, 11) as $row) {
+            $summary->addRow();
+            $summary->addCell(4800, ['bgColor' => 'F1F5FB'])->addText((string) $row[0], ['bold' => true]);
+            $summary->addCell(4000)->addText((string) ($row[1] ?? ''));
+        }
+
+        $section->addTitle('Category Balance & Distribution', 2);
+        $table = $section->addTable(['borderSize' => 4, 'borderColor' => 'D6E2F1', 'cellMargin' => 70]);
+        $headers = ['Category', 'Donated', 'Requested', 'Balance', 'Fulfilled', 'Coverage'];
+        $table->addRow();
+        foreach ($headers as $header) {
+            $table->addCell(1500, ['bgColor' => '1E3A5F'])->addText($header, ['bold' => true, 'color' => 'FFFFFF']);
+        }
+        foreach (array_slice($this->reportRows($report), 14) as $row) {
+            $table->addRow();
+            foreach ($row as $index => $value) {
+                $table->addCell($index === 0 ? 2200 : 1300)->addText((string) $value . ($index === 5 ? '%' : ''));
+            }
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'relieflink-report-');
+        if ($path === false) {
+            throw new \RuntimeException('Could not prepare the Word report for download.');
+        }
+
+        try {
+            // PHPWord's bundled PCLZip writer supports environments where the
+            // optional PHP zip extension has not been enabled.
+            Settings::setZipClass(Settings::PCLZIP);
+            IOFactory::createWriter($word, 'Word2007')->save($path);
+            return response()->download($path, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ])->deleteFileAfterSend(true);
+        } catch (\Throwable $exception) {
+            @unlink($path);
+            report($exception);
+            return response()->json(['message' => 'Could not generate the Word report.'], 500);
+        }
     }
 
     private function activityQuery(Request $request)

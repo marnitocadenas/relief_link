@@ -590,6 +590,72 @@ textarea.field {
     0 4px 8px rgba(34, 197, 94, 0.1);
 }
 
+.report-export-menu {
+  position: fixed;
+  z-index: 10060;
+  width: min(13rem, calc(100vw - 1.5rem));
+  padding: 0.375rem;
+  overflow: auto;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 0.875rem;
+  background: var(--white);
+  color: var(--blue);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.2);
+}
+
+.report-export-option {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--blue);
+  text-align: left;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.report-export-option:hover:not(:disabled),
+.report-export-option:focus-visible {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--blue-dark);
+  outline: none;
+}
+
+.report-export-option:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--blue-light);
+}
+
+.report-export-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+html.dark .report-export-menu {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #141C28;
+  color: #CBD5E1;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+
+html.dark .report-export-option {
+  color: #CBD5E1;
+}
+
+html.dark .report-export-option:hover:not(:disabled),
+html.dark .report-export-option:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+html.dark .report-export-option:focus-visible {
+  box-shadow: inset 0 0 0 2px #60A5FA;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .btn-success:hover:not(:disabled) {
     background: var(--green-dark);

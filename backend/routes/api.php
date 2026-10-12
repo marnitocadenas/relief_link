@@ -78,6 +78,7 @@ Route::middleware(['auth:sanctum', 'active-account'])->group(function () {
         Route::get('export-csv', [AdminController::class, 'exportReportCsv']);
 
         Route::middleware('role:admin')->group(function () {
+            Route::get('reports/export', [AdminController::class, 'exportPerformanceReport']);
             Route::get('settings', [SystemSettingsController::class, 'show']);
             Route::put('settings', [SystemSettingsController::class, 'update']);
             Route::get('users', [AdminController::class, 'users']);

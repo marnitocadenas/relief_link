@@ -7183,7 +7183,12 @@ function DonationManager(){
                             </button>
                         </div>
                         {viewingDonation.image_url && (
-                            <img src={viewingDonation.image_url} alt={viewingDonation.item_name} className="h-44 w-full rounded-xl object-cover border border-[#2563EB]"/>
+                            <img
+                                src={viewingDonation.image_url}
+                                alt={viewingDonation.item_name || 'Donation item'}
+                                className="h-44 w-full rounded-xl object-cover border border-[#2563EB]"
+                                onError={(event) => { event.currentTarget.hidden = true; }}
+                            />
                         )}
                         <div>
                             <span className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">{title(viewingDonation.category)}</span>
@@ -17318,6 +17323,10 @@ function Reports(){
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [timeframe, setTimeframe] = useState('all_time');
+    const [exportMenuOpen, setExportMenuOpen] = useState(false);
+    const [exportMenuPosition, setExportMenuPosition] = useState({ top: 0, left: 0 });
+    const exportButtonRef = useRef(null);
+    const exportMenuRef = useRef(null);
 
     const loadReport = () => {
         if (!['admin', 'staff'].includes(user?.role)) return;
@@ -17338,28 +17347,77 @@ function Reports(){
         loadReport();
     }, [user, timeframe]);
 
+    useEffect(() => {
+        if (!exportMenuOpen) return undefined;
+
+        const positionMenu = () => {
+            const button = exportButtonRef.current;
+            const menu = exportMenuRef.current;
+            if (!button || !menu) return;
+            const rect = button.getBoundingClientRect();
+            const gap = 8;
+            const viewportPadding = 12;
+            const menuWidth = Math.min(208, window.innerWidth - viewportPadding * 2);
+            const menuHeight = menu.offsetHeight;
+            const below = window.innerHeight - rect.bottom - gap - viewportPadding;
+            const placeAbove = below < menuHeight && rect.top > below;
+            setExportMenuPosition({
+                top: placeAbove
+                    ? Math.max(viewportPadding, rect.top - menuHeight - gap)
+                    : Math.min(rect.bottom + gap, window.innerHeight - menuHeight - viewportPadding),
+                left: Math.max(viewportPadding, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - viewportPadding)),
+            });
+        };
+        const closeOnOutsideClick = (event) => {
+            if (!exportButtonRef.current?.contains(event.target) && !exportMenuRef.current?.contains(event.target)) {
+                setExportMenuOpen(false);
+            }
+        };
+        const closeOnEscape = (event) => {
+            if (event.key === 'Escape') {
+                setExportMenuOpen(false);
+                exportButtonRef.current?.focus();
+            }
+        };
+
+        positionMenu();
+        window.addEventListener('resize', positionMenu);
+        window.addEventListener('scroll', positionMenu, true);
+        document.addEventListener('pointerdown', closeOnOutsideClick);
+        document.addEventListener('keydown', closeOnEscape);
+        return () => {
+            window.removeEventListener('resize', positionMenu);
+            window.removeEventListener('scroll', positionMenu, true);
+            document.removeEventListener('pointerdown', closeOnOutsideClick);
+            document.removeEventListener('keydown', closeOnEscape);
+        };
+    }, [exportMenuOpen]);
+
     if (!['admin', 'staff'].includes(user?.role)) return <Navigate to={getRoleDashboard(user?.role)} replace/>;
 
-    const handleExportCSV = () => {
+    const handleExport = async (format) => {
         if (!report) return;
-        let csv = 'Category,Donated Quantity,Requested Quantity,Balance,Fulfillment Coverage %\n';
-        (report.category_balance || []).forEach(row => {
-            const donated = Number(row.donated_quantity || 0);
-            const requested = Number(row.requested_quantity || 0);
-            const balance = donated - requested;
-            const fulfilled = Number(row.fulfilled_quantity || 0);
-            const coverage = requested > 0 ? Math.min(100, Math.round((fulfilled / requested) * 100)) : 0;
-            csv += `"${row.category}",${donated},${requested},${balance},${coverage}%\n`;
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `ReliefLink_Performance_Report_${new Date().toISOString().slice(0,10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        setError('');
+        try {
+            const response = await api.get('/admin/reports/export', {
+                params: { period: timeframe, format },
+                responseType: 'blob',
+            });
+            const extension = format === 'word' ? 'docx' : format;
+            const disposition = response.headers['content-disposition'] || '';
+            const filename = disposition.match(/filename\*?=(?:UTF-8''|\")?([^\";]+)/i)?.[1]
+                || `ReliefLink_Performance_Report_${timeframe}_${new Date().toISOString().slice(0, 10)}.${extension}`;
+            const blobUrl = URL.createObjectURL(response.data);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = decodeURIComponent(filename.replace(/\"/g, ''));
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        } catch {
+            setError(`Could not export the ${format.toUpperCase()} report. Please try again.`);
+        }
     };
 
     const categories = report?.category_balance || [];
@@ -17393,10 +17451,50 @@ function Reports(){
                         <Icon name="activity"/>
                         <span className="ml-1 text-xs">Refresh Data</span>
                     </Button>
-                    <Button onClick={handleExportCSV} disabled={!report}>
-                        <Icon name="reports"/>
-                        <span className="ml-1 text-xs">Export CSV</span>
-                    </Button>
+                    <button
+                        ref={exportButtonRef}
+                        type="button"
+                        className="btn btn-primary flex items-center gap-2 text-xs"
+                        aria-haspopup="menu"
+                        aria-expanded={exportMenuOpen}
+                        aria-controls="report-export-menu"
+                        onClick={() => setExportMenuOpen((open) => !open)}
+                    >
+                            <Icon name="reports"/>
+                            <span>Export</span>
+                            <Icon name="chevronDown" size={14}/>
+                    </button>
+                    {exportMenuOpen && createPortal(
+                        <div
+                            id="report-export-menu"
+                            ref={exportMenuRef}
+                            className="report-export-menu"
+                            role="menu"
+                            aria-label="Export report format"
+                            style={{ top: exportMenuPosition.top, left: exportMenuPosition.left }}
+                        >
+                            {[
+                                ['csv', 'Export CSV'],
+                                ['pdf', 'Export PDF'],
+                                ['word', 'Export Word'],
+                            ].map(([format, label]) => (
+                                <button
+                                    key={format}
+                                    type="button"
+                                    role="menuitem"
+                                    className="report-export-option"
+                                    disabled={!report}
+                                    onClick={(event) => {
+                                        setExportMenuOpen(false);
+                                        handleExport(format);
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>,
+                        document.body
+                    )}
                 </div>
             </div>
 
@@ -17693,6 +17791,17 @@ function Activities(){
     const requestCount = summary.requests;
     const donationCount = summary.donations;
     const matchCount = summary.matches;
+    const targetTypeLabel = (subjectType) => {
+        const modelName = (subjectType || '').split('\\').pop();
+        const labels = {
+            User: 'User account',
+            AidRequest: 'Aid request',
+            Donation: 'Donation',
+            DonationMatch: 'Donation match',
+            system: 'System event',
+        };
+        return labels[modelName] || modelName.replace(/([a-z])([A-Z])/g, '$1 $2');
+    };
 
     const getActionCategory = actionStr => {
         const act = (actionStr || '').toLowerCase();
@@ -17934,15 +18043,19 @@ function Activities(){
                             </div>
                             {viewingLog.subject_type && (
                                 <div className="flex justify-between">
-                                    <span className="font-bold text-[#2563EB]/70">Target Model:</span>
-                                    <code className="text-xs font-extrabold text-[#2563EB]">{viewingLog.subject_type}</code>
+                                    <span className="font-bold text-[#2563EB]/70">Related Record:</span>
+                                    <span className="font-extrabold text-[#2563EB]">
+                                        {targetTypeLabel(viewingLog.subject_type)}{viewingLog.subject_id ? ` #${viewingLog.subject_id}` : ''}
+                                    </span>
                                 </div>
                             )}
-                            {viewingLog.subject_id && (
-                                <div className="flex justify-between">
-                                    <span className="font-bold text-[#2563EB]/70">Target Model ID:</span>
-                                    <span className="font-extrabold text-[#2563EB]">#{viewingLog.subject_id}</span>
-                                </div>
+                            {viewingLog.subject_type && viewingLog.subject_type !== 'system' && (
+                                <details className="pt-1 text-xs text-[#2563EB]/70">
+                                    <summary className="cursor-pointer font-semibold">Technical reference</summary>
+                                    <code className="mt-1 block break-all rounded-lg border border-[#2563EB]/15 bg-[#2563EB]/5 p-2 text-[#2563EB]">
+                                        {viewingLog.subject_type}{viewingLog.subject_id ? ` - ID ${viewingLog.subject_id}` : ''}
+                                    </code>
+                                </details>
                             )}
                             {viewingLog.metadata && Object.keys(viewingLog.metadata).length > 0 && (
                                 <div className="pt-2">
