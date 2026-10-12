@@ -452,24 +452,15 @@ function SidebarContent({ modules, user, location, isDark, toggleTheme }) {
                     onClick={toggleTheme}
                     role="switch"
                     aria-checked={isDark}
-                    className={`w-full rounded-xl border px-3 py-2.5 flex items-center gap-2.5 transition-colors duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 ${
-                        isDark
-                            ? 'border-white/20 bg-slate-950/35 hover:bg-slate-950/50 text-white'
-                            : 'border-white/20 bg-white/10 hover:bg-white/15 text-white'
-                    }`}
+                    data-state={isDark ? 'on' : 'off'}
+                    className="sidebar-theme-toggle"
                     aria-label={isDark ? 'Dark mode active. Switch to Light Mode' : 'Light mode active. Switch to Dark Mode'}
                     title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
-                    <SunMoon className="h-[18px] w-[18px] shrink-0 text-white/90" />
-                    <span className="min-w-0 flex-1 text-left text-sm font-semibold text-white">Dark mode</span>
-                    <span
-                        aria-hidden="true"
-                        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${isDark ? 'bg-blue-400' : 'bg-slate-950/30'}`}
-                    >
-                        <span
-                            className="absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200"
-                            style={{ transform: `translateX(${isDark ? 16 : 0}px)` }}
-                        />
+                    <SunMoon className="sidebar-theme-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
+                    <span className="sidebar-theme-title">Dark mode</span>
+                    <span className="sidebar-theme-switch" aria-hidden="true">
+                        <span className="sidebar-theme-thumb" />
                     </span>
                 </button>
             </div>
