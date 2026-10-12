@@ -26,11 +26,11 @@ class MatchController extends Controller
     public function schedule(Request $r, DonationMatch $match)
     {
         $this->authorize('manageHandoff', $match);
+        abort_unless($match->status === 'confirmed', 422, 'Confirm the match before scheduling the handoff.');
         $d = $r->validate([
             'handoff_scheduled_at' => 'required|date|after:now',
             'handoff_notes' => 'nullable|string|max:2000',
         ]);
-        if ($match->status === 'proposed') $d['status'] = 'confirmed';
         $d['verification_pin'] = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
         $d['pin_expires_at'] = now()->addDays(7);
         $d['pin_attempt_count'] = 0;

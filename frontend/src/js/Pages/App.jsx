@@ -323,6 +323,7 @@ const getModulesForRole = (role) => {
             { name: 'Request Verifications', path: '/staff/verifications', icon: 'approvals' },
             { name: 'Warehouse & Inventory', path: '/staff/inventory', icon: 'donation' },
             { name: 'Walk-In Relief Desk', path: '/staff/desk', icon: 'request' },
+            { name: 'Match Review', path: '/matches', icon: 'match' },
             { name: 'Support & Fulfillment', path: '/staff/handoffs', icon: 'fulfillment' },
             { name: 'Activity Log', path: '/staff/activity-log', icon: 'activity' },
         ];
@@ -6844,6 +6845,15 @@ function DonationManager(){
 
     useEffect(() => {
         load();
+        const refreshWhenVisible = () => {
+            if (document.visibilityState === 'visible') load();
+        };
+        window.addEventListener('focus', refreshWhenVisible);
+        document.addEventListener('visibilitychange', refreshWhenVisible);
+        return () => {
+            window.removeEventListener('focus', refreshWhenVisible);
+            document.removeEventListener('visibilitychange', refreshWhenVisible);
+        };
     }, [user]);
 
     if(!user) return <Navigate to="/login"/>;
@@ -6876,7 +6886,7 @@ function DonationManager(){
     const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     const totalCount = state.data.length;
-    const pendingCount = state.data.filter(d => d.status === 'proposed' || d.status?.includes('pending')).length;
+    const pendingCount = state.data.filter(d => ['pending_intake', 'proposed'].includes(d.status)).length;
     const matchedCount = state.data.filter(d => d.status === 'matched' || d.status === 'confirmed').length;
     const fulfilledCount = state.data.filter(d => d.status === 'fulfilled' || d.status === 'completed').length;
 
@@ -6936,7 +6946,7 @@ function DonationManager(){
 
                 <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Pending / Proposed</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Awaiting Intake / Proposed</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{pendingCount}</strong>
                     </div>
                     <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
@@ -7004,8 +7014,9 @@ function DonationManager(){
                         onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
                     >
                         <option value="all">All Statuses</option>
-                        <option value="proposed">Proposed</option>
-                        <option value="pending_match">Pending Match</option>
+                        <option value="pending_intake">Awaiting Staff Intake</option>
+                        <option value="pending_match">Available for Matching</option>
+                        <option value="proposed">Match Proposed</option>
                         <option value="matched">Matched</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="fulfilled">Fulfilled</option>
@@ -8387,7 +8398,9 @@ function Matches(){
                     <p className="eyebrow staff-module-badge">CONNECTION PROGRESS</p>
                     <h1 className="page-title">Matches with Meaning</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
-                        Authorize, schedule, and track matches connecting campus resource donations with verified campus needs.
+                        {user.role === 'staff'
+                            ? 'Review and confirm proposed pairings, schedule campus pickup, then verify the PIN at handoff.'
+                            : 'Authorize, schedule, and track matches connecting campus resource donations with verified campus needs.'}
                     </p>
                 </div>
                 {user.role === 'admin' && (
@@ -8595,7 +8608,7 @@ function Matches(){
                                 </Button>
 
                                 <div className="flex flex-wrap items-center gap-2">
-                                    {user.role === 'admin' && x.status === 'proposed' && (
+                                    {['admin', 'staff'].includes(user.role) && x.status === 'proposed' && (
                                         <>
                                             <Button loading={working} onClick={() => setConfirmingMatch(x)}>
                                                 <Icon name="check"/>
@@ -8611,10 +8624,6 @@ function Matches(){
                                         <>
                                             <Button variant="secondary" onClick={() => setSchedule(x)}>
                                                 <span className="text-xs">Schedule Handoff</span>
-                                            </Button>
-                                            <Button loading={working} onClick={() => action(() => api.patch(`/matches/${x.id}/complete`))}>
-                                                <Icon name="check"/>
-                                                <span className="ml-1 text-xs">Confirm Completion</span>
                                             </Button>
                                         </>
                                     )}
@@ -8719,7 +8728,7 @@ function Matches(){
                         </div>
 
                         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                            {user.role === 'admin' && viewingMatch.status === 'proposed' && (
+                            {['admin', 'staff'].includes(user.role) && viewingMatch.status === 'proposed' && (
                                 <div className="flex items-center gap-2">
                                     <Button loading={working} onClick={() => { setConfirmingMatch(viewingMatch); setViewingMatch(null); }}>
                                         <Icon name="check"/>
@@ -10957,7 +10966,25 @@ function StaffHandoffDispatch() {
                                     </td>
                                 </tr>
                             ) : (
-                                filtered.map((m) => (
+                                filtered.map((m) => {
+                                    const scheduledAt = m.handoff_scheduled_at ? new Date(m.handoff_scheduled_at) : null;
+                                    const pinExpired = !!m.pin_expires_at && new Date(m.pin_expires_at) < new Date();
+                                    const scheduleIsFuture = scheduledAt && scheduledAt > new Date();
+                                    const handoffBlockedReason = m.pin_locked_at
+                                        ? 'PIN locked — contact a supervisor'
+                                        : pinExpired
+                                            ? 'PIN expired — reschedule pickup'
+                                            : m.status !== 'confirmed'
+                                                ? 'Waiting for match confirmation'
+                                                : !scheduledAt
+                                                    ? 'Schedule pickup first'
+                                                    : scheduleIsFuture
+                                                        ? `Scheduled for ${scheduledAt.toLocaleString()}`
+                                                        : !m.pin_expires_at
+                                                            ? 'Reschedule to issue a pickup PIN'
+                                                            : '';
+                                    const handoffReady = !handoffBlockedReason;
+                                    return (
                                     <tr key={m.id}>
                                         <td>
                                             <strong className="block text-xs font-bold text-[#2563EB]">
@@ -10977,7 +11004,9 @@ function StaffHandoffDispatch() {
                                             </span>
                                         </td>
                                         <td>
-                                            <span className={`staff-dispatch-readiness-badge inline-flex rounded px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${m.pin_locked_at || (m.pin_expires_at && new Date(m.pin_expires_at)<new Date()) ? 'staff-dispatch-readiness-warning bg-amber-500 text-white' : 'staff-dispatch-readiness-ready bg-[#22C55E] text-white'}`}>{m.pin_locked_at ? 'PIN locked' : m.pin_expires_at && new Date(m.pin_expires_at)<new Date() ? 'PIN expired' : 'PIN awaiting entry'}</span>
+                                            <span className={`staff-dispatch-readiness-badge inline-flex rounded px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${handoffReady ? 'staff-dispatch-readiness-ready bg-[#22C55E] text-white' : 'staff-dispatch-readiness-warning bg-amber-500 text-white'}`}>
+                                                {handoffReady ? 'PIN awaiting entry' : handoffBlockedReason}
+                                            </span>
                                             <p className="staff-dispatch-readiness-note mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} · ID check required</p>
                                         </td>
                                         <td>
@@ -10985,13 +11014,18 @@ function StaffHandoffDispatch() {
                                         </td>
                                         <td>
                                             <div className="flex items-center justify-center">
-                                                <Button variant="secondary" onClick={() => openPinModal(m)}>
-                                                    <Icon name="check" size={14}/><span className="ml-1 text-xs">Verify PIN & Handoff</span>
-                                                </Button>
+                                                {handoffReady ? (
+                                                    <Button variant="secondary" onClick={() => openPinModal(m)}>
+                                                        <Icon name="check" size={14}/><span className="ml-1 text-xs">Verify PIN & Handoff</span>
+                                                    </Button>
+                                                ) : (
+                                                    <span className="max-w-40 text-center text-[10px] font-bold text-amber-700">{handoffBlockedReason}</span>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
-                                ))
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
@@ -11078,6 +11112,15 @@ function DonorDashboard(){
 
     useEffect(() => {
         loadData();
+        const refreshWhenVisible = () => {
+            if (document.visibilityState === 'visible') loadData();
+        };
+        window.addEventListener('focus', refreshWhenVisible);
+        document.addEventListener('visibilitychange', refreshWhenVisible);
+        return () => {
+            window.removeEventListener('focus', refreshWhenVisible);
+            document.removeEventListener('visibilitychange', refreshWhenVisible);
+        };
     }, []);
 
     const activeMatches = matches.filter(m => m.status === 'proposed' || m.status === 'confirmed');
@@ -11113,6 +11156,7 @@ function DonorDashboard(){
 
     let filteredDonations = donations.filter(d => {
         const matchesStatus = statusFilter === 'all' ||
+            (statusFilter === 'intake' && d.status === 'pending_intake') ||
             (statusFilter === 'pending' && d.status === 'pending_match') ||
             (statusFilter === 'active' && d.status === 'matched') ||
             (statusFilter === 'completed' && (d.status === 'completed' || d.status === 'fulfilled'));
@@ -11352,6 +11396,7 @@ function DonorDashboard(){
                     <div className="flex flex-wrap items-center gap-2">
                         {[
                             {key:'all',label:`All (${donations.length})`},
+                            {key:'intake',label:`Awaiting Intake (${donations.filter(d => d.status === 'pending_intake').length})`},
                             {key:'pending',label:`Available (${pendingMatchCount})`},
                             {key:'active',label:`Matched (${matchedCount})`},
                             {key:'completed',label:`Completed (${completedCount})`}
@@ -12875,7 +12920,7 @@ function DonorNeeds() {
                                 </div>
                                 <h3 className="text-base font-extrabold text-[#2563EB]">Donation Submitted Successfully!</h3>
                                 <p className="mt-2 text-xs text-[#2563EB] max-w-xs mx-auto">
-                                    Your donation has been created and logged in the system. It will now be processed to fulfill this campus need.
+                                    Your donation is linked to this request. Campus staff must verify it first; then the matching process prioritizes this need. An administrator confirms any proposed match before handoff.
                                 </p>
                                 <div className="mt-6 flex justify-center gap-3">
                                     <Button variant="primary" onClick={() => setDonatingRequest(null)}>
