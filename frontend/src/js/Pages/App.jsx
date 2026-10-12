@@ -377,7 +377,7 @@ function Sidebar() {
     if (!user) return null;
 
     const modules = getModulesForRole(user.role);
-    const isDarkActive = isDark && ['admin', 'staff'].includes(user.role);
+    const isDarkActive = isDark;
 
     return (
         <aside className={`fixed left-0 top-0 flex h-screen w-64 shrink-0 flex-col border-r z-30 overflow-hidden ${
@@ -429,7 +429,7 @@ function SidebarContent({ modules, user, location, isDark, toggleTheme }) {
                         <NavLink
                             key={m.name}
                             to={m.path}
-                            className={`flex items-center gap-2 rounded-xl py-2 text-base font-medium no-underline transition-colors ${['admin', 'staff'].includes(user.role) ? 'admin-sidebar-link' : ''} px-2 ${
+                            className={`sidebar-link flex items-center gap-2 rounded-xl py-2 text-base font-medium no-underline transition-colors px-2 ${
                                 isActive
                                     ? isDark
                                         ? 'bg-white/15 text-white shadow-sm ring-1 ring-white/10'
@@ -446,35 +446,24 @@ function SidebarContent({ modules, user, location, isDark, toggleTheme }) {
                 })}
             </nav>
 
-            {['admin', 'staff'].includes(user.role) && (
-                <div className="mt-auto pt-3 border-t border-white/15">
-                    <button
-                        type="button"
-                        onClick={toggleTheme}
-                        role="switch"
-                        aria-checked={isDark}
-                        className={`w-full rounded-xl border px-3 py-2.5 flex items-center gap-2.5 transition-colors duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 ${
-                            isDark
-                                ? 'border-white/20 bg-slate-950/35 hover:bg-slate-950/50 text-white'
-                                : 'border-white/20 bg-white/10 hover:bg-white/15 text-white'
-                        }`}
-                        aria-label={isDark ? 'Dark mode active. Switch to Light Mode' : 'Light mode active. Switch to Dark Mode'}
-                        title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                    >
-                        <SunMoon className="h-[18px] w-[18px] shrink-0 text-white/90" />
-                        <span className="min-w-0 flex-1 text-left text-sm font-semibold text-white">Dark mode</span>
-                        <span
-                            aria-hidden="true"
-                            className={`relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${isDark ? 'bg-blue-400' : 'bg-slate-950/30'}`}
-                        >
-                            <span
-                                className="absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200"
-                                style={{ transform: `translateX(${isDark ? 16 : 0}px)` }}
-                            />
-                        </span>
-                    </button>
-                </div>
-            )}
+            <div className="mt-auto pt-3 border-t border-white/15">
+                <button
+                    type="button"
+                    onClick={toggleTheme}
+                    role="switch"
+                    aria-checked={isDark}
+                    data-state={isDark ? 'on' : 'off'}
+                    className="sidebar-theme-toggle"
+                    aria-label={isDark ? 'Dark mode active. Switch to Light Mode' : 'Light mode active. Switch to Dark Mode'}
+                    title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                >
+                    <SunMoon className="sidebar-theme-icon" size={17} strokeWidth={1.8} aria-hidden="true" />
+                    <span className="sidebar-theme-title">Dark mode</span>
+                    <span className="sidebar-theme-switch" aria-hidden="true">
+                        <span className="sidebar-theme-thumb" />
+                    </span>
+                </button>
+            </div>
         </div>
     );
 }
@@ -581,7 +570,7 @@ function Header() {
     const { isDark } = useTheme();
     const location = useLocation();
     const [publicMenuOpen, setPublicMenuOpen] = useState(false);
-    const isDarkActive = isDark && ['admin', 'staff'].includes(user?.role);
+    const isDarkActive = Boolean(isDark && user);
 
     // Hide top navigation header section on all authentication pages
     const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
@@ -3607,9 +3596,11 @@ function DonorDonationForm() {
 
     return (
         <main className="page max-w-4xl">
-            <p className="eyebrow">SHARE A RESOURCE</p>
-            <h1 className="page-title">List something useful</h1>
-            <p className="page-copy">Complete the details below so ReliefLink can connect the right people quickly.</p>
+            <div className="admin-module-hero">
+                <p className="eyebrow">SHARE A RESOURCE</p>
+                <h1 className="page-title">List something useful</h1>
+                <p className="page-copy">Complete the details below so ReliefLink can connect the right people quickly.</p>
+            </div>
 
             <form className="mt-8 grid gap-6" onSubmit={handleReviewClick} noValidate>
                 {/* Section 1: Item Details */}
@@ -4380,7 +4371,7 @@ function BeneficiaryRequestForm() {
 
     return (
         <main className="page max-w-4xl space-y-6">
-            <div>
+            <div className="admin-module-hero">
                 <p className="eyebrow">BENEFICIARY WORKSPACE</p>
                 <h1 className="page-title">Create Support Request</h1>
                 <p className="page-copy">
@@ -8257,9 +8248,11 @@ function List({kind}){
 
     return (
         <main className="page">
-            <p className="eyebrow">Your ReliefLink workspace</p>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-                <h1 className="page-title">{labels[kind]}</h1>
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <p className="eyebrow">Your ReliefLink workspace</p>
+                    <h1 className="page-title">{labels[kind]}</h1>
+                </div>
             </div>
             <Error>{state.error}</Error>
             <div className="mt-8">
@@ -11139,7 +11132,7 @@ function DonorDashboard(){
     return (
         <main className="page space-y-8">
             {/* Header Banner */}
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow">DONOR WORKSPACE</p>
                     <h1 className="page-title">Welcome back, {user?.name}</h1>
@@ -11644,11 +11637,13 @@ function BeneficiaryDashboard() {
 
     return (
         <main className="page max-w-7xl">
-            <p className="eyebrow">BENEFICIARY WORKSPACE</p>
-            <h1 className="page-title">Hello, {user?.name || 'Beneficiary'}</h1>
-            <p className="page-copy">
-                Track your support requests, view match updates, and arrange handoffs.
-            </p>
+            <div className="admin-module-hero">
+                <p className="eyebrow">BENEFICIARY WORKSPACE</p>
+                <h1 className="page-title">Hello, {user?.name || 'Beneficiary'}</h1>
+                <p className="page-copy">
+                    Track your support requests, view match updates, and arrange handoffs.
+                </p>
+            </div>
 
             {error && <Error>{error}</Error>}
 
@@ -12415,11 +12410,13 @@ function DonorNeeds() {
 
     return (
         <main className="page max-w-7xl">
-            <p className="eyebrow">COMMUNITY IMPACT</p>
-            <h1 className="page-title">Requests & Campus Needs</h1>
-            <p className="page-copy">
-                Explore verified campus needs and offer physical goods or financial assistance. Financial contributions are coordinated with campus staff; ReliefLink does not process payments.
-            </p>
+            <div className="admin-module-hero">
+                <p className="eyebrow">COMMUNITY IMPACT</p>
+                <h1 className="page-title">Requests & Campus Needs</h1>
+                <p className="page-copy">
+                    Explore verified campus needs and offer physical goods or financial assistance. Financial contributions are coordinated with campus staff; ReliefLink does not process payments.
+                </p>
+            </div>
 
             {/* Controls Bar: Search, Filters & Sorting */}
             <div className="panel mt-8 p-4 sm:p-6 space-y-4">
@@ -13264,11 +13261,13 @@ function FulfillmentPage({ role }) {
 
     return (
         <main className="page max-w-7xl">
-            <p className="eyebrow">{isDonor ? 'DONATION DELIVERY' : 'SUPPORT ARRIVAL'}</p>
-            <h1 className="page-title">{isDonor ? 'Fulfillment & Handoffs' : 'Support Fulfillment'}</h1>
-            <p className="page-copy">
-                Track active resource deliveries, schedule meeting times, and confirm handoff completion.
-            </p>
+            <div className="admin-module-hero">
+                <p className="eyebrow">{isDonor ? 'DONATION DELIVERY' : 'SUPPORT ARRIVAL'}</p>
+                <h1 className="page-title">{isDonor ? 'Fulfillment & Handoffs' : 'Support Fulfillment'}</h1>
+                <p className="page-copy">
+                    Track active resource deliveries, schedule meeting times, and confirm handoff completion.
+                </p>
+            </div>
 
             {/* Action Feedback Banner */}
             {actionMessage && (
@@ -13923,11 +13922,13 @@ function HistoryPage({ role }) {
 
     return (
         <main className="page max-w-7xl">
-            <p className="eyebrow">HISTORICAL ARCHIVE</p>
-            <h1 className="page-title">{isDonor ? 'Donation History' : 'Request History'}</h1>
-            <p className="page-copy">
-                View your past {isDonor ? 'donations' : 'aid requests'} and historical activity records.
-            </p>
+            <div className="admin-module-hero">
+                <p className="eyebrow">HISTORICAL ARCHIVE</p>
+                <h1 className="page-title">{isDonor ? 'Donation History' : 'Request History'}</h1>
+                <p className="page-copy">
+                    View your past {isDonor ? 'donations' : 'aid requests'} and historical activity records.
+                </p>
+            </div>
 
             {/* Summary KPI Statistics Grid */}
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -18520,7 +18521,7 @@ export default function App() {
     const { user, loading } = useAuth();
     const { isDark } = useTheme();
     const location = useLocation();
-    const isDarkActive = isDark && ['admin', 'staff'].includes(user?.role);
+    const isDarkActive = Boolean(isDark && user);
 
     return (
         <div className={`min-h-screen ${isDarkActive ? 'dark theme-dark bg-[#0F141C] text-[#E2E8F0]' : 'bg-white text-[#1E293B]'} ${user?.role === 'admin' ? 'admin-app' : user ? 'member-app' : ''}`}>
