@@ -8,7 +8,15 @@ use Illuminate\Auth\Access\Response;
 
 class DonationMatchPolicy
 {
-    public function manageHandoff(User $user, DonationMatch $match): bool { return in_array($user->id, [$match->donation->donor_id, $match->request->beneficiary_id], true) && in_array($match->status, ['proposed', 'confirmed'], true); }
+    public function manageHandoff(User $user, DonationMatch $match): bool
+    {
+        if (!in_array($match->status, ['proposed', 'confirmed'], true)) {
+            return false;
+        }
+
+        return in_array($user->role, ['admin', 'staff'], true)
+            || in_array($user->id, [$match->donation->donor_id, $match->request->beneficiary_id], true);
+    }
     /**
      * Determine whether the user can view any models.
      */

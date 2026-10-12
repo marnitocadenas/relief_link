@@ -1026,7 +1026,7 @@ class AdminController extends Controller
         return new DonationResource($donation->load('donor'));
     }
 
-    public function updateDonationStock(Request $r, Donation $donation)
+    public function updateDonationStock(Request $r, Donation $donation, MatchingService $s)
     {
         $quantityBefore = $donation->quantity;
         $d = $r->validate([
@@ -1075,6 +1075,11 @@ class AdminController extends Controller
             if ($donation->donor) {
                 AlertService::send($donation->donor, 'Campus staff received and verified your donation. It is now available for matching.', 'donation', 'normal', $donation, '/donations');
             }
+            if (SystemSettings::get('auto_matching')) {
+                // The donor's preferred request is prioritized by MatchingService.
+                // Matching creates a proposal; an administrator still confirms it.
+                $s->run();
+            }
         }
         if (array_key_exists('quantity', $d) && $quantityBefore !== $donation->quantity) {
             InventoryMovement::create([
@@ -1094,7 +1099,7 @@ class AdminController extends Controller
             'status_after' => $donation->status,
         ]);
 
-        return new DonationResource($donation->load('donor'));
+        return new DonationResource($donation->refresh()->load('donor'));
     }
 
     public function matches()

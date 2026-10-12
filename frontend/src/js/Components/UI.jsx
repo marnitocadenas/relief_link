@@ -274,10 +274,16 @@ export const Button = ({
 export const Badge = ({ status }) => {
   const complete = ['fulfilled', 'matched', 'confirmed', 'approved', 'high'].includes(status);
   const icon = complete ? 'check' : status === 'rejected' ? 'decline' : 'activity';
+  const labels = {
+    pending_intake: 'Awaiting staff intake',
+    pending_match: 'Available for matching',
+    pending_review: 'Pending review',
+    proposed: 'Match proposed',
+  };
   return (
     <span className={`badge ${complete ? 'badge-success' : 'badge-primary'}`}>
       <Icon name={icon} size={12} />
-      {status?.replace('_', ' ')}
+      {labels[status] || status?.replaceAll('_', ' ')}
     </span>
   );
 };
