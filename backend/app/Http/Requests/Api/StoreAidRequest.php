@@ -33,7 +33,7 @@ class StoreAidRequest extends FormRequest
 
         if ($type === 'financial') {
             $rules['amount_requested'] = 'required|numeric|min:1';
-            $rules['currency'] = 'nullable|string|max:10';
+            $rules['currency'] = 'nullable|in:PHP';
             $rules['purpose_of_funds'] = 'required|string|max:2000';
             $rules['quantity_needed'] = 'nullable|integer|min:1';
             $rules['unit'] = 'nullable|string|max:50';
@@ -43,7 +43,7 @@ class StoreAidRequest extends FormRequest
             $rules['unit'] = 'nullable|string|max:50';
             $rules['item_details'] = 'nullable|string|max:255';
             $rules['amount_requested'] = 'nullable|numeric|min:0';
-            $rules['currency'] = 'nullable|string|max:10';
+            $rules['currency'] = 'nullable|in:PHP';
             $rules['purpose_of_funds'] = 'nullable|string|max:2000';
         }
 

@@ -37,7 +37,7 @@ class AidRequestResource extends JsonResource
             'quantity_needed' => (int) $this->quantity_needed,
             'unit' => $this->unit,
             'amount_requested' => $this->amount_requested ? (float) $this->amount_requested : null,
-            'currency' => $this->currency ?? 'PHP',
+            'currency' => 'PHP',
             'purpose_of_funds' => $this->purpose_of_funds,
             'urgency' => $this->urgency,
             'justification' => $this->justification,

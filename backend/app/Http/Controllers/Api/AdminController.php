@@ -672,7 +672,7 @@ class AdminController extends Controller
             'unit'                      => 'nullable|string|max:50',
             'item_details'              => 'nullable|string|max:255',
             'amount_requested'          => 'nullable|numeric|min:0',
-            'currency'                  => 'nullable|string|max:10',
+            'currency'                  => 'nullable|in:PHP',
             'purpose_of_funds'          => 'nullable|string|max:2000',
             'justification'             => 'nullable|string|max:2000',
             'preferred_assistance_date' => 'nullable|string|max:100',
@@ -683,6 +683,9 @@ class AdminController extends Controller
         ]);
 
         $activeMatches = $aidRequest->matches()->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->get();
+        if (($validated['request_type'] ?? $aidRequest->request_type) === 'financial') {
+            $validated['currency'] = 'PHP';
+        }
         if ($activeMatches->isNotEmpty()) {
             $allocationChanged = (isset($validated['category']) && $validated['category'] !== $aidRequest->category)
                 || (isset($validated['request_type']) && $validated['request_type'] !== $aidRequest->request_type);

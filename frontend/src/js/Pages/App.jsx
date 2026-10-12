@@ -4180,7 +4180,7 @@ function BeneficiaryRequestForm() {
         if (savedDraft) {
             try {
                 const parsed = JSON.parse(savedDraft);
-                setF((prev) => ({ ...prev, ...parsed, image: null }));
+                setF((prev) => ({ ...prev, ...parsed, currency: 'PHP', image: null }));
                 setActionBanner('Restored your previously saved request draft.');
                 setTimeout(() => setActionBanner(''), 4000);
             } catch (err) {
@@ -4273,9 +4273,9 @@ function BeneficiaryRequestForm() {
     const itemDetailsValid = categoryValid && (isPhysical ? !!f.item_details.trim() : true);
     const amountValid = categoryValid && (isFinancial ? Number(f.amount_requested) > 0 : true);
 
-    // Step 4 (Physical: Quantity / Financial: Currency)
+    // Step 4 (Physical: Quantity / Financial: fixed PHP currency)
     const quantityValid = itemDetailsValid && (isPhysical ? Number(f.quantity_needed) >= 1 : true);
-    const currencyValid = amountValid && (isFinancial ? !!f.currency.trim() : true);
+    const currencyValid = amountValid;
 
     // Step 5 (Physical: Unit / Financial: Purpose of Funds)
     const unitValid = quantityValid && (isPhysical ? !!f.unit.trim() : true);
@@ -4322,7 +4322,7 @@ function BeneficiaryRequestForm() {
                 data.append('availability_window', f.availability_window);
             } else {
                 data.append('amount_requested', f.amount_requested);
-                data.append('currency', f.currency.trim());
+                data.append('currency', 'PHP');
                 data.append('purpose_of_funds', f.purpose_of_funds.trim());
                 data.append('quantity_needed', 1);
             }
@@ -4348,7 +4348,7 @@ function BeneficiaryRequestForm() {
                 quantity_needed: f.quantity_needed,
                 unit: f.unit,
                 amount_requested: f.amount_requested,
-                currency: f.currency,
+                currency: 'PHP',
                 purpose_of_funds: f.purpose_of_funds,
                 urgency: f.urgency,
                 justification: f.justification,
@@ -4749,28 +4749,21 @@ function BeneficiaryRequestForm() {
                                         <label htmlFor="req_currency" className="block text-xs font-bold text-[#2563EB] mb-1">
                                             Currency
                                         </label>
-                                        <DropdownSelect
-                                            id="req_currency"
-                                            disabled={!amountValid}
-                                            className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
-                                            value={f.currency}
-                                            onChange={(e) => setF({ ...f, currency: e.target.value })}
-                                        >
-                                            <option value="PHP">PHP (₱ - Philippine Peso)</option>
-                                            <option value="USD">USD ($ - US Dollar)</option>
-                                        </DropdownSelect>
+                                        <div id="req_currency" role="status" aria-label="Currency fixed to PHP" className="field w-full bg-[#2563EB]/5 text-xs font-bold text-[#2563EB]">
+                                            PHP (₱ - Philippine Peso)
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div>
                                     <label htmlFor="req_purpose" className="block text-xs font-bold text-[#2563EB] mb-1">
-                                        Purpose of Funds
+                                        What will the funds be used for?
                                     </label>
                                     <input
                                         id="req_purpose"
                                         type="text"
                                         disabled={!currencyValid}
-                                        placeholder="e.g. Final semester tuition assessment balance, monthly bus transit pass..."
+                                        placeholder="e.g. Tuition balance, books, transportation, or medicine"
                                         className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
                                         value={f.purpose_of_funds}
                                         onChange={(e) => setF({ ...f, purpose_of_funds: e.target.value })}
@@ -4785,7 +4778,7 @@ function BeneficiaryRequestForm() {
                         <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
                             <Icon name="history" className="text-[#2563EB]" size={18} />
                             <h2 className="text-base font-extrabold text-[#2563EB]">
-                                4. Reason for Request & Schedule
+                                4. Why You Need Assistance & Schedule
                             </h2>
                         </div>
 
@@ -4793,7 +4786,7 @@ function BeneficiaryRequestForm() {
                             <div>
                                 <div className="flex items-center justify-between mb-1">
                                     <label htmlFor="req_just" className="block text-xs font-bold text-[#2563EB]">
-                                        Reason for Request
+                                        Why are you requesting assistance?
                                     </label>
                                     <span className="text-[11px] font-bold text-[#2563EB]/70">
                                         {f.justification.length} / 2000 chars
@@ -4804,7 +4797,7 @@ function BeneficiaryRequestForm() {
                                     rows={3}
                                     maxLength={2000}
                                     disabled={!step5Passed}
-                                    placeholder="Please describe why this assistance is needed and how it will support your academic/personal wellbeing..."
+                                    placeholder="Briefly explain your situation and why you need support."
                                     className="field w-full text-xs font-semibold disabled:opacity-50 disabled:bg-gray-100"
                                     value={f.justification}
                                     onChange={(e) => setF({ ...f, justification: e.target.value })}
@@ -5011,11 +5004,11 @@ function BeneficiaryRequestForm() {
                                     <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
                                         <span className="opacity-70">Amount Requested</span>
                                         <span className="text-[#22C55E]">
-                                            {f.currency} {Number(f.amount_requested).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            ₱ PHP {Number(f.amount_requested).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                         </span>
                                     </div>
                                     <div className="flex justify-between border-b border-[#2563EB]/20 pb-2">
-                                        <span className="opacity-70">Purpose of Funds</span>
+                                        <span className="opacity-70">What the funds will be used for</span>
                                         <span>{f.purpose_of_funds}</span>
                                     </div>
                                 </>
@@ -5029,7 +5022,7 @@ function BeneficiaryRequestForm() {
                                 <span>{f.preferred_assistance_date}</span>
                             </div>
                             <div>
-                                <span className="opacity-70 block">Reason for Request</span>
+                                <span className="opacity-70 block">Why assistance is needed</span>
                                 <p className="font-normal text-[11px] whitespace-pre-wrap">{f.justification}</p>
                             </div>
                         </div>
@@ -7292,7 +7285,7 @@ function RequestEditModal({ item, close, done }) {
         unit:                      item.unit || '',
         item_details:              item.item_details || '',
         amount_requested:          item.amount_requested || '',
-        currency:                  item.currency || 'PHP',
+        currency:                  'PHP',
         purpose_of_funds:          item.purpose_of_funds || '',
         justification:             item.justification || '',
         preferred_assistance_date: item.preferred_assistance_date || '',
@@ -7315,7 +7308,7 @@ function RequestEditModal({ item, close, done }) {
         if (!isFinancial && !f.quantity_needed)  { setError('Quantity needed is required.'); return; }
         setSaving(true);
         try {
-            await api.put(`/admin/requests/${item.id}/content`, f);
+            await api.put(`/admin/requests/${item.id}/content`, { ...f, currency: 'PHP' });
             await done();
             close();
         } catch (err) {
@@ -7422,20 +7415,15 @@ function RequestEditModal({ item, close, done }) {
                         </div>
                         <div>
                             {lbl('Currency')}
-                            <DropdownSelect className="field w-full text-xs font-semibold" value={f.currency}
-                                onChange={e => setF({...f, currency: e.target.value})}>
-                                <option value="PHP">PHP</option>
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                            </DropdownSelect>
+                            <div role="status" aria-label="Currency fixed to PHP" className="field w-full bg-[#2563EB]/5 text-xs font-bold text-[#2563EB]">PHP (₱ - Philippine Peso)</div>
                         </div>
                     </div>
                 )}
                 {isFinancial && (
                     <div>
-                        {lbl('Purpose of Funds')}
+                        {lbl('What will the funds be used for?')}
                         <textarea rows={2} className="field w-full text-xs font-semibold"
-                            placeholder="Explain how the funds will be used"
+                            placeholder="e.g. Tuition balance, books, transportation, or medicine"
                             value={f.purpose_of_funds}
                             onChange={e => setF({...f, purpose_of_funds: e.target.value})}/>
                     </div>
@@ -7443,9 +7431,9 @@ function RequestEditModal({ item, close, done }) {
 
                 {/* Shared fields */}
                 <div>
-                    {lbl('Justification / Reason for Request')}
+                    {lbl('Why are you requesting assistance?')}
                     <textarea rows={2} className="field w-full text-xs font-semibold"
-                        placeholder="Why is this assistance needed?"
+                        placeholder="Briefly explain the situation and why support is needed."
                         value={f.justification}
                         onChange={e => setF({...f, justification: e.target.value})}/>
                 </div>
@@ -8071,7 +8059,7 @@ function RequestManager(){
                                     </div>
                                     {viewingRequest.purpose_of_funds && (
                                         <div className="pt-1">
-                                            <span className="text-[#2563EB]/70 block mb-1">Purpose of Funds:</span>
+                                            <span className="text-[#2563EB]/70 block mb-1">What the funds will be used for:</span>
                                             <p className="rounded border border-[#2563EB]/20 bg-white p-3 text-sm font-normal leading-relaxed break-words">{viewingRequest.purpose_of_funds}</p>
                                         </div>
                                     )}
@@ -8098,7 +8086,7 @@ function RequestManager(){
                             </div>
                             {viewingRequest.justification && (
                                 <div className="pt-1">
-                                    <span className="text-[#2563EB]/70 block mb-1">Reason for Request:</span>
+                                    <span className="text-[#2563EB]/70 block mb-1">Why assistance is needed:</span>
                                     <p className="rounded border border-[#2563EB]/20 bg-white p-3 text-sm font-normal leading-relaxed whitespace-pre-wrap break-words">{viewingRequest.justification}</p>
                                 </div>
                             )}
@@ -9993,10 +9981,23 @@ function StaffVerificationDesk() {
                                 <p className="text-[11px] text-[#2563EB]/70">{inspecting.beneficiary?.email}</p>
                             </div>
                             <div>
-                                <span className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Requested Category & Quantity</span>
-                                <p className="font-extrabold text-sm text-[#2563EB]">{inspecting.category} ({inspecting.quantity_needed} units)</p>
+                                <span className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">{inspecting.request_type === 'financial' ? 'Financial Assistance' : 'Requested Category & Quantity'}</span>
+                                <p className="font-extrabold text-sm text-[#2563EB]">
+                                    {inspecting.request_type === 'financial'
+                                        ? `${inspecting.currency || 'PHP'} ${Number(inspecting.amount_requested || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                                        : `${inspecting.category} (${inspecting.quantity_needed} ${inspecting.unit || 'units'})`}
+                                </p>
                             </div>
                         </div>
+
+                        {inspecting.request_type === 'financial' && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                <span className="text-[10px] font-extrabold uppercase text-amber-800">What the funds will be used for</span>
+                                <p className="mt-1 whitespace-pre-wrap break-words text-xs font-semibold leading-relaxed text-amber-950">
+                                    {inspecting.purpose_of_funds || 'No purpose of funds provided.'}
+                                </p>
+                            </div>
+                        )}
 
                         <div>
                             <span className="text-[10px] font-extrabold uppercase text-[#2563EB]/60">Student Justification Note</span>
@@ -11649,7 +11650,7 @@ function BeneficiaryDashboard() {
             <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link to="/request-help" className="no-underline">
                     <Button variant="primary" className="py-2.5 px-4 text-xs font-extrabold">
-                        <Icon name="plus" className="mr-1.5" size={14} /> + Create New Request
+                        <Icon name="plus" className="mr-1.5" size={14} />Create New Request
                     </Button>
                 </Link>
                 <Link to="/requests" className="no-underline">
@@ -12133,7 +12134,7 @@ function BeneficiaryDashboard() {
 
                             {selectedRequestDetails.purpose_of_funds && (
                                 <div className="border-b border-[#2563EB]/30 pb-2">
-                                    <span className="text-[#2563EB] opacity-70 block">Purpose of Funds</span>
+                                    <span className="text-[#2563EB] opacity-70 block">What the funds will be used for</span>
                                     <p className="font-normal text-[#2563EB]">{selectedRequestDetails.purpose_of_funds}</p>
                                 </div>
                             )}
@@ -12147,7 +12148,7 @@ function BeneficiaryDashboard() {
 
                             {selectedRequestDetails.justification && (
                                 <div className="border-b border-[#2563EB]/30 pb-2">
-                                    <span className="text-[#2563EB] opacity-70 block">Reason for Request / Justification</span>
+                                    <span className="text-[#2563EB] opacity-70 block">Why assistance is needed</span>
                                     <p className="font-normal whitespace-pre-wrap">{selectedRequestDetails.justification}</p>
                                 </div>
                             )}
@@ -12603,7 +12604,7 @@ function DonorNeeds() {
                                                 </div>
                                                 {req.purpose_of_funds && (
                                                     <p className="mt-1 text-xs font-bold text-[#22C55E] truncate">
-                                                        Purpose: {req.purpose_of_funds}
+                                                        Funds for: {req.purpose_of_funds}
                                                     </p>
                                                 )}
                                                 {req.preferred_assistance_date && (
@@ -12782,7 +12783,7 @@ function DonorNeeds() {
 
                             {selectedDetailRequest.purpose_of_funds && (
                                 <div>
-                                    <span className="text-[#2563EB] opacity-70 block mb-1">Purpose of Funds</span>
+                                    <span className="text-[#2563EB] opacity-70 block mb-1">What the funds will be used for</span>
                                     <p className="rounded-xl border border-[#2563EB] bg-white p-3 font-medium text-[#22C55E]">
                                         {selectedDetailRequest.purpose_of_funds}
                                     </p>
@@ -12799,7 +12800,7 @@ function DonorNeeds() {
                             )}
 
                             <div>
-                                <span className="text-[#2563EB] opacity-70 block mb-1">Reason for Request / Justification</span>
+                                <span className="text-[#2563EB] opacity-70 block mb-1">Why assistance is needed</span>
                                 <p className="rounded-xl border border-[#2563EB] bg-white p-3 font-normal leading-relaxed whitespace-pre-wrap">
                                     {selectedDetailRequest.justification}
                                 </p>
