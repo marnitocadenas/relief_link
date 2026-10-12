@@ -57,7 +57,7 @@ const truncateDonationText = (value, maxLength) => {
 const labels = {
     donations: 'Donations',
     requests: 'Support Requests',
-    users: 'Members & Accounts',
+    users: 'Users',
 };
 
 function DropdownSelect({ children, className = '', menuClassName = '', menuWidth, menuAlign = 'left', value, defaultValue = '', onChange, id, name, form, required, disabled, ...buttonProps }) {
@@ -307,6 +307,7 @@ const getModulesForRole = (role) => {
             { name: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
             { name: 'Users', path: '/users', icon: 'users' },
             { name: 'Donations', path: '/donations', icon: 'donation' },
+            { name: 'Warehouse & Inventory', path: '/staff/inventory', icon: 'donation' },
             { name: 'Requests', path: '/requests', icon: 'request' },
             { name: 'Matching', path: '/matches', icon: 'match' },
             { name: 'Categories', path: '/admin/categories', icon: 'categories' },
@@ -5137,7 +5138,7 @@ function EditModal({item, kind, admin, close, done}){
     const STUDENT_ID_REGEX_MODAL = /^\d{2}-\d{6}$/;
     const EMAIL_REGEX_MODAL = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    // Debounced real-time uniqueness checks for Beneficiary (Add New Member)
+    // Debounced real-time uniqueness checks for Beneficiary (Add New User)
     useEffect(() => {
         // Only run checks when creating a new Beneficiary (not editing)
         if (item.id || f.role !== 'beneficiary') {
@@ -5494,7 +5495,7 @@ function EditModal({item, kind, admin, close, done}){
         <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
             <form noValidate className="panel no-hover w-full max-w-xl p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl rounded-2xl" onSubmit={save}>
                 <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
-                    <h2 className="text-lg font-extrabold text-[#2563EB]">{item.id ? (isUserKind ? 'Edit Member Account' : 'Edit entry') : (isUserKind ? 'Add New Member' : 'Add entry')}</h2>
+                    <h2 className="text-lg font-extrabold text-[#2563EB]">{item.id ? (isUserKind ? 'Edit User Account' : 'Edit entry') : (isUserKind ? 'Add New User' : 'Add entry')}</h2>
                     <button type="button" title="Close" className="nav-link p-1 panel-modal-close" onClick={close}><Icon name="close"/></button>
                 </div>
 
@@ -6187,7 +6188,7 @@ function PeopleManager(){
                         : current.data,
                     error: savedMember?.id
                         ? 'The change was saved, but the list could not be refreshed. The saved record is shown below.'
-                        : 'Could not load members.',
+                : 'Could not load users.',
                 }));
                 return [];
             });
@@ -6204,8 +6205,8 @@ function PeopleManager(){
                 staff: 'Staff',
                 beneficiary: 'Beneficiary',
                 donor: 'Donor',
-            }[savedMember?.role] || 'Member';
-            setSuccessMessage(`${accountType} account for "${savedMember?.name || 'new member'}" was created successfully.`);
+            }[savedMember?.role] || 'User';
+            setSuccessMessage(`${accountType} account for "${savedMember?.name || 'new user'}" was created successfully.`);
             setTimeout(() => setSuccessMessage(''), 7000);
         } else {
             // Keep the edited record visible even if its changed email or role
@@ -6214,7 +6215,7 @@ function PeopleManager(){
             setRoleFilter('all');
             setSortBy('name_asc');
             setPage(1);
-            setSuccessMessage(`Changes to "${savedMember?.name || 'member account'}" were saved successfully.`);
+            setSuccessMessage(`Changes to "${savedMember?.name || 'user account'}" were saved successfully.`);
             setTimeout(() => setSuccessMessage(''), 7000);
             if (savedMember?.id === user?.id) {
                 void refresh().catch(() => {});
@@ -6272,7 +6273,7 @@ function PeopleManager(){
         try {
             await api.delete(`/admin/users/${deletingUser.id}`);
             setDeletingUser(null);
-            setSuccessMessage(`Member account "${memberName}" was successfully deleted.`);
+            setSuccessMessage(`User account "${memberName}" was successfully deleted.`);
             setTimeout(() => setSuccessMessage(''), 5000);
             load();
         } catch(e) {
@@ -6293,7 +6294,7 @@ function PeopleManager(){
                 ...s,
                 data: s.data.map(member => member.id === userItem.id ? { ...member, ...updated } : member),
             }));
-            setSuccessMessage(`Member account "${userItem.name}" was ${isActive ? 'deactivated' : 'reactivated'}.`);
+            setSuccessMessage(`User account "${userItem.name}" was ${isActive ? 'deactivated' : 'reactivated'}.`);
             setTimeout(() => setSuccessMessage(''), 5000);
         } catch (e) {
             setState(s => ({ ...s, error: e.response?.data?.message || 'Could not update account status.' }));
@@ -6307,13 +6308,13 @@ function PeopleManager(){
             <div className="admin-module-hero flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <p className="eyebrow staff-module-badge">ADMINISTRATOR WORKSPACE</p>
-                    <h1 className="page-title">Members & Accounts</h1>
+                    <h1 className="page-title">Users</h1>
                     <p className="mt-1 text-sm font-semibold text-[#2563EB]/80">
                         Manage user roles, inspect account profiles, and authorize campus accounts.
                     </p>
                 </div>
                 <Button onClick={() => setEditing({ id: null, role: '', account_type: '', beneficiary_type: 'student', first_name: '', middle_name: '', last_name: '', name: '', email: '', contact_number: '', campus_id: '', student_id_number: '', school_email: '', department: '', course: '', year_level: '', country: '', country_code: '', address_line_1: '', state_province_region: '', city_municipality: '', district_local_area: '', postal_zip_code: '', valid_id_type: '', valid_id_number: '', password: '', password_confirmation: '' })}>
-                    <Icon name="plus"/><span className="ml-2">Add New Member</span>
+                    <Icon name="plus"/><span className="ml-2">Add New User</span>
                 </Button>
             </div>
 
@@ -6328,7 +6329,7 @@ function PeopleManager(){
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <article className="panel no-hover p-5 flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Members</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#2563EB]/70">Total Users</p>
                         <strong className="mt-1 block text-3xl font-extrabold text-[#2563EB]">{totalMembers}</strong>
                     </div>
                     <span className="grid h-10 w-10 place-items-center rounded-xl border border-[#2563EB] bg-white text-[#2563EB]">
@@ -6369,7 +6370,7 @@ function PeopleManager(){
 
             <div className="panel no-hover p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex-1 min-w-[240px]">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Members</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Users</label>
                     <input
                         type="text"
                         placeholder="Search by name, email, contact, ID number, or role..."
@@ -6412,11 +6413,11 @@ function PeopleManager(){
 
             {state.loading ? (
                 <div className="panel no-hover p-8 text-center font-bold text-[#2563EB]">
-                    Loading member accounts...
+                    Loading users...
                 </div>
             ) : !filtered.length ? (
                 <div className="panel no-hover p-8 text-center">
-                    <p className="font-bold text-[#2563EB] text-lg">No member accounts found.</p>
+                    <p className="font-bold text-[#2563EB] text-lg">No users found.</p>
                     <p className="text-xs text-[#2563EB]/80 font-semibold mt-1">Try adjusting your search query or role filter.</p>
                 </div>
             ) : (
@@ -6425,7 +6426,7 @@ function PeopleManager(){
                         <table className="data-table user-management-table">
                             <thead>
                                 <tr>
-                                    <th>Member</th>
+                                    <th>User</th>
                                     <th>Email Address</th>
                                     <th>Account Type</th>
                                     <th>Status</th>
@@ -6487,16 +6488,16 @@ function PeopleManager(){
                                                         <Icon name="eye"/>
                                                         <span className="ml-1 text-xs">View</span>
                                                     </Button>
-                                                    <Button title="Edit Member" variant="secondary" onClick={() => setEditing(userItem)}>
+                                                    <Button title="Edit User" variant="secondary" onClick={() => setEditing(userItem)}>
                                                         <Icon name="edit"/>
                                                         <span className="ml-1 text-xs">Edit</span>
                                                     </Button>
-                                                    <Button title="Delete Member" variant="secondary" onClick={() => setDeletingUser(userItem)}>
+                                                    <Button title="Delete User" variant="secondary" onClick={() => setDeletingUser(userItem)}>
                                                         <Icon name="delete"/>
                                                         <span className="ml-1 text-xs">Delete</span>
                                                     </Button>
                                                     <Button
-                                                        title={userItem.is_active ? 'Deactivate Member' : 'Reactivate Member'}
+                                                        title={userItem.is_active ? 'Deactivate User' : 'Reactivate User'}
                                                         variant="secondary"
                                                         className="user-management-status-button"
                                                         loading={updatingStatus === userItem.id}
@@ -6557,11 +6558,11 @@ function PeopleManager(){
                                             <Icon name="eye"/>
                                             <span className="ml-1 text-xs">View</span>
                                         </Button>
-                                        <Button title="Edit Member" variant="secondary" onClick={() => setEditing(userItem)}>
+                                        <Button title="Edit User" variant="secondary" onClick={() => setEditing(userItem)}>
                                             <Icon name="edit"/>
                                             <span className="ml-1 text-xs">Edit</span>
                                         </Button>
-                                        <Button title="Delete Member" variant="secondary" onClick={() => setDeletingUser(userItem)}>
+                                        <Button title="Delete User" variant="secondary" onClick={() => setDeletingUser(userItem)}>
                                             <Icon name="delete"/>
                                             <span className="ml-1 text-xs">Delete</span>
                                         </Button>
@@ -6574,7 +6575,7 @@ function PeopleManager(){
                     {
                         <div className="panel no-hover p-4 flex flex-wrap items-center justify-between gap-4">
                             <p className="text-xs font-bold text-[#2563EB]">
-                                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} members
+                                Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} users
                             </p>
                             <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-start sm:gap-2">
                                 <Button
@@ -6604,8 +6605,8 @@ function PeopleManager(){
                 <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-lg p-6 bg-white space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
-                            <h2 className="text-lg font-extrabold text-[#2563EB]">Member Account Details</h2>
-                            <button className="nav-link p-1 panel-modal-close" onClick={() => setViewingUser(null)} title="Close" aria-label="Close member account details">
+                            <h2 className="text-lg font-extrabold text-[#2563EB]">User Details</h2>
+                            <button className="nav-link p-1 panel-modal-close" onClick={() => setViewingUser(null)} title="Close" aria-label="Close user details">
                                 <Icon name="close"/>
                             </button>
                         </div>
@@ -6765,13 +6766,13 @@ function PeopleManager(){
                 <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-md p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
-                            <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete Member</h2>
+                            <h2 className="text-lg font-extrabold text-[#2563EB]">Confirm Delete User</h2>
                             <button className="nav-link p-1 panel-modal-close" onClick={() => setDeletingUser(null)} title="Close">
                                 <Icon name="close"/>
                             </button>
                         </div>
                         <p className="text-sm font-semibold text-[#2563EB]">
-                            Are you sure you want to delete member <strong>{deletingUser.name}</strong> (<em>{deletingUser.email}</em>)?
+                            Are you sure you want to delete user <strong>{deletingUser.name}</strong> (<em>{deletingUser.email}</em>)?
                         </p>
                         <p className="text-xs font-bold text-[#2563EB]/70">
                             This action cannot be undone and will permanently remove this account from the ReliefLink directory.
@@ -9163,7 +9164,7 @@ function Dashboard(){
                                 <h3 className="text-base font-extrabold text-[#2563EB]">Community Directory Overview</h3>
                                 <p className="text-xs text-[#2563EB]/70 font-semibold mt-0.5">Active user distribution across roles</p>
                             </div>
-                            <NavLink to="/users" className="text-xs font-extrabold text-[#2563EB] no-underline">Manage All Members &rarr;</NavLink>
+                            <NavLink to="/users" className="text-xs font-extrabold text-[#2563EB] no-underline">Manage All Users &rarr;</NavLink>
                         </div>
                         <div className="admin-directory-grid mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             <div className="admin-directory-card rounded-xl p-4 flex items-center justify-between bg-white">
