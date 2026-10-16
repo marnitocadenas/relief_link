@@ -6484,6 +6484,33 @@ html.dark .member-app:has(.staff-activity-page) .bg-white {
   background-color: #141C28 !important;
 }
 
+/* Neutral Tailwind utilities appear in shared member components such as Empty,
+   request details, and history cards. Keep them readable on dark member pages. */
+html.dark .member-app .text-gray-900,
+html.dark .member-app .text-gray-800 {
+  color: #E2E8F0 !important;
+}
+
+html.dark .member-app .text-gray-700,
+html.dark .member-app .text-gray-600 {
+  color: #CBD5E1 !important;
+}
+
+html.dark .member-app .text-gray-500 {
+  color: #94A3B8 !important;
+}
+
+html.dark .member-app .bg-gray-50,
+html.dark .member-app .bg-gray-100 {
+  background-color: #1B293B !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+}
+
+html.dark .member-app .card-lg .bg-blue-100 {
+  background-color: #1D3556 !important;
+  color: #93C5FD !important;
+}
+
 html.dark .page span.grid.bg-white,
 html.dark .staff-workspace span.grid.bg-white,
 html.dark .admin-app span.grid.bg-white {
@@ -6609,32 +6636,32 @@ html.dark .profile-account-info-grid > div {
 }
 
 /* Request Management's View modal uses softer dark surfaces for its record cards. */
-html.dark .admin-app .request-management-view-modal {
+html.dark :is(.admin-app, .member-app) .request-management-view-modal {
   background-color: #141C28 !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
   color: #E2E8F0 !important;
 }
 
-html.dark .admin-app .request-management-view-modal .bg-gray-50,
-html.dark .admin-app .request-management-view-modal .bg-white {
+html.dark :is(.admin-app, .member-app) .request-management-view-modal .bg-gray-50,
+html.dark :is(.admin-app, .member-app) .request-management-view-modal .bg-white {
   background-color: #1B293B !important;
   border-color: rgba(148, 163, 184, 0.18) !important;
 }
 
-html.dark .admin-app .request-management-view-modal .text-gray-800 {
+html.dark :is(.admin-app, .member-app) .request-management-view-modal .text-gray-800 {
   color: #E2E8F0 !important;
 }
 
-html.dark .admin-app .request-management-view-modal .request-management-view-type-physical {
+html.dark :is(.admin-app, .member-app) .request-management-view-modal .request-management-view-type-physical {
   background-color: #1D3556 !important;
   color: #BFDBFE !important;
 }
 
-html.dark .admin-app .request-management-view-modal .request-management-view-type-financial {
+html.dark :is(.admin-app, .member-app) .request-management-view-modal .request-management-view-type-financial {
   background-color: #3A2A10 !important;
   color: #FCD34D !important;
 }
 
-html.dark .admin-app .request-management-view-modal .text-red-600 {
+html.dark :is(.admin-app, .member-app) .request-management-view-modal .text-red-600 {
   color: #FCA5A5 !important;
 }
