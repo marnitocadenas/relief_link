@@ -5497,7 +5497,7 @@ function EditModal({item, kind, admin, close, done}){
 
     return (
         <div className="fixed inset-0 z-40 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
-            <form noValidate className="panel no-hover w-full max-w-xl p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl rounded-2xl" onSubmit={save}>
+            <form id={isUserKind ? 'admin-user-form' : undefined} name={isUserKind ? 'admin-user-form' : undefined} autoComplete={isUserKind ? 'on' : undefined} noValidate className="panel no-hover w-full max-w-xl p-6 bg-white max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl rounded-2xl" onSubmit={save}>
                 <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                     <h2 className="text-lg font-extrabold text-[#2563EB]">{item.id ? (isUserKind ? 'Edit User Account' : 'Edit entry') : (isUserKind ? 'Add New User' : 'Add entry')}</h2>
                     <button type="button" title="Close" className="nav-link p-1 panel-modal-close" onClick={close}><Icon name="close"/></button>
@@ -5603,8 +5603,11 @@ function EditModal({item, kind, admin, close, done}){
                                     </label>
                                     <input
                                         id="modal_admin_email"
+                                        name="email"
                                         required
                                         type="email"
+                                        autoComplete="username"
+                                        inputMode="email"
                                         className="field w-full text-xs font-semibold"
                                         placeholder="Enter email address"
                                         value={f.email || ''}
@@ -5720,8 +5723,11 @@ function EditModal({item, kind, admin, close, done}){
                                         </label>
                                         <input
                                             id="modal_ben_email"
+                                            name="email"
                                             required
                                             type="email"
+                                            autoComplete="username"
+                                            inputMode="email"
                                             className={`field w-full text-xs font-semibold ${
                                                 !emailEmpty && (!emailFormatValid || emailStatus === 'taken' || emailStatus === 'error')
                                                     ? 'border-red-500 ring-1 ring-red-500'
@@ -5857,8 +5863,11 @@ function EditModal({item, kind, admin, close, done}){
                                     </label>
                                     <input
                                         id="modal_donor_email"
+                                        name="email"
                                         required
                                         type="email"
+                                        autoComplete="username"
+                                        inputMode="email"
                                         className="field w-full text-xs font-semibold"
                                         placeholder="e.g. donor@example.com"
                                         value={f.email || ''}
@@ -6012,6 +6021,7 @@ function EditModal({item, kind, admin, close, done}){
                             <div className="relative">
                                 <input
                                     id="modal_pwd"
+                                    name="password"
                                     required={!item.id}
                                     type="password"
                                     minLength={8}
@@ -6073,6 +6083,7 @@ function EditModal({item, kind, admin, close, done}){
                             <div className="relative">
                                 <input
                                     id="modal_confirm_pwd"
+                                    name="password_confirmation"
                                     required={!item.id || !!f.password}
                                     type="password"
                                     minLength={8}
@@ -6146,14 +6157,23 @@ function PeopleManager(){
 
     useEffect(() => {
         if (!viewingPhotoUrl) return undefined;
-        document.documentElement.classList.add('profile-photo-viewer-open');
+        const root = document.documentElement;
+        const body = document.body;
+        const previousRootOverflow = root.style.overflow;
+        const previousBodyOverflow = body.style.overflow;
+
+        root.classList.add('profile-photo-viewer-open');
+        root.style.overflow = 'hidden';
+        body.style.overflow = 'hidden';
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') setViewingPhotoUrl(null);
         };
         document.addEventListener('keydown', handleKeyDown);
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
-            document.documentElement.classList.remove('profile-photo-viewer-open');
+            root.classList.remove('profile-photo-viewer-open');
+            root.style.overflow = previousRootOverflow;
+            body.style.overflow = previousBodyOverflow;
         };
     }, [viewingPhotoUrl]);
 
@@ -16598,6 +16618,7 @@ function Profile(){
     const[isPhotoViewerOpen,setIsPhotoViewerOpen]=useState(false);
     const[showPassword,setShowPassword]=useState(false);
     const[showConfirm,setShowConfirm]=useState(false);
+    const[passwordEntryEnabled,setPasswordEntryEnabled]=useState(false);
     const[activeSection,setActiveSection]=useState('personal');
     const fileRef=useRef(null);
 
@@ -16641,14 +16662,23 @@ function Profile(){
 
     useEffect(()=>{
         if(!isPhotoViewerOpen) return undefined;
-        document.documentElement.classList.add('profile-photo-viewer-open');
+        const root = document.documentElement;
+        const body = document.body;
+        const previousRootOverflow = root.style.overflow;
+        const previousBodyOverflow = body.style.overflow;
+
+        root.classList.add('profile-photo-viewer-open');
+        root.style.overflow='hidden';
+        body.style.overflow='hidden';
         const closeOnEscape=(event)=>{
             if(event.key==='Escape') setIsPhotoViewerOpen(false);
         };
         document.addEventListener('keydown',closeOnEscape);
         return()=>{
             document.removeEventListener('keydown',closeOnEscape);
-            document.documentElement.classList.remove('profile-photo-viewer-open');
+            root.classList.remove('profile-photo-viewer-open');
+            root.style.overflow=previousRootOverflow;
+            body.style.overflow=previousBodyOverflow;
         };
     },[isPhotoViewerOpen]);
 
@@ -16708,6 +16738,19 @@ function Profile(){
     const passwordsMatch=!f.password_confirmation||f.password===f.password_confirmation;
     const canSubmitPassword=!f.password||(f.password.length>=8&&passwordsMatch);
 
+    const openProfileSection=(section)=>{
+        if(section==='security' || activeSection==='security'){
+            // Password managers can otherwise treat an unnamed password field
+            // as a login field and autofill it when the tab is mounted. Clear
+            // it when leaving the tab too, so a profile save cannot submit it.
+            setF(prev=>({...prev,password:'',password_confirmation:''}));
+            setPasswordEntryEnabled(false);
+            setShowPassword(false);
+            setShowConfirm(false);
+        }
+        setActiveSection(section);
+    };
+
     const submit=async e=>{
         e.preventDefault();
         if(f.password&&f.password.length<8){
@@ -16755,6 +16798,7 @@ function Profile(){
             setMessage(photoFile?'Profile photo uploaded and saved successfully.':(photoRemoved?'Profile photo removed successfully.':'Profile updated successfully.'));
             setMessageType('success');
             setF(prev=>({...prev,password:'',password_confirmation:''}));
+            setPasswordEntryEnabled(false);
             setPhotoFile(null);
             setPhotoPreview(null);
             setPhotoRemoved(false);
@@ -16861,7 +16905,7 @@ function Profile(){
                                 ?'bg-[#2563EB] text-white border border-[#2563EB]'
                                 :'bg-white text-[#2563EB] border border-[#2563EB]/30 hover:bg-[#2563EB]/10'
                         }`}
-                        onClick={()=>setActiveSection(s.key)}
+                        onClick={()=>openProfileSection(s.key)}
                     >
                         <Icon name={s.icon} size={14}/>
                         {s.label}
@@ -17205,8 +17249,13 @@ function Profile(){
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">New Password</label>
                                     <input
+                                        id="profile_new_password"
+                                        name="profile_new_password"
                                         className="field w-full"
                                         type="password"
+                                        autoComplete="new-password"
+                                        readOnly={!passwordEntryEnabled}
+                                        onFocus={()=>setPasswordEntryEnabled(true)}
                                         placeholder="Enter new password"
                                         value={f.password}
                                         onChange={e=>setF({...f,password:e.target.value})}
@@ -17247,8 +17296,13 @@ function Profile(){
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1.5">Confirm New Password</label>
                                     <input
+                                        id="profile_confirm_new_password"
+                                        name="profile_confirm_new_password"
                                         className={`field w-full ${f.password_confirmation&&!passwordsMatch?'border-[#2563EB] bg-[#2563EB]/5':''}`}
                                         type="password"
+                                        autoComplete="new-password"
+                                        readOnly={!passwordEntryEnabled}
+                                        onFocus={()=>setPasswordEntryEnabled(true)}
                                         placeholder="Re-enter new password"
                                         value={f.password_confirmation}
                                         onChange={e=>setF({...f,password_confirmation:e.target.value})}

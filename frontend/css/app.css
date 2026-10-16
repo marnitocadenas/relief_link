@@ -6263,6 +6263,114 @@ html.dark :is(.member-app, .admin-app) main.staff-workspace.staff-inventory-page
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1), 0 6px 14px rgba(0, 0, 0, 0.22) !important;
 }
 
+/* Keep Warehouse & Inventory aligned with the shared Admin/Staff theme tokens. */
+html.dark main.staff-inventory-page {
+  color: #E2E8F0 !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-hero,
+html.dark main.staff-inventory-page .staff-inventory-hero h1,
+html.dark main.staff-inventory-page .staff-inventory-hero p,
+html.dark main.staff-inventory-page .staff-inventory-overview,
+html.dark main.staff-inventory-page .staff-inventory-overview h2,
+html.dark main.staff-inventory-page .staff-inventory-overview p,
+html.dark main.staff-inventory-page .staff-inventory-overview > button,
+html.dark main.staff-inventory-page .staff-inventory-filters label,
+html.dark main.staff-inventory-page .staff-inventory-summary > button,
+html.dark main.staff-inventory-page .staff-inventory-summary > button span,
+html.dark main.staff-inventory-page .staff-inventory-summary > button p {
+  color: #CBD5E1 !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-hero h1,
+html.dark main.staff-inventory-page .staff-inventory-overview h2,
+html.dark main.staff-inventory-page .staff-inventory-summary > button p:nth-child(2) {
+  color: #F8FAFC !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-summary > button {
+  background: #141C28 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22) !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-summary > button:hover {
+  background: #182333 !important;
+  border-color: rgba(96, 165, 250, 0.42) !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-overview,
+html.dark main.staff-inventory-page .staff-inventory-filters {
+  background: #141C28 !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-overview > button {
+  background: #182333 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #93C5FD !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-overview > button:hover {
+  background: #202F44 !important;
+  border-color: rgba(96, 165, 250, 0.4) !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-filters .dropdown-select-trigger {
+  color: #F8FAFC !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td strong,
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td .text-\[10px\],
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td .text-\[11px\],
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td span:not(.staff-inventory-condition-grade):not(.staff-inventory-stock-status-badge) {
+  color: #CBD5E1 !important;
+}
+
+html.dark main.staff-inventory-page .staff-inventory-table-wrap td:nth-child(3) span {
+  background: #1A2638 !important;
+  border-color: rgba(96, 165, 250, 0.22) !important;
+  color: #BFDBFE !important;
+}
+
+html.dark main.staff-inventory-page .modal-overlay .panel,
+html.dark main.staff-inventory-page .modal-overlay form.panel {
+  background: #141C28 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark main.staff-inventory-page .modal-overlay h3,
+html.dark main.staff-inventory-page .modal-overlay h4,
+html.dark main.staff-inventory-page .modal-overlay label,
+html.dark main.staff-inventory-page .modal-overlay p,
+html.dark main.staff-inventory-page .modal-overlay span {
+  color: #CBD5E1;
+}
+
+html.dark main.staff-inventory-page .modal-overlay h3 {
+  color: #F8FAFC !important;
+}
+
+html.dark main.staff-inventory-page .modal-overlay .bg-white,
+html.dark main.staff-inventory-page .modal-overlay .bg-\[\#2563EB\]\/5 {
+  background-color: #182333 !important;
+}
+
+html.dark main.staff-inventory-page .modal-overlay [class*="border-[#2563EB"] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark main.staff-inventory-page .modal-overlay .text-\[\#2563EB\],
+html.dark main.staff-inventory-page .modal-overlay [class*="text-[#2563EB]"] {
+  color: #A8B7CC !important;
+}
+
+html.dark main.staff-inventory-page .modal-overlay .text-\[\#22C55E\] {
+  color: #4ADE80 !important;
+}
+
 html.dark .btn-secondary,
 html.dark button.btn-secondary,
 html.dark .staff-dashboard-plain-action,
