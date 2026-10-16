@@ -1,6 +1,6 @@
 -- --------------------------------------------------------
 -- Host:                         127.0.0.1
--- Server version:               8.0.46 - MySQL Community Server - GPL
+-- Server version:               26.7.0 - MySQL Community Server - GPL
 -- Server OS:                    Win64
 -- HeidiSQL Version:             12.21.0.7344
 -- --------------------------------------------------------
@@ -16,15 +16,17 @@
 
 
 -- Dumping database structure for relief_link
+DROP DATABASE IF EXISTS `relief_link`;
 CREATE DATABASE IF NOT EXISTS `relief_link` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `relief_link`;
 
 -- Dumping structure for table relief_link.activity_logs
+DROP TABLE IF EXISTS `activity_logs`;
 CREATE TABLE IF NOT EXISTS `activity_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned DEFAULT NULL,
-  `action` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `subject_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `action` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `subject_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `subject_id` bigint unsigned DEFAULT NULL,
   `metadata` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -33,10 +35,10 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
   KEY `activity_logs_user_id_foreign` (`user_id`),
   KEY `activity_logs_subject_type_subject_id_index` (`subject_type`,`subject_id`),
   CONSTRAINT `activity_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=170 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=249 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.activity_logs: ~161 rows (approximately)
-INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `subject_type`, `subject_id`, `metadata`, `created_at`, `updated_at`) VALUES
+-- Dumping data for table relief_link.activity_logs: ~222 rows (approximately)
+INSERT IGNORE INTO `activity_logs` (`id`, `user_id`, `action`, `subject_type`, `subject_id`, `metadata`, `created_at`, `updated_at`) VALUES
 	(1, 1, 'deleted user', 'App\\Models\\User', 6, '[]', '2026-08-26 19:18:02', '2026-08-26 19:18:02'),
 	(2, 1, 'deleted user', 'App\\Models\\User', 10, '[]', '2026-08-26 19:18:45', '2026-08-26 19:18:45'),
 	(3, 1, 'deleted user', 'App\\Models\\User', 4, '[]', '2026-08-26 19:20:07', '2026-08-26 19:20:07'),
@@ -205,26 +207,105 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `subject_type`, `subject
 	(166, 1, 'deactivated user', 'App\\Models\\User', 48, '[]', '2026-10-08 05:53:56', '2026-10-08 05:53:56'),
 	(167, 1, 'reactivated user', 'App\\Models\\User', 48, '[]', '2026-10-08 05:53:58', '2026-10-08 05:53:58'),
 	(168, 1, 'approved support request', 'App\\Models\\AidRequest', 18, '{"checklist": []}', '2026-10-08 06:54:54', '2026-10-08 06:54:54'),
-	(169, 51, 'created donation', 'App\\Models\\Donation', 27, '[]', '2026-10-08 07:12:44', '2026-10-08 07:12:44');
+	(169, 51, 'created donation', 'App\\Models\\Donation', 27, '[]', '2026-10-08 07:12:44', '2026-10-08 07:12:44'),
+	(170, 2, 'logged walk-in aid request', 'App\\Models\\AidRequest', 19, '[]', '2026-10-09 20:56:23', '2026-10-09 20:56:23'),
+	(171, 2, 'logged walk-in aid request', 'App\\Models\\AidRequest', 20, '[]', '2026-10-09 21:07:15', '2026-10-09 21:07:15'),
+	(172, 2, 'instantly allocated walk-in match', 'App\\Models\\DonationMatch', 3, '[]', '2026-10-09 21:07:15', '2026-10-09 21:07:15'),
+	(173, 16, 'signed out', 'App\\Models\\User', 16, '[]', '2026-10-12 01:01:53', '2026-10-12 01:01:53'),
+	(176, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-12 01:16:16', '2026-10-12 01:16:16'),
+	(177, 2, 'signed out', 'App\\Models\\User', 2, '[]', '2026-10-12 01:18:35', '2026-10-12 01:18:35'),
+	(178, 59, 'created support request', 'App\\Models\\AidRequest', 23, '[]', '2026-10-12 01:18:55', '2026-10-12 01:18:55'),
+	(179, 16, 'signed in', 'App\\Models\\User', 16, '[]', '2026-10-12 01:21:08', '2026-10-12 01:21:08'),
+	(180, 16, 'approved support request', 'App\\Models\\AidRequest', 23, '{"checklist": [], "status_after": "approved", "status_before": "pending_review", "verification_state_after": "approved", "verification_state_before": "pending"}', '2026-10-12 01:21:33', '2026-10-12 01:21:33'),
+	(181, 16, 'signed out', 'App\\Models\\User', 16, '[]', '2026-10-12 01:22:05', '2026-10-12 01:22:05'),
+	(182, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-12 01:22:16', '2026-10-12 01:22:16'),
+	(183, 59, 'created support request', 'App\\Models\\AidRequest', 24, '[]', '2026-10-12 01:24:23', '2026-10-12 01:24:23'),
+	(184, 2, 'under_review support request', 'App\\Models\\AidRequest', 24, '{"checklist": [], "status_after": "under_review", "status_before": "pending_review", "verification_state_after": "under_review", "verification_state_before": "pending"}', '2026-10-12 01:25:34', '2026-10-12 01:25:34'),
+	(185, 2, 'rejected support request', 'App\\Models\\AidRequest', 24, '{"checklist": {"identity": true, "eligibility": true, "justification": true}, "status_after": "rejected", "status_before": "under_review", "verification_state_after": "rejected", "verification_state_before": "under_review"}', '2026-10-12 01:29:04', '2026-10-12 01:29:04'),
+	(186, 2, 'signed out', 'App\\Models\\User', 2, '[]', '2026-10-12 01:51:05', '2026-10-12 01:51:05'),
+	(187, 16, 'signed in', 'App\\Models\\User', 16, '[]', '2026-10-12 03:16:50', '2026-10-12 03:16:50'),
+	(188, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-12 03:31:59', '2026-10-12 03:31:59'),
+	(189, 16, 'signed out', 'App\\Models\\User', 16, '[]', '2026-10-12 04:05:45', '2026-10-12 04:05:45'),
+	(190, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-12 04:06:00', '2026-10-12 04:06:00'),
+	(191, 2, 'signed out', 'App\\Models\\User', 2, '[]', '2026-10-12 04:06:51', '2026-10-12 04:06:51'),
+	(192, 58, 'created donation', 'App\\Models\\Donation', 28, '[]', '2026-10-12 04:08:12', '2026-10-12 04:08:12'),
+	(193, 2, 'signed out', 'App\\Models\\User', 2, '[]', '2026-10-12 04:12:48', '2026-10-12 04:12:48'),
+	(194, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-12 04:15:02', '2026-10-12 04:15:02'),
+	(195, 2, 'signed out', 'App\\Models\\User', 2, '[]', '2026-10-12 04:19:00', '2026-10-12 04:19:00'),
+	(196, 16, 'signed in', 'App\\Models\\User', 16, '[]', '2026-10-12 04:19:06', '2026-10-12 04:19:06'),
+	(197, 16, 'signed out', 'App\\Models\\User', 16, '[]', '2026-10-12 04:21:50', '2026-10-12 04:21:50'),
+	(198, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-12 04:22:10', '2026-10-12 04:22:10'),
+	(199, 2, 'signed out', 'App\\Models\\User', 2, '[]', '2026-10-12 04:25:17', '2026-10-12 04:25:17'),
+	(200, 16, 'signed in', 'App\\Models\\User', 16, '[]', '2026-10-12 04:25:23', '2026-10-12 04:25:23'),
+	(201, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-12 04:27:51', '2026-10-12 04:27:51'),
+	(202, 16, 'signed in', 'App\\Models\\User', 16, '[]', '2026-10-12 04:32:21', '2026-10-12 04:32:21'),
+	(203, 16, 'signed out', 'App\\Models\\User', 16, '[]', '2026-10-12 04:33:25', '2026-10-12 04:33:25'),
+	(204, 59, 'created support request', 'App\\Models\\AidRequest', 25, '[]', '2026-10-12 05:31:39', '2026-10-12 05:31:39'),
+	(205, 2, 'under_review support request', 'App\\Models\\AidRequest', 25, '{"checklist": [], "status_after": "under_review", "status_before": "pending_review", "verification_state_after": "under_review", "verification_state_before": "pending"}', '2026-10-12 05:32:24', '2026-10-12 05:32:24'),
+	(206, 2, 'approved support request', 'App\\Models\\AidRequest', 25, '{"checklist": {"identity": true, "eligibility": false, "justification": false}, "status_after": "approved", "status_before": "under_review", "verification_state_after": "approved", "verification_state_before": "under_review"}', '2026-10-12 05:32:41', '2026-10-12 05:32:41'),
+	(207, 58, 'created donation', 'App\\Models\\Donation', 29, '[]', '2026-10-12 05:34:23', '2026-10-12 05:34:23'),
+	(208, 58, 'created donation', 'App\\Models\\Donation', 30, '[]', '2026-10-12 05:37:26', '2026-10-12 05:37:26'),
+	(209, 2, 'verified donation intake and released it for matching', 'App\\Models\\Donation', 30, '{"movement_type": "intake", "quantity_after": 1, "quantity_delta": 1}', '2026-10-12 05:38:49', '2026-10-12 05:38:49'),
+	(210, 2, 'updated inventory stock item', 'App\\Models\\Donation', 30, '{"status_after": "pending_match", "status_before": "pending_intake", "quantity_after": 1, "quantity_delta": 0, "quantity_before": 1}', '2026-10-12 05:38:52', '2026-10-12 05:38:52'),
+	(211, 2, 'verified donation intake and released it for matching', 'App\\Models\\Donation', 29, '{"movement_type": "intake", "quantity_after": 1, "quantity_delta": 1}', '2026-10-12 05:42:50', '2026-10-12 05:42:50'),
+	(212, 2, 'updated inventory stock item', 'App\\Models\\Donation', 29, '{"status_after": "pending_match", "status_before": "pending_intake", "quantity_after": 1, "quantity_delta": 0, "quantity_before": 1}', '2026-10-12 05:42:53', '2026-10-12 05:42:53'),
+	(213, 2, 'updated inventory stock item', 'App\\Models\\Donation', 30, '{"status_after": "pending_match", "status_before": "pending_match", "quantity_after": 1, "quantity_delta": 0, "quantity_before": 1}', '2026-10-12 05:48:19', '2026-10-12 05:48:19'),
+	(214, 58, 'created donation', 'App\\Models\\Donation', 31, '[]', '2026-10-12 05:51:20', '2026-10-12 05:51:20'),
+	(215, 58, 'created donation', 'App\\Models\\Donation', 32, '[]', '2026-10-12 05:58:22', '2026-10-12 05:58:22'),
+	(216, 2, 'updated inventory stock item', 'App\\Models\\Donation', 32, '{"status_after": "pending_intake", "status_before": "pending_intake", "quantity_after": 1, "quantity_delta": 0, "quantity_before": 1}', '2026-10-12 05:59:42', '2026-10-12 05:59:42'),
+	(217, 2, 'verified donation intake and released it for matching', 'App\\Models\\Donation', 32, '{"movement_type": "intake", "quantity_after": 1, "quantity_delta": 1}', '2026-10-12 05:59:45', '2026-10-12 05:59:45'),
+	(218, 2, 'updated inventory stock item', 'App\\Models\\Donation', 32, '{"status_after": "pending_match", "status_before": "pending_intake", "quantity_after": 1, "quantity_delta": 0, "quantity_before": 1}', '2026-10-12 06:00:01', '2026-10-12 06:00:01'),
+	(219, 2, 'confirmed match', 'App\\Models\\DonationMatch', 5, '{"status_after": "confirmed", "status_before": "proposed"}', '2026-10-12 06:28:25', '2026-10-12 06:28:25'),
+	(220, 59, 'scheduled handoff', 'App\\Models\\DonationMatch', 5, '[]', '2026-10-12 06:29:04', '2026-10-12 06:29:04'),
+	(221, 2, 'scheduled handoff', 'App\\Models\\DonationMatch', 5, '[]', '2026-10-12 06:29:35', '2026-10-12 06:29:35'),
+	(222, 16, 'confirmed match', 'App\\Models\\DonationMatch', 4, '{"status_after": "confirmed", "status_before": "proposed"}', '2026-10-12 06:34:21', '2026-10-12 06:34:21'),
+	(223, 16, 'scheduled handoff', 'App\\Models\\DonationMatch', 4, '[]', '2026-10-12 06:34:36', '2026-10-12 06:34:36'),
+	(224, 58, 'created donation', 'App\\Models\\Donation', 33, '[]', '2026-10-12 20:15:35', '2026-10-12 20:15:35'),
+	(225, 58, 'created donation', 'App\\Models\\Donation', 34, '[]', '2026-10-12 20:16:03', '2026-10-12 20:16:03'),
+	(226, 58, 'created donation', 'App\\Models\\Donation', 35, '[]', '2026-10-12 20:16:26', '2026-10-12 20:16:26'),
+	(227, 58, 'created donation', 'App\\Models\\Donation', 36, '[]', '2026-10-12 20:16:50', '2026-10-12 20:16:50'),
+	(228, 58, 'created donation', 'App\\Models\\Donation', 37, '[]', '2026-10-12 20:17:18', '2026-10-12 20:17:18'),
+	(229, 58, 'created donation', 'App\\Models\\Donation', 38, '[]', '2026-10-12 20:17:43', '2026-10-12 20:17:43'),
+	(230, 58, 'created donation', 'App\\Models\\Donation', 39, '[]', '2026-10-12 20:18:06', '2026-10-12 20:18:06'),
+	(231, 58, 'created donation', 'App\\Models\\Donation', 40, '[]', '2026-10-12 20:18:32', '2026-10-12 20:18:32'),
+	(232, 58, 'created donation', 'App\\Models\\Donation', 41, '[]', '2026-10-12 20:19:00', '2026-10-12 20:19:00'),
+	(233, 16, 'signed out', 'App\\Models\\User', 16, '[]', '2026-10-12 20:28:48', '2026-10-12 20:28:48'),
+	(234, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-12 20:32:58', '2026-10-12 20:32:58'),
+	(235, 2, 'completed handoff with PIN clearance', 'App\\Models\\DonationMatch', 5, '[]', '2026-10-12 20:33:44', '2026-10-12 20:33:44'),
+	(236, 16, 'signed in', 'App\\Models\\User', 16, '[]', '2026-10-15 22:58:17', '2026-10-15 22:58:17'),
+	(237, 2, 'signed in', 'App\\Models\\User', 2, '[]', '2026-10-15 23:17:14', '2026-10-15 23:17:14'),
+	(238, 16, 'deleted donation', 'App\\Models\\Donation', 18, '[]', '2026-10-15 23:23:21', '2026-10-15 23:23:21'),
+	(239, 16, 'deleted donation', 'App\\Models\\Donation', 17, '[]', '2026-10-15 23:23:24', '2026-10-15 23:23:24'),
+	(240, 16, 'deleted donation', 'App\\Models\\Donation', 16, '[]', '2026-10-15 23:23:26', '2026-10-15 23:23:26'),
+	(241, 16, 'deleted donation', 'App\\Models\\Donation', 15, '[]', '2026-10-15 23:23:28', '2026-10-15 23:23:28'),
+	(242, 16, 'deleted donation', 'App\\Models\\Donation', 14, '[]', '2026-10-15 23:23:30', '2026-10-15 23:23:30'),
+	(243, 16, 'deleted donation', 'App\\Models\\Donation', 13, '[]', '2026-10-15 23:23:32', '2026-10-15 23:23:32'),
+	(244, 16, 'deleted donation', 'App\\Models\\Donation', 12, '[]', '2026-10-15 23:23:34', '2026-10-15 23:23:34'),
+	(245, 16, 'deleted donation', 'App\\Models\\Donation', 11, '[]', '2026-10-15 23:23:36', '2026-10-15 23:23:36'),
+	(246, 16, 'deleted donation', 'App\\Models\\Donation', 19, '[]', '2026-10-15 23:23:38', '2026-10-15 23:23:38'),
+	(247, 16, 'deleted donation', 'App\\Models\\Donation', 20, '[]', '2026-10-15 23:23:40', '2026-10-15 23:23:40'),
+	(248, 16, 'deleted donation', 'App\\Models\\Donation', 25, '[]', '2026-10-15 23:23:42', '2026-10-15 23:23:42');
 
 -- Dumping structure for table relief_link.cache
+DROP TABLE IF EXISTS `cache`;
 CREATE TABLE IF NOT EXISTS `cache` (
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `value` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `expiration` int NOT NULL,
   PRIMARY KEY (`key`),
   KEY `cache_expiration_index` (`expiration`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table relief_link.cache: ~2 rows (approximately)
-INSERT INTO `cache` (`key`, `value`, `expiration`) VALUES
-	('laravel-cache-5c785c036466adea360111aa28563bfd556b5fba', 'i:12;', 1791471505),
-	('laravel-cache-5c785c036466adea360111aa28563bfd556b5fba:timer', 'i:1791471505;', 1791471505);
+INSERT IGNORE INTO `cache` (`key`, `value`, `expiration`) VALUES
+	('laravel-cache-5c785c036466adea360111aa28563bfd556b5fba', 'i:1;', 1792135094),
+	('laravel-cache-5c785c036466adea360111aa28563bfd556b5fba:timer', 'i:1792135094;', 1792135094);
 
 -- Dumping structure for table relief_link.cache_locks
+DROP TABLE IF EXISTS `cache_locks`;
 CREATE TABLE IF NOT EXISTS `cache_locks` (
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `owner` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `expiration` int NOT NULL,
   PRIMARY KEY (`key`),
   KEY `cache_locks_expiration_index` (`expiration`)
@@ -233,59 +314,68 @@ CREATE TABLE IF NOT EXISTS `cache_locks` (
 -- Dumping data for table relief_link.cache_locks: ~0 rows (approximately)
 
 -- Dumping structure for table relief_link.donations
+DROP TABLE IF EXISTS `donations`;
 CREATE TABLE IF NOT EXISTS `donations` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `donor_id` bigint unsigned NOT NULL,
-  `donation_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'physical',
-  `item_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `category` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `donor_id` bigint unsigned DEFAULT NULL,
+  `donation_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'physical',
+  `item_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `quantity` int unsigned NOT NULL,
   `amount` decimal(12,2) DEFAULT NULL,
-  `currency` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT 'PHP',
-  `condition_notes` text COLLATE utf8mb4_unicode_ci,
-  `availability_window` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending_match',
+  `currency` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'PHP',
+  `condition_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `availability_window` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending_match',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `image_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `pickup_location` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `storage_location` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `condition_grade` enum('new','like_new','good','fair','damaged') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'good',
-  `intake_notes` text COLLATE utf8mb4_unicode_ci,
+  `image_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pickup_location` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `storage_location` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `condition_grade` enum('new','like_new','good','fair','damaged') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'good',
+  `intake_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `expiry_date` date DEFAULT NULL,
-  `preferred_handoff_slots` text COLLATE utf8mb4_unicode_ci,
+  `preferred_handoff_slots` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `external_donor_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `preferred_request_id` bigint unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `donations_donor_id_foreign` (`donor_id`),
   KEY `donations_category_index` (`category`),
   KEY `donations_status_index` (`status`),
-  CONSTRAINT `donations_donor_id_foreign` FOREIGN KEY (`donor_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `donations_preferred_request_id_foreign` (`preferred_request_id`),
+  CONSTRAINT `donations_donor_id_foreign` FOREIGN KEY (`donor_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `donations_preferred_request_id_foreign` FOREIGN KEY (`preferred_request_id`) REFERENCES `requests` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.donations: ~13 rows (approximately)
-INSERT INTO `donations` (`id`, `donor_id`, `donation_type`, `item_name`, `category`, `quantity`, `amount`, `currency`, `condition_notes`, `availability_window`, `status`, `created_at`, `updated_at`, `image_path`, `pickup_location`, `storage_location`, `condition_grade`, `intake_notes`, `expiry_date`, `preferred_handoff_slots`) VALUES
-	(11, 2, 'physical', 'Test Medical Kit', 'Medical & Health', 10, NULL, 'PHP', NULL, NULL, 'pending_match', '2026-08-28 05:23:27', '2026-08-28 05:23:27', NULL, NULL, 'Depot A / Shelf 2B', 'new', 'Staff intake test kit', NULL, NULL),
-	(12, 18, 'physical', 'marnrjut', 'food', 3, NULL, 'PHP', '[Condition: Gently Used] erewr', 'Available Immediately', 'pending_match', '2026-08-30 16:48:52', '2026-08-30 16:48:52', 'donations/ofCObFB0sVw85vPtkm8ghN9kZ5y6GPTXIiJN0Rru.jpg', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM) (fsd)'),
-	(13, 18, 'physical', 'dfgfd', 'food', 1, NULL, 'PHP', '[Condition: Gently Used]', 'Available Immediately', 'pending_match', '2026-08-30 17:50:52', '2026-08-30 17:50:52', 'donations/9vrNQMHvDyx2H4xZ8aSggrRgGAJ9NiMrV55NKe0E.png', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM) (fg)'),
-	(14, 18, 'physical', 'vb', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] vbv', 'Available Immediately', 'pending_match', '2026-08-30 17:52:42', '2026-08-30 17:52:42', 'donations/s33hi5S1FHMuxAMfe4zgsdclogGsLn7WTxu0izXN.png', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM) (vb)'),
-	(15, 18, 'physical', 'fdsf', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] sdfs', 'Available Immediately', 'pending_match', '2026-08-30 18:32:58', '2026-08-30 18:32:58', 'donations/6mSz4baQj5LrZQmTOCOLTCtLJESFPOa5d4xwXBL7.png', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM) (fs)'),
-	(16, 18, 'physical', 'bb', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] bb', 'Available Immediately', 'pending_match', '2026-08-30 18:34:18', '2026-08-30 18:34:18', 'donations/BTcdf6SAUYggDRthUTxQnSIR00WknUgxgJ12hXjB.png', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM) (bb)'),
-	(17, 18, 'physical', 'drtgrd', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] ghg', 'Available Immediately', 'pending_match', '2026-08-30 18:36:33', '2026-08-30 18:36:33', 'donations/cUTCrpaP4JueeyRyLz5CeSFRDRW5moY4PJWhWUjc.png', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM) (ghg)'),
-	(18, 18, 'physical', 'marnrjut', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] fdsdddddddddddddddddddddddddd', 'Custom Schedule', 'pending_match', '2026-09-14 05:59:30', '2026-09-14 05:59:30', 'donations/xxghboFsAlzs1VFzQWwVGYm62YtgwgJatmZtxHn2.jpg', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM) (fffffffffffffffffff)'),
-	(19, 18, 'physical', '123', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] 123', 'Available Immediately', 'pending_match', '2026-09-15 02:35:07', '2026-09-15 02:35:07', NULL, 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM) (123)'),
-	(20, 18, 'physical', '123', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] 123', 'Available Immediately', 'pending_match', '2026-09-15 02:39:42', '2026-09-15 02:39:42', 'donations/UypAh9DhWglvt3dzgV2ZNuwdy2TcnbFHW233XnZC.jpg', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM)'),
-	(24, 13, 'physical', 'dfdfd', 'Food & Meals', 1, NULL, 'PHP', NULL, 'Immediate Campus Warehouse Stock', 'pending_match', '2026-09-21 21:40:19', '2026-09-21 21:40:19', NULL, 'Main Warehouse Depot A - Shelf 1', 'Main Warehouse Depot A - Shelf 1', 'good', 'efsdfds', NULL, NULL),
-	(25, 18, 'physical', 'fgfdg', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] fdg', 'Available Immediately', 'pending_match', '2026-09-29 05:16:01', '2026-09-29 05:16:01', 'donations/wynli8IP2MNx1sQrCNrplWvs2g266lQk8M7jOmuD.png', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM)'),
-	(26, 49, 'physical', 'Scientific calculator and notebook set', 'School Supplies', 5, NULL, 'PHP', 'New calculators with unused ruled notebooks.', 'Weekdays, 9:00 AM–4:00 PM', 'proposed', '2026-10-02 21:02:34', '2026-10-02 21:02:34', NULL, 'Campus Student Center, Room 104', NULL, 'new', NULL, NULL, NULL),
-	(27, 51, 'physical', '123', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] bcvb', 'Available Immediately', 'pending_match', '2026-10-08 07:12:44', '2026-10-08 07:12:44', 'donations/ItxRJowogz39uNHsLm0FT4Odg1nBKrgy13jTShG2.png', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM)');
+-- Dumping data for table relief_link.donations: ~17 rows (approximately)
+INSERT IGNORE INTO `donations` (`id`, `donor_id`, `donation_type`, `item_name`, `category`, `quantity`, `amount`, `currency`, `condition_notes`, `availability_window`, `status`, `created_at`, `updated_at`, `image_path`, `pickup_location`, `storage_location`, `condition_grade`, `intake_notes`, `expiry_date`, `preferred_handoff_slots`, `external_donor_name`, `preferred_request_id`) VALUES
+	(24, 13, 'physical', 'dfdfd', 'Food & Meals', 1, NULL, 'PHP', NULL, 'Immediate Campus Warehouse Stock', 'matched', '2026-09-21 21:40:19', '2026-10-09 21:07:15', NULL, 'Main Warehouse Depot A - Shelf 1', 'Main Warehouse Depot A - Shelf 1', 'good', 'efsdfds', NULL, NULL, NULL, NULL),
+	(26, 49, 'physical', 'Scientific calculator and notebook set', 'School Supplies', 5, NULL, 'PHP', 'New calculators with unused ruled notebooks.', 'Weekdays, 9:00 AMâ€“4:00 PM', 'proposed', '2026-10-02 21:02:34', '2026-10-02 21:02:34', NULL, 'Campus Student Center, Room 104', NULL, 'new', NULL, NULL, NULL, NULL, NULL),
+	(27, 51, 'physical', '123', 'food', 1, NULL, 'PHP', '[Condition: Gently Used] bcvb', 'Available Immediately', 'pending_match', '2026-10-08 07:12:44', '2026-10-08 07:12:44', 'donations/ItxRJowogz39uNHsLm0FT4Odg1nBKrgy13jTShG2.png', 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM)', NULL, NULL),
+	(28, 58, 'physical', 'mouse', 'electronics', 1, NULL, 'PHP', '[Condition: Like New] jsut a mouse', 'Weekend Only (Sat - Sun)', 'pending_intake', '2026-10-12 04:08:12', '2026-10-12 04:08:12', NULL, 'South Dining Hall Hub', NULL, 'good', NULL, NULL, 'Afternoon (12:00 PM - 5:00 PM)', NULL, NULL),
+	(29, 58, 'physical', 'Donation for Electronics & Tech Need', 'Electronics & Tech', 1, NULL, 'PHP', '[For Request #25] [Condition: Gently Used]', 'Available Immediately', 'fulfilled', '2026-10-12 05:34:23', '2026-10-12 20:33:27', NULL, 'Campus Student Center - Main Entrance', 'Campus Student Center - Main Entrance', 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM)', NULL, 25),
+	(30, 58, 'physical', 'Donation for Electronics & Tech Need', 'Electronics & Tech', 1, NULL, 'PHP', '[For Request #25] [Condition: Gently Used]', 'Available Immediately', 'pending_match', '2026-10-12 05:37:26', '2026-10-12 05:48:19', NULL, 'Campus Student Center - Main Entrance', 'Campus Student Center - Main Entrance', 'good', 'Ready', NULL, 'Morning (8:00 AM - 12:00 PM)', NULL, 25),
+	(31, 58, 'physical', 'Donation for Electronics & Tech Need', 'Electronics & Tech', 1, NULL, 'PHP', '[For Request #25] [Condition: Gently Used]', 'Available Immediately', 'pending_intake', '2026-10-12 05:51:20', '2026-10-12 05:51:20', NULL, 'Campus Student Center - Main Entrance', NULL, 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM)', NULL, 25),
+	(32, 58, 'physical', 'Donation for Electronics & Tech Need', 'Electronics & Tech', 1, NULL, 'PHP', '[For Request #25] [Condition: Gently Used]', 'Available Immediately', 'pending_match', '2026-10-12 05:58:22', '2026-10-12 05:59:45', NULL, 'Campus Student Center - Main Entrance', 'Campus Student Center - Main Entrance', 'good', NULL, NULL, 'Morning (8:00 AM - 12:00 PM)', NULL, 25),
+	(33, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:15:35', '2026-10-12 20:15:35', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL),
+	(34, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:16:03', '2026-10-12 20:16:03', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL),
+	(35, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:16:26', '2026-10-12 20:16:26', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL),
+	(36, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:16:50', '2026-10-12 20:16:50', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL),
+	(37, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:17:18', '2026-10-12 20:17:18', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL),
+	(38, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:17:43', '2026-10-12 20:17:43', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL),
+	(39, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:18:06', '2026-10-12 20:18:06', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL),
+	(40, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:18:32', '2026-10-12 20:18:32', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL),
+	(41, 58, 'physical', 'yawa', 'Electronics', 1, NULL, 'PHP', 'gamiot kaayo yuawa ka', NULL, 'pending_intake', '2026-10-12 20:19:00', '2026-10-12 20:19:00', NULL, 'nigger', NULL, 'good', NULL, NULL, NULL, NULL, NULL);
 
 -- Dumping structure for table relief_link.failed_jobs
+DROP TABLE IF EXISTS `failed_jobs`;
 CREATE TABLE IF NOT EXISTS `failed_jobs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `uuid` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `connection` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `queue` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `exception` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `exception` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
@@ -294,14 +384,15 @@ CREATE TABLE IF NOT EXISTS `failed_jobs` (
 -- Dumping data for table relief_link.failed_jobs: ~0 rows (approximately)
 
 -- Dumping structure for table relief_link.inventory_movements
+DROP TABLE IF EXISTS `inventory_movements`;
 CREATE TABLE IF NOT EXISTS `inventory_movements` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `donation_id` bigint unsigned NOT NULL,
   `staff_user_id` bigint unsigned NOT NULL,
-  `movement_type` enum('intake','adjustment','allocation','return','write_off') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `movement_type` enum('intake','adjustment','allocation','return','write_off') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `quantity_delta` int NOT NULL,
   `quantity_after` int unsigned NOT NULL,
-  `reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -309,21 +400,26 @@ CREATE TABLE IF NOT EXISTS `inventory_movements` (
   KEY `inventory_movements_donation_id_created_at_index` (`donation_id`,`created_at`),
   CONSTRAINT `inventory_movements_donation_id_foreign` FOREIGN KEY (`donation_id`) REFERENCES `donations` (`id`) ON DELETE CASCADE,
   CONSTRAINT `inventory_movements_staff_user_id_foreign` FOREIGN KEY (`staff_user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.inventory_movements: ~0 rows (approximately)
-INSERT INTO `inventory_movements` (`id`, `donation_id`, `staff_user_id`, `movement_type`, `quantity_delta`, `quantity_after`, `reason`, `created_at`, `updated_at`) VALUES
-	(2, 24, 17, 'intake', 1, 1, 'Physical warehouse intake', '2026-09-21 21:40:19', '2026-09-21 21:40:19');
+-- Dumping data for table relief_link.inventory_movements: ~5 rows (approximately)
+INSERT IGNORE INTO `inventory_movements` (`id`, `donation_id`, `staff_user_id`, `movement_type`, `quantity_delta`, `quantity_after`, `reason`, `created_at`, `updated_at`) VALUES
+	(2, 24, 17, 'intake', 1, 1, 'Physical warehouse intake', '2026-09-21 21:40:19', '2026-09-21 21:40:19'),
+	(3, 30, 2, 'intake', 1, 1, 'Donor-submitted contribution received and inspected by staff.', '2026-10-12 05:38:49', '2026-10-12 05:38:49'),
+	(4, 29, 2, 'intake', 1, 1, 'Donor-submitted contribution received and inspected by staff.', '2026-10-12 05:42:50', '2026-10-12 05:42:50'),
+	(5, 32, 2, 'intake', 1, 1, 'Donor-submitted contribution received and inspected by staff.', '2026-10-12 05:59:45', '2026-10-12 05:59:45'),
+	(6, 29, 2, 'allocation', -1, 0, 'Distributed through verified recipient handoff #5', '2026-10-12 20:33:27', '2026-10-12 20:33:27');
 
 -- Dumping structure for table relief_link.job_batches
+DROP TABLE IF EXISTS `job_batches`;
 CREATE TABLE IF NOT EXISTS `job_batches` (
-  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `total_jobs` int NOT NULL,
   `pending_jobs` int NOT NULL,
   `failed_jobs` int NOT NULL,
-  `failed_job_ids` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `options` mediumtext COLLATE utf8mb4_unicode_ci,
+  `failed_job_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `options` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `cancelled_at` int DEFAULT NULL,
   `created_at` int NOT NULL,
   `finished_at` int DEFAULT NULL,
@@ -333,10 +429,11 @@ CREATE TABLE IF NOT EXISTS `job_batches` (
 -- Dumping data for table relief_link.job_batches: ~0 rows (approximately)
 
 -- Dumping structure for table relief_link.jobs
+DROP TABLE IF EXISTS `jobs`;
 CREATE TABLE IF NOT EXISTS `jobs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `queue` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `attempts` tinyint unsigned NOT NULL,
   `reserved_at` int unsigned DEFAULT NULL,
   `available_at` int unsigned NOT NULL,
@@ -348,15 +445,16 @@ CREATE TABLE IF NOT EXISTS `jobs` (
 -- Dumping data for table relief_link.jobs: ~0 rows (approximately)
 
 -- Dumping structure for table relief_link.matches
+DROP TABLE IF EXISTS `matches`;
 CREATE TABLE IF NOT EXISTS `matches` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `donation_id` bigint unsigned NOT NULL,
   `request_id` bigint unsigned NOT NULL,
   `matched_quantity` int unsigned NOT NULL,
   `matched_amount` decimal(12,2) DEFAULT NULL,
-  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'proposed',
-  `pickup_hub` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `verification_pin` varchar(6) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'proposed',
+  `pickup_hub` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `verification_pin` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `pin_attempt_count` tinyint unsigned NOT NULL DEFAULT '0',
   `pin_locked_at` timestamp NULL DEFAULT NULL,
   `pin_verified_at` timestamp NULL DEFAULT NULL,
@@ -368,7 +466,7 @@ CREATE TABLE IF NOT EXISTS `matches` (
   `updated_at` timestamp NULL DEFAULT NULL,
   `donor_completed_at` timestamp NULL DEFAULT NULL,
   `beneficiary_completed_at` timestamp NULL DEFAULT NULL,
-  `handoff_notes` text COLLATE utf8mb4_unicode_ci,
+  `handoff_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
   KEY `matches_donation_id_foreign` (`donation_id`),
   KEY `matches_request_id_foreign` (`request_id`),
@@ -377,22 +475,25 @@ CREATE TABLE IF NOT EXISTS `matches` (
   CONSTRAINT `matches_donation_id_foreign` FOREIGN KEY (`donation_id`) REFERENCES `donations` (`id`) ON DELETE CASCADE,
   CONSTRAINT `matches_handed_off_by_user_id_foreign` FOREIGN KEY (`handed_off_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `matches_request_id_foreign` FOREIGN KEY (`request_id`) REFERENCES `requests` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.matches: ~0 rows (approximately)
-INSERT INTO `matches` (`id`, `donation_id`, `request_id`, `matched_quantity`, `matched_amount`, `status`, `pickup_hub`, `verification_pin`, `pin_attempt_count`, `pin_locked_at`, `pin_verified_at`, `pin_expires_at`, `handed_off_by_user_id`, `handed_off_at`, `handoff_scheduled_at`, `created_at`, `updated_at`, `donor_completed_at`, `beneficiary_completed_at`, `handoff_notes`) VALUES
-	(2, 26, 17, 3, NULL, 'proposed', 'Campus Student Center', '420936', 0, NULL, NULL, '2026-10-09 21:02:34', NULL, NULL, NULL, '2026-10-02 21:02:34', '2026-10-02 21:02:34', NULL, NULL, 'Three of five requested sets are available for review.');
+-- Dumping data for table relief_link.matches: ~3 rows (approximately)
+INSERT IGNORE INTO `matches` (`id`, `donation_id`, `request_id`, `matched_quantity`, `matched_amount`, `status`, `pickup_hub`, `verification_pin`, `pin_attempt_count`, `pin_locked_at`, `pin_verified_at`, `pin_expires_at`, `handed_off_by_user_id`, `handed_off_at`, `handoff_scheduled_at`, `created_at`, `updated_at`, `donor_completed_at`, `beneficiary_completed_at`, `handoff_notes`) VALUES
+	(2, 26, 17, 3, NULL, 'proposed', 'Campus Student Center', '420936', 0, NULL, NULL, '2026-10-09 21:02:34', NULL, NULL, NULL, '2026-10-02 21:02:34', '2026-10-02 21:02:34', NULL, NULL, 'Three of five requested sets are available for review.'),
+	(3, 24, 20, 1, NULL, 'confirmed', 'Main Relief Desk Hub', '332285', 0, NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-09 21:07:15', '2026-10-09 21:07:15', NULL, NULL, 'Instant Walk-in Allocation'),
+	(5, 29, 25, 1, NULL, 'fulfilled', NULL, '631225', 0, NULL, '2026-10-12 20:33:27', '2026-10-19 06:29:35', 2, '2026-10-12 20:33:27', '2026-10-12 22:28:00', '2026-10-12 05:59:55', '2026-10-12 20:33:27', '2026-10-12 20:33:27', '2026-10-12 20:33:27', 'adad | Handoff verified by staff PIN clearance. Staff remarks: awdawd');
 
 -- Dumping structure for table relief_link.migrations
+DROP TABLE IF EXISTS `migrations`;
 CREATE TABLE IF NOT EXISTS `migrations` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.migrations: ~29 rows (approximately)
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
+-- Dumping data for table relief_link.migrations: ~30 rows (approximately)
+INSERT IGNORE INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(1, '0001_01_01_000000_create_users_table', 1),
 	(2, '0001_01_01_000001_create_cache_table', 1),
 	(3, '0001_01_01_000002_create_jobs_table', 1),
@@ -422,13 +523,17 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 	(27, '2026_09_20_000001_add_financial_and_extended_request_fields', 16),
 	(28, '2026_09_22_041354_add_valid_id_number_to_users_table', 17),
 	(29, '2026_09_27_000001_add_create_account_fields_to_users_table', 18),
-	(30, '2026_10_02_000001_add_is_active_to_users_table', 19);
+	(30, '2026_10_02_000001_add_is_active_to_users_table', 19),
+	(31, '2026_10_10_000001_allow_staff_logged_external_donations', 20),
+	(32, '2026_10_10_000002_add_beneficiary_type_to_users', 21),
+	(33, '2026_10_10_000003_add_preferred_request_to_donations', 21);
 
 -- Dumping structure for table relief_link.password_otps
+DROP TABLE IF EXISTS `password_otps`;
 CREATE TABLE IF NOT EXISTS `password_otps` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `otp` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `otp` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `expires_at` timestamp NOT NULL,
   `verified_at` timestamp NULL DEFAULT NULL,
   `attempts` int NOT NULL DEFAULT '0',
@@ -439,8 +544,8 @@ CREATE TABLE IF NOT EXISTS `password_otps` (
   KEY `password_otps_email_index` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.password_otps: ~21 rows (approximately)
-INSERT INTO `password_otps` (`id`, `email`, `otp`, `expires_at`, `verified_at`, `attempts`, `used`, `created_at`, `updated_at`) VALUES
+-- Dumping data for table relief_link.password_otps: ~22 rows (approximately)
+INSERT IGNORE INTO `password_otps` (`id`, `email`, `otp`, `expires_at`, `verified_at`, `attempts`, `used`, `created_at`, `updated_at`) VALUES
 	(1, 'marnitocadenas453@gmail.com', '$2y$12$bJBwsoQGyuuGll8bT8KrkOx/f/QsdvtlAqKcfrCjUvot4xTtjQhMO', '2026-08-26 19:19:52', '2026-08-26 19:10:29', 1, 0, '2026-08-26 19:09:52', '2026-08-26 19:10:29'),
 	(2, 'staff@gmail.com', '$2y$12$vJW.d9iCl5DyuCHPAV9GKOyUDKlTtTkX41uD7Nac1/VPdNujJGLPy', '2026-08-29 23:20:44', NULL, 0, 0, '2026-08-29 23:10:44', '2026-08-29 23:10:44'),
 	(3, 'marnitocadenas@gmail.com', '$2y$12$PtLXKd2Ip1PQlsSXtOTqCuRYQvMpgjda252c0gSl9pJnj3SMgtQue', '2026-08-30 17:50:08', NULL, 0, 0, '2026-08-30 17:40:08', '2026-08-30 17:40:08'),
@@ -465,9 +570,10 @@ INSERT INTO `password_otps` (`id`, `email`, `otp`, `expires_at`, `verified_at`, 
 	(22, 'marnitocadenas@gmail.com', '$2y$12$oMgEV5I4a9a9yLVsn6Rkc.kYAx/SGiAkZ5Ch4rzFfzbAc3tnA0Jyq', '2026-10-07 05:49:15', NULL, 0, 0, '2026-10-07 05:39:15', '2026-10-07 05:39:15');
 
 -- Dumping structure for table relief_link.password_reset_tokens
+DROP TABLE IF EXISTS `password_reset_tokens`;
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -475,13 +581,14 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
 -- Dumping data for table relief_link.password_reset_tokens: ~0 rows (approximately)
 
 -- Dumping structure for table relief_link.personal_access_tokens
+DROP TABLE IF EXISTS `personal_access_tokens`;
 CREATE TABLE IF NOT EXISTS `personal_access_tokens` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `tokenable_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tokenable_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `tokenable_id` bigint unsigned NOT NULL,
-  `name` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `token` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `abilities` text COLLATE utf8mb4_unicode_ci,
+  `name` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abilities` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `last_used_at` timestamp NULL DEFAULT NULL,
   `expires_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -490,25 +597,35 @@ CREATE TABLE IF NOT EXISTS `personal_access_tokens` (
   UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
   KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`),
   KEY `personal_access_tokens_expires_at_index` (`expires_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=340 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=384 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.personal_access_tokens: ~3 rows (approximately)
-INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
+-- Dumping data for table relief_link.personal_access_tokens: ~12 rows (approximately)
+INSERT IGNORE INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `name`, `token`, `abilities`, `last_used_at`, `expires_at`, `created_at`, `updated_at`) VALUES
 	(89, 'App\\Models\\User', 18, 'react-spa', 'ef4c1b27b8a30c79a644b339f234d10b9e65ca26c9dcf9bfd689a2b47d0de64e', '["*"]', '2026-09-15 18:50:06', NULL, '2026-09-15 18:47:06', '2026-09-15 18:50:06'),
 	(321, 'App\\Models\\User', 1, 'react-spa', '376cc7370cf4887c44f4a2b4db7882fd75171fa39d1b4c6709a22c3cd08faf97', '["*"]', '2026-10-08 03:41:27', NULL, '2026-10-07 06:11:33', '2026-10-08 03:41:27'),
-	(339, 'App\\Models\\User', 2, 'react-spa', '23f56206a87f471d2cf0a8309df7653cea862966ce50610a53cce05fa9a2bf21', '["*"]', '2026-10-08 19:28:30', NULL, '2026-10-08 07:25:29', '2026-10-08 19:28:30');
+	(339, 'App\\Models\\User', 2, 'react-spa', '23f56206a87f471d2cf0a8309df7653cea862966ce50610a53cce05fa9a2bf21', '["*"]', '2026-10-08 19:28:30', NULL, '2026-10-08 07:25:29', '2026-10-08 19:28:30'),
+	(363, 'App\\Models\\User', 59, 'react-spa', 'ff1a184b205b8712fd36b759eca0ef98700ebbab520400302936fe8e6a70be4e', '["*"]', '2026-10-12 02:05:28', NULL, '2026-10-12 02:02:04', '2026-10-12 02:05:28'),
+	(373, 'App\\Models\\User', 2, 'react-spa', '84fcadc8dced113245aec01eb824267c86792a960dc1ff516514b27b6319d827', '["*"]', '2026-10-12 06:35:52', NULL, '2026-10-12 04:27:51', '2026-10-12 06:35:52'),
+	(375, 'App\\Models\\User', 58, 'react-spa', 'bdf84baed0290ab17ccc4e1d3c92a12b9b65a7ba02722bba6db405863c2e11e6', '["*"]', '2026-10-15 23:27:17', NULL, '2026-10-12 04:35:22', '2026-10-15 23:27:17'),
+	(376, 'App\\Models\\User', 59, 'react-spa', 'e0f2a0903f3c8a5b168443dcdb24b3fe92c70f886f9c43bbfdce54a7a0912033', '["*"]', '2026-10-15 23:18:04', NULL, '2026-10-12 04:37:12', '2026-10-15 23:18:04'),
+	(377, 'App\\Models\\User', 58, 'react-spa', 'e29cf0ce79d5e583ad32d9817def798daeec14c9fee6d6c889a7a1909159f1e3', '["*"]', '2026-10-12 20:19:24', NULL, '2026-10-12 20:13:29', '2026-10-12 20:19:24'),
+	(378, 'App\\Models\\User', 58, 'react-spa', '2669306e0b6a32f63e9d7cdcbef21fe82ce60914ffa0df8f647257f7569c0681', '["*"]', '2026-10-12 20:31:05', NULL, '2026-10-12 20:28:06', '2026-10-12 20:31:05'),
+	(381, 'App\\Models\\User', 2, 'react-spa', 'e4bcb364a1ead08d284656b9beab3d431da788fbe4d4c08d79c968f1c7b0c34c', '["*"]', '2026-10-12 20:35:29', NULL, '2026-10-12 20:32:58', '2026-10-12 20:35:29'),
+	(382, 'App\\Models\\User', 16, 'react-spa', '543a5e2bc6b6fe803964584210f928774032013268bc09af9a3d55807dff149f', '["*"]', '2026-10-15 23:33:56', NULL, '2026-10-15 22:58:17', '2026-10-15 23:33:56'),
+	(383, 'App\\Models\\User', 2, 'react-spa', '62ff9a0813c68e758c3a722a4d0e9813aadd49e0859d8e7e86189fde8de80075', '["*"]', '2026-10-15 23:34:33', NULL, '2026-10-15 23:17:14', '2026-10-15 23:34:33');
 
 -- Dumping structure for table relief_link.relief_notifications
+DROP TABLE IF EXISTS `relief_notifications`;
 CREATE TABLE IF NOT EXISTS `relief_notifications` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
-  `message` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'system',
-  `priority` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'normal',
-  `subject_type` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `message` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'system',
+  `priority` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'normal',
+  `subject_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `subject_id` bigint unsigned DEFAULT NULL,
-  `action_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `event_key` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `action_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `event_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `is_read` tinyint(1) NOT NULL DEFAULT '0',
   `seen_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -520,10 +637,10 @@ CREATE TABLE IF NOT EXISTS `relief_notifications` (
   KEY `relief_notifications_priority_index` (`priority`),
   KEY `relief_notifications_seen_at_index` (`seen_at`),
   CONSTRAINT `relief_notifications_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=263 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.relief_notifications: ~50 rows (approximately)
-INSERT INTO `relief_notifications` (`id`, `user_id`, `message`, `type`, `priority`, `subject_type`, `subject_id`, `action_url`, `event_key`, `is_read`, `seen_at`, `created_at`, `updated_at`) VALUES
+-- Dumping data for table relief_link.relief_notifications: ~195 rows (approximately)
+INSERT IGNORE INTO `relief_notifications` (`id`, `user_id`, `message`, `type`, `priority`, `subject_type`, `subject_id`, `action_url`, `event_key`, `is_read`, `seen_at`, `created_at`, `updated_at`) VALUES
 	(1, 19, 'Your support request was submitted and is awaiting verification.', 'request', 'normal', 'App\\Models\\AidRequest', 12, '/requests', '9f3002e98cbf76c247a46a4adf1a1d326cb30c542f8c6884c5bd6adc4a584c67', 1, '2026-09-07 05:03:40', '2026-08-30 00:04:09', '2026-09-15 02:41:14'),
 	(5, 17, 'A new support request requires verification.', 'request', 'normal', 'App\\Models\\AidRequest', 12, '/staff/verifications', '1ea90004817011ba9b142ba1824d4430aee73f8ecbd05d78f83f4978a3506e3b', 1, '2026-08-31 06:35:35', '2026-08-30 00:04:17', '2026-08-31 06:35:35'),
 	(10, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 12, '/staff/inventory', 'c127ff75779e607bbf3fe603a3bc15771de7082b7f4fbe9f0db46f72c2729de6', 1, '2026-08-31 06:35:35', '2026-08-30 16:48:58', '2026-08-31 06:35:35'),
@@ -561,7 +678,7 @@ INSERT INTO `relief_notifications` (`id`, `user_id`, `message`, `type`, `priorit
 	(91, 19, 'Your support request was cancelled.', 'request', 'normal', 'App\\Models\\AidRequest', 16, '/requests', '4c3bd44fb097e4f39421e7999c2c429c22a47535eacf5571a1d08a4b0d6318b5', 0, '2026-09-20 20:04:16', '2026-09-20 20:03:53', '2026-09-20 20:04:16'),
 	(92, 19, 'Your support request was cancelled.', 'request', 'normal', 'App\\Models\\AidRequest', 15, '/requests', '6f8fcf894eb5c03019c2e61cf37f4552caaae943e50311ee9b899a2682d4721b', 0, '2026-09-20 20:05:19', '2026-09-20 20:04:57', '2026-09-20 20:05:19'),
 	(93, 18, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 25, '/donations', 'a127fe55e6358d55920cd9e4af8a85b7ea917ae7df4c60bea5383fa53969561d', 0, '2026-09-29 05:16:12', '2026-09-29 05:16:01', '2026-09-29 05:16:12'),
-	(96, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 25, '/staff/inventory', '6f50fcd4bb666c7ea47fce2d574a9ee24b509500ebb0f2e2fbad1496d50cee10', 0, NULL, '2026-09-29 05:16:07', '2026-09-29 05:16:07'),
+	(96, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 25, '/staff/inventory', '6f50fcd4bb666c7ea47fce2d574a9ee24b509500ebb0f2e2fbad1496d50cee10', 1, '2026-10-09 20:47:44', '2026-09-29 05:16:07', '2026-10-09 20:47:52'),
 	(97, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 25, '/staff/inventory', '6f50fcd4bb666c7ea47fce2d574a9ee24b509500ebb0f2e2fbad1496d50cee10', 0, NULL, '2026-09-29 05:16:08', '2026-09-29 05:16:08'),
 	(99, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 25, '/staff/inventory', '6f50fcd4bb666c7ea47fce2d574a9ee24b509500ebb0f2e2fbad1496d50cee10', 0, NULL, '2026-09-29 05:16:10', '2026-09-29 05:16:10'),
 	(100, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 25, '/staff/inventory', '6f50fcd4bb666c7ea47fce2d574a9ee24b509500ebb0f2e2fbad1496d50cee10', 0, NULL, '2026-09-29 05:16:11', '2026-09-29 05:16:11'),
@@ -570,48 +687,194 @@ INSERT INTO `relief_notifications` (`id`, `user_id`, `message`, `type`, `priorit
 	(103, 51, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/donations', '05d937efda98511172dabea2e1e1248874b4ab98b496864f7a00fe0bc5c328c5', 0, '2026-10-08 07:12:51', '2026-10-08 07:12:44', '2026-10-08 07:12:51'),
 	(104, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/staff/inventory', 'bdbb69279bce16cb4da9743bb32f60b1c49392792e02a0676275bb3a55fdc48c', 1, '2026-10-08 07:13:06', '2026-10-08 07:12:47', '2026-10-08 07:13:14'),
 	(105, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/staff/inventory', 'bdbb69279bce16cb4da9743bb32f60b1c49392792e02a0676275bb3a55fdc48c', 1, '2026-10-08 07:25:30', '2026-10-08 07:12:47', '2026-10-08 07:26:58'),
-	(106, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/staff/inventory', 'bdbb69279bce16cb4da9743bb32f60b1c49392792e02a0676275bb3a55fdc48c', 0, NULL, '2026-10-08 07:12:48', '2026-10-08 07:12:48'),
+	(106, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/staff/inventory', 'bdbb69279bce16cb4da9743bb32f60b1c49392792e02a0676275bb3a55fdc48c', 1, '2026-10-09 20:47:44', '2026-10-08 07:12:48', '2026-10-09 20:47:50'),
 	(107, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/staff/inventory', 'bdbb69279bce16cb4da9743bb32f60b1c49392792e02a0676275bb3a55fdc48c', 0, NULL, '2026-10-08 07:12:49', '2026-10-08 07:12:49'),
 	(108, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/staff/inventory', 'bdbb69279bce16cb4da9743bb32f60b1c49392792e02a0676275bb3a55fdc48c', 0, NULL, '2026-10-08 07:12:49', '2026-10-08 07:12:49'),
-	(109, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/staff/inventory', 'bdbb69279bce16cb4da9743bb32f60b1c49392792e02a0676275bb3a55fdc48c', 0, NULL, '2026-10-08 07:12:50', '2026-10-08 07:12:50');
+	(109, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 27, '/staff/inventory', 'bdbb69279bce16cb4da9743bb32f60b1c49392792e02a0676275bb3a55fdc48c', 0, NULL, '2026-10-08 07:12:50', '2026-10-08 07:12:50'),
+	(118, 59, 'Your support request was submitted and is awaiting verification.', 'request', 'normal', 'App\\Models\\AidRequest', 23, '/requests', '2d9a9d7c53e17f9e7a292c402a66357a0041a20b1dcdc8445191f6faa76ad321', 1, '2026-10-12 01:19:16', '2026-10-12 01:18:55', '2026-10-12 01:20:44'),
+	(119, 1, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 23, '/staff/verifications', 'd1bded7108623b78a69fdd458343b629119c7a255cfa07245bd0f58d668806ae', 0, NULL, '2026-10-12 01:18:58', '2026-10-12 01:18:58'),
+	(120, 2, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 23, '/staff/verifications', 'd1bded7108623b78a69fdd458343b629119c7a255cfa07245bd0f58d668806ae', 1, '2026-10-12 01:22:17', '2026-10-12 01:19:01', '2026-10-12 01:22:22'),
+	(121, 16, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 23, '/staff/verifications', 'd1bded7108623b78a69fdd458343b629119c7a255cfa07245bd0f58d668806ae', 1, '2026-10-12 01:21:08', '2026-10-12 01:19:05', '2026-10-12 01:21:14'),
+	(122, 17, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 23, '/staff/verifications', 'd1bded7108623b78a69fdd458343b629119c7a255cfa07245bd0f58d668806ae', 0, NULL, '2026-10-12 01:19:07', '2026-10-12 01:19:07'),
+	(123, 42, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 23, '/staff/verifications', 'd1bded7108623b78a69fdd458343b629119c7a255cfa07245bd0f58d668806ae', 0, NULL, '2026-10-12 01:19:10', '2026-10-12 01:19:10'),
+	(124, 47, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 23, '/staff/verifications', 'd1bded7108623b78a69fdd458343b629119c7a255cfa07245bd0f58d668806ae', 0, NULL, '2026-10-12 01:19:13', '2026-10-12 01:19:13'),
+	(125, 59, 'Your help request was approved and is ready for matching.', 'request', 'normal', 'App\\Models\\AidRequest', 23, '/requests', '7e3685ec0ba1f0923f0fe306399317628c8c02ee784b03ccda3355b03b101ea0', 1, '2026-10-12 01:22:44', '2026-10-12 01:21:29', '2026-10-12 01:22:52'),
+	(126, 59, 'Your support request was submitted and is awaiting verification.', 'request', 'normal', 'App\\Models\\AidRequest', 24, '/requests', '9bcfd3665ced94e6339ddca53cab2b76ca4b1d9d0b99376b58e065d7158eaa16', 0, '2026-10-12 01:24:45', '2026-10-12 01:24:23', '2026-10-12 01:24:45'),
+	(127, 1, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 24, '/staff/verifications', '8f6cd8f7433e8dbe568b0b7de21d9013affb142db345b50aa44c8525fde11081', 0, NULL, '2026-10-12 01:24:26', '2026-10-12 01:24:26'),
+	(128, 2, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 24, '/staff/verifications', '8f6cd8f7433e8dbe568b0b7de21d9013affb142db345b50aa44c8525fde11081', 1, '2026-10-12 01:24:45', '2026-10-12 01:24:29', '2026-10-12 01:29:10'),
+	(129, 16, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 24, '/staff/verifications', '8f6cd8f7433e8dbe568b0b7de21d9013affb142db345b50aa44c8525fde11081', 1, '2026-10-12 03:16:51', '2026-10-12 01:24:32', '2026-10-12 03:23:55'),
+	(130, 17, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 24, '/staff/verifications', '8f6cd8f7433e8dbe568b0b7de21d9013affb142db345b50aa44c8525fde11081', 0, NULL, '2026-10-12 01:24:35', '2026-10-12 01:24:35'),
+	(131, 42, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 24, '/staff/verifications', '8f6cd8f7433e8dbe568b0b7de21d9013affb142db345b50aa44c8525fde11081', 0, NULL, '2026-10-12 01:24:38', '2026-10-12 01:24:38'),
+	(132, 47, 'A new support request requires verification.', 'request', 'high', 'App\\Models\\AidRequest', 24, '/staff/verifications', '8f6cd8f7433e8dbe568b0b7de21d9013affb142db345b50aa44c8525fde11081', 0, NULL, '2026-10-12 01:24:41', '2026-10-12 01:24:41'),
+	(133, 59, 'Your help request is currently under review by campus operations.', 'request', 'normal', 'App\\Models\\AidRequest', 24, '/requests', '12a68eafdb0ff50e347f3449fcc859871e10f9cdd256e913837d74ff4459dcfb', 0, '2026-10-12 01:25:49', '2026-10-12 01:25:31', '2026-10-12 01:25:49'),
+	(134, 59, 'Your help request was rejected.', 'request', 'high', 'App\\Models\\AidRequest', 24, '/requests', '5eaefaf15b9dd8c3df034ec9005a4b82dbc8efc6a69344b8a328903222b6e29b', 1, '2026-10-12 01:29:16', '2026-10-12 01:29:01', '2026-10-12 01:29:24'),
+	(135, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 28, '/donations', '1fbe0c8eadd010466beacf3cb6d9fa1708044a9454fce2bb0540638bc52ef311', 0, '2026-10-12 04:08:35', '2026-10-12 04:08:12', '2026-10-12 04:08:35'),
+	(136, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 28, '/staff/inventory', '9cf28236000036de89f3ccdb1d4e2e59a75d68a39cefc2e37576ed6cb0ce8cbf', 0, NULL, '2026-10-12 04:08:16', '2026-10-12 04:08:16'),
+	(137, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 28, '/staff/inventory', '9cf28236000036de89f3ccdb1d4e2e59a75d68a39cefc2e37576ed6cb0ce8cbf', 1, '2026-10-12 04:08:49', '2026-10-12 04:08:19', '2026-10-12 04:09:34'),
+	(138, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 28, '/staff/inventory', '9cf28236000036de89f3ccdb1d4e2e59a75d68a39cefc2e37576ed6cb0ce8cbf', 1, '2026-10-12 04:19:06', '2026-10-12 04:08:22', '2026-10-12 04:20:14'),
+	(139, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 28, '/staff/inventory', '9cf28236000036de89f3ccdb1d4e2e59a75d68a39cefc2e37576ed6cb0ce8cbf', 0, NULL, '2026-10-12 04:08:25', '2026-10-12 04:08:25'),
+	(140, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 28, '/staff/inventory', '9cf28236000036de89f3ccdb1d4e2e59a75d68a39cefc2e37576ed6cb0ce8cbf', 0, NULL, '2026-10-12 04:08:28', '2026-10-12 04:08:28'),
+	(141, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 28, '/staff/inventory', '9cf28236000036de89f3ccdb1d4e2e59a75d68a39cefc2e37576ed6cb0ce8cbf', 0, NULL, '2026-10-12 04:08:32', '2026-10-12 04:08:32'),
+	(142, 59, 'Your support request was submitted and is awaiting verification.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/requests', 'badaa6435af28a25281dddebfb7e4cb9a10f1d8496a4ed5b78e557306f48331e', 1, '2026-10-12 05:32:01', '2026-10-12 05:31:39', '2026-10-12 05:32:04'),
+	(143, 1, 'A new support request requires verification.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/staff/verifications', 'dde4e3775071d520429c0a7224089f91924937a18d64a920a4faeab21c8cbea7', 0, NULL, '2026-10-12 05:31:42', '2026-10-12 05:31:42'),
+	(144, 2, 'A new support request requires verification.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/staff/verifications', 'dde4e3775071d520429c0a7224089f91924937a18d64a920a4faeab21c8cbea7', 1, '2026-10-12 05:32:12', '2026-10-12 05:31:45', '2026-10-12 05:32:52'),
+	(145, 16, 'A new support request requires verification.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/staff/verifications', 'dde4e3775071d520429c0a7224089f91924937a18d64a920a4faeab21c8cbea7', 0, '2026-10-12 05:32:10', '2026-10-12 05:31:48', '2026-10-12 05:32:10'),
+	(146, 17, 'A new support request requires verification.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/staff/verifications', 'dde4e3775071d520429c0a7224089f91924937a18d64a920a4faeab21c8cbea7', 0, NULL, '2026-10-12 05:31:51', '2026-10-12 05:31:51'),
+	(147, 42, 'A new support request requires verification.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/staff/verifications', 'dde4e3775071d520429c0a7224089f91924937a18d64a920a4faeab21c8cbea7', 0, NULL, '2026-10-12 05:31:55', '2026-10-12 05:31:55'),
+	(148, 47, 'A new support request requires verification.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/staff/verifications', 'dde4e3775071d520429c0a7224089f91924937a18d64a920a4faeab21c8cbea7', 0, NULL, '2026-10-12 05:31:58', '2026-10-12 05:31:58'),
+	(149, 59, 'Your help request is currently under review by campus operations.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/requests', '3464cc181575fdf7627fca977f0000e56fb9ba9b1065f54f8b2b006c7cd5024b', 1, '2026-10-12 05:32:55', '2026-10-12 05:32:21', '2026-10-12 05:50:42'),
+	(150, 59, 'Your help request was approved and is ready for matching.', 'request', 'normal', 'App\\Models\\AidRequest', 25, '/requests', 'c7e6a6af21f3fb0e0c5ce3837c5bad67bbb1256e1409b41be2d7f93ab1a27127', 0, '2026-10-12 05:32:55', '2026-10-12 05:32:38', '2026-10-12 05:32:55'),
+	(151, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/donations', '040aada304f82742067069621cb340583a0dfa9ceb78c06fd553c9c150514e13', 1, '2026-10-12 05:34:48', '2026-10-12 05:34:23', '2026-10-12 05:35:05'),
+	(152, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/staff/inventory', 'fc2a345ba79cacbaf619fd8287515c441ec531f72eddbf440fb602e45caa8a4e', 0, NULL, '2026-10-12 05:34:26', '2026-10-12 05:34:26'),
+	(153, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/staff/inventory', 'fc2a345ba79cacbaf619fd8287515c441ec531f72eddbf440fb602e45caa8a4e', 1, '2026-10-12 05:35:10', '2026-10-12 05:34:29', '2026-10-12 05:35:17'),
+	(154, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/staff/inventory', 'fc2a345ba79cacbaf619fd8287515c441ec531f72eddbf440fb602e45caa8a4e', 0, '2026-10-12 05:35:55', '2026-10-12 05:34:32', '2026-10-12 05:35:55'),
+	(155, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/staff/inventory', 'fc2a345ba79cacbaf619fd8287515c441ec531f72eddbf440fb602e45caa8a4e', 0, NULL, '2026-10-12 05:34:36', '2026-10-12 05:34:36'),
+	(156, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/staff/inventory', 'fc2a345ba79cacbaf619fd8287515c441ec531f72eddbf440fb602e45caa8a4e', 0, NULL, '2026-10-12 05:34:39', '2026-10-12 05:34:39'),
+	(157, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/staff/inventory', 'fc2a345ba79cacbaf619fd8287515c441ec531f72eddbf440fb602e45caa8a4e', 0, NULL, '2026-10-12 05:34:42', '2026-10-12 05:34:42'),
+	(158, 59, 'A donor pledged support for your request (#REQ-025). Campus staff will verify it before matching.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/matches', 'dd674e57fb6597de2c9315ffb1f88c2c8fde377f5400b26457d857b0a99607fe', 0, '2026-10-12 05:35:33', '2026-10-12 05:34:45', '2026-10-12 05:35:33'),
+	(159, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/donations', '4e4e0d74aafbccca65bb9c3bb28b271e7aaaf072a56a6dcadc5fcc38a9e5b0de', 1, '2026-10-12 05:37:51', '2026-10-12 05:37:26', '2026-10-12 05:38:23'),
+	(160, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/staff/inventory', '914faf7e648039825172073df22943d56e8a3a6adb75bdcbe43c92c5f4f6d6c5', 0, NULL, '2026-10-12 05:37:29', '2026-10-12 05:37:29'),
+	(161, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/staff/inventory', '914faf7e648039825172073df22943d56e8a3a6adb75bdcbe43c92c5f4f6d6c5', 1, '2026-10-12 05:38:26', '2026-10-12 05:37:32', '2026-10-12 05:42:36'),
+	(162, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/staff/inventory', '914faf7e648039825172073df22943d56e8a3a6adb75bdcbe43c92c5f4f6d6c5', 0, '2026-10-12 05:40:08', '2026-10-12 05:37:35', '2026-10-12 05:40:08'),
+	(163, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/staff/inventory', '914faf7e648039825172073df22943d56e8a3a6adb75bdcbe43c92c5f4f6d6c5', 0, NULL, '2026-10-12 05:37:38', '2026-10-12 05:37:38'),
+	(164, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/staff/inventory', '914faf7e648039825172073df22943d56e8a3a6adb75bdcbe43c92c5f4f6d6c5', 0, NULL, '2026-10-12 05:37:41', '2026-10-12 05:37:41'),
+	(165, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/staff/inventory', '914faf7e648039825172073df22943d56e8a3a6adb75bdcbe43c92c5f4f6d6c5', 0, NULL, '2026-10-12 05:37:45', '2026-10-12 05:37:45'),
+	(166, 59, 'A donor pledged support for your request (#REQ-025). Campus staff will verify it before matching.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/matches', '4a2233f3bd4dc69c9bce7a5c14554b1983fe266a000eee3b3e72839679c54d2e', 1, '2026-10-12 05:38:01', '2026-10-12 05:37:48', '2026-10-12 05:48:52'),
+	(167, 58, 'Campus staff received and verified your donation. It is now available for matching.', 'donation', 'normal', 'App\\Models\\Donation', 30, '/donations', '45d7b2aa1f09ec5121fcec66f06cea5b6e088f74dcbe89b2a5c2c52c218689d8', 0, '2026-10-12 05:39:02', '2026-10-12 05:38:49', '2026-10-12 05:39:02'),
+	(168, 58, 'Campus staff received and verified your donation. It is now available for matching.', 'donation', 'normal', 'App\\Models\\Donation', 29, '/donations', '4ca83706f094d6f40dd5b991ee0a0fda149350cb4aaac97b7a8e5abfddad746a', 0, '2026-10-12 05:43:12', '2026-10-12 05:42:50', '2026-10-12 05:43:12'),
+	(169, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 31, '/donations', 'da9e64723178d0d0247f5b39ed7d3f21a7c7507d77c3b206861e1dde45ab9686', 0, '2026-10-12 05:51:46', '2026-10-12 05:51:20', '2026-10-12 05:51:46'),
+	(170, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 31, '/staff/inventory', '1057906f26ad6be6738479d24c36954dc9c83c88f363515a8b9c4452356fe4ff', 0, NULL, '2026-10-12 05:51:24', '2026-10-12 05:51:24'),
+	(171, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 31, '/staff/inventory', '1057906f26ad6be6738479d24c36954dc9c83c88f363515a8b9c4452356fe4ff', 1, '2026-10-12 05:59:29', '2026-10-12 05:51:27', '2026-10-12 06:03:31'),
+	(172, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 31, '/staff/inventory', '1057906f26ad6be6738479d24c36954dc9c83c88f363515a8b9c4452356fe4ff', 0, '2026-10-12 05:57:56', '2026-10-12 05:51:30', '2026-10-12 05:57:56'),
+	(173, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 31, '/staff/inventory', '1057906f26ad6be6738479d24c36954dc9c83c88f363515a8b9c4452356fe4ff', 0, NULL, '2026-10-12 05:51:33', '2026-10-12 05:51:33'),
+	(174, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 31, '/staff/inventory', '1057906f26ad6be6738479d24c36954dc9c83c88f363515a8b9c4452356fe4ff', 0, NULL, '2026-10-12 05:51:36', '2026-10-12 05:51:36'),
+	(175, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 31, '/staff/inventory', '1057906f26ad6be6738479d24c36954dc9c83c88f363515a8b9c4452356fe4ff', 0, NULL, '2026-10-12 05:51:40', '2026-10-12 05:51:40'),
+	(176, 59, 'A donor pledged support for your request (#REQ-025). Campus staff will verify it before matching.', 'donation', 'normal', 'App\\Models\\Donation', 31, '/matches', '6df987b33dfc6c3c846266749c534465e862a8a527c8387be7dc0b65707c63bb', 0, '2026-10-12 05:51:52', '2026-10-12 05:51:43', '2026-10-12 05:51:52'),
+	(177, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/donations', '3ef3c57dc0aae17a3020fe3bdd2454658d0404a945b1412db0cc6057aa0553fd', 0, '2026-10-12 05:58:48', '2026-10-12 05:58:22', '2026-10-12 05:58:48'),
+	(178, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/staff/inventory', '28e367e85dae54f01aa49c7d6c4c18a36c715b2b373d7879870cdc8896704784', 0, NULL, '2026-10-12 05:58:26', '2026-10-12 05:58:26'),
+	(179, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/staff/inventory', '28e367e85dae54f01aa49c7d6c4c18a36c715b2b373d7879870cdc8896704784', 1, '2026-10-12 05:59:29', '2026-10-12 05:58:29', '2026-10-12 05:59:35'),
+	(180, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/staff/inventory', '28e367e85dae54f01aa49c7d6c4c18a36c715b2b373d7879870cdc8896704784', 1, '2026-10-12 06:02:59', '2026-10-12 05:58:32', '2026-10-12 06:03:01'),
+	(181, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/staff/inventory', '28e367e85dae54f01aa49c7d6c4c18a36c715b2b373d7879870cdc8896704784', 0, NULL, '2026-10-12 05:58:35', '2026-10-12 05:58:35'),
+	(182, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/staff/inventory', '28e367e85dae54f01aa49c7d6c4c18a36c715b2b373d7879870cdc8896704784', 0, NULL, '2026-10-12 05:58:38', '2026-10-12 05:58:38'),
+	(183, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/staff/inventory', '28e367e85dae54f01aa49c7d6c4c18a36c715b2b373d7879870cdc8896704784', 0, NULL, '2026-10-12 05:58:42', '2026-10-12 05:58:42'),
+	(184, 59, 'A donor pledged support for your request (#REQ-025). Campus staff will verify it before matching.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/matches', 'c6b9e6848aba95ed13704b9fb50bc8daca0621482bfd1ba9f0d49614987fb3c8', 0, '2026-10-12 06:00:26', '2026-10-12 05:58:45', '2026-10-12 06:00:26'),
+	(185, 58, 'Campus staff received and verified your donation. It is now available for matching.', 'donation', 'normal', 'App\\Models\\Donation', 32, '/donations', '608bd2ea708a04d69f6a6301427d265864b811ec8dd2a1708277c29b464f5002', 0, '2026-10-12 06:00:42', '2026-10-12 05:59:45', '2026-10-12 06:00:42'),
+	(186, 52, 'A 1-unit Medical & Health donation has been proposed for your request.', 'match', 'normal', 'App\\Models\\DonationMatch', 4, '/matches', 'e337eaa81796c9ffeb0df38fbb30db4e3ac23e03fab3594fa7b6d4222e690f72', 0, NULL, '2026-10-12 05:59:49', '2026-10-12 05:59:49'),
+	(187, 2, 'Your 1-unit donation has been proposed for a verified request.', 'match', 'normal', 'App\\Models\\DonationMatch', 4, '/matches', '97a9e9ae0a29c1e05234a2e20948757f595a3c624701c90b561c406cdcce0d98', 1, '2026-10-12 06:00:02', '2026-10-12 05:59:52', '2026-10-12 06:00:09'),
+	(188, 59, 'A 1-unit Electronics & Tech donation has been proposed for your request.', 'match', 'normal', 'App\\Models\\DonationMatch', 5, '/matches', '0228fbd267581fd08f926e4275731f53fbd824d0271747511c531582488ada27', 1, '2026-10-12 06:00:26', '2026-10-12 05:59:55', '2026-10-12 06:12:32'),
+	(189, 58, 'Your 1-unit donation has been proposed for a verified request.', 'match', 'normal', 'App\\Models\\DonationMatch', 5, '/matches', 'c3a533d9d92f1beb459ea144cf25552a0b4f4acbc8681d4d6d69818f8fd7306c', 1, '2026-10-12 06:00:42', '2026-10-12 05:59:58', '2026-10-12 06:12:23'),
+	(190, 58, 'Your donation match was confirmed.', 'match', 'normal', 'App\\Models\\DonationMatch', 5, '/matches', 'aa94bc15ffde17504990801f7cf106b5dfd17430bd03effa643fb46d6dc7d7cd', 0, '2026-10-12 06:33:12', '2026-10-12 06:28:19', '2026-10-12 06:33:12'),
+	(191, 59, 'Your donation match was confirmed.', 'match', 'normal', 'App\\Models\\DonationMatch', 5, '/matches', 'aa94bc15ffde17504990801f7cf106b5dfd17430bd03effa643fb46d6dc7d7cd', 0, '2026-10-12 06:28:26', '2026-10-12 06:28:22', '2026-10-12 06:28:26'),
+	(192, 58, 'A handoff has been scheduled for Oct 12, 2026 10:28 PM.', 'handoff', 'normal', 'App\\Models\\DonationMatch', 5, '/donor/fulfillment', 'a2710083668e54608939c344d67956a0112c1ac8dc6674eee963b0f43d5f95f5', 0, '2026-10-12 06:33:12', '2026-10-12 06:28:57', '2026-10-12 06:33:12'),
+	(193, 59, 'A handoff has been scheduled for Oct 12, 2026 10:28 PM.', 'handoff', 'normal', 'App\\Models\\DonationMatch', 5, '/beneficiary/fulfillment', 'a2710083668e54608939c344d67956a0112c1ac8dc6674eee963b0f43d5f95f5', 1, '2026-10-12 06:29:04', '2026-10-12 06:29:01', '2026-10-12 06:29:45'),
+	(194, 2, 'Your donation match was confirmed.', 'match', 'normal', 'App\\Models\\DonationMatch', 4, '/matches', 'a33b3f7c2561c5552e8aeaed52458f00467bf3d0e4af5f4dd7edec3bb2c120bc', 0, '2026-10-12 06:35:16', '2026-10-12 06:34:14', '2026-10-12 06:35:16'),
+	(195, 52, 'Your donation match was confirmed.', 'match', 'normal', 'App\\Models\\DonationMatch', 4, '/matches', 'a33b3f7c2561c5552e8aeaed52458f00467bf3d0e4af5f4dd7edec3bb2c120bc', 0, NULL, '2026-10-12 06:34:18', '2026-10-12 06:34:18'),
+	(196, 2, 'A handoff has been scheduled for Oct 12, 2026 10:34 PM.', 'handoff', 'normal', 'App\\Models\\DonationMatch', 4, '/donor/fulfillment', 'e8badc98016fe7addeadbdab5930eb01bddce5695b55d76783281aa6f29c0a4d', 1, '2026-10-12 06:35:16', '2026-10-12 06:34:30', '2026-10-12 06:35:42'),
+	(197, 52, 'A handoff has been scheduled for Oct 12, 2026 10:34 PM.', 'handoff', 'normal', 'App\\Models\\DonationMatch', 4, '/beneficiary/fulfillment', 'e8badc98016fe7addeadbdab5930eb01bddce5695b55d76783281aa6f29c0a4d', 0, NULL, '2026-10-12 06:34:33', '2026-10-12 06:34:33'),
+	(198, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 33, '/donations', 'f87826442446cf18d2dbfd525881eada5e48a5f1f89e970cc3dd38b6e36ec6e3', 0, '2026-10-12 20:28:08', '2026-10-12 20:15:35', '2026-10-12 20:28:08'),
+	(199, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 33, '/staff/inventory', '21a54f407ac48177dade1ad4a208b16a6ac7e02710b6d3919c8eb2b644a2e2a2', 0, NULL, '2026-10-12 20:15:39', '2026-10-12 20:15:39'),
+	(200, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 33, '/staff/inventory', '21a54f407ac48177dade1ad4a208b16a6ac7e02710b6d3919c8eb2b644a2e2a2', 0, '2026-10-12 20:32:59', '2026-10-12 20:15:42', '2026-10-12 20:32:59'),
+	(201, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 33, '/staff/inventory', '21a54f407ac48177dade1ad4a208b16a6ac7e02710b6d3919c8eb2b644a2e2a2', 0, '2026-10-12 20:28:44', '2026-10-12 20:15:45', '2026-10-12 20:28:44'),
+	(202, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 33, '/staff/inventory', '21a54f407ac48177dade1ad4a208b16a6ac7e02710b6d3919c8eb2b644a2e2a2', 0, NULL, '2026-10-12 20:15:48', '2026-10-12 20:15:48'),
+	(203, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 33, '/staff/inventory', '21a54f407ac48177dade1ad4a208b16a6ac7e02710b6d3919c8eb2b644a2e2a2', 0, NULL, '2026-10-12 20:15:51', '2026-10-12 20:15:51'),
+	(204, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 33, '/staff/inventory', '21a54f407ac48177dade1ad4a208b16a6ac7e02710b6d3919c8eb2b644a2e2a2', 0, NULL, '2026-10-12 20:15:54', '2026-10-12 20:15:54'),
+	(205, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 34, '/donations', '6b5fba7095d41797f8171db08b333e32c80a620fedab82eb4f5af076acbd4237', 0, '2026-10-12 20:28:08', '2026-10-12 20:16:03', '2026-10-12 20:28:08'),
+	(206, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 34, '/staff/inventory', '7e20ec112f06d34b72651d2429b192fa5bb92f2907ae527dbcdbddbd5697138e', 0, NULL, '2026-10-12 20:16:06', '2026-10-12 20:16:06'),
+	(207, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 34, '/staff/inventory', '7e20ec112f06d34b72651d2429b192fa5bb92f2907ae527dbcdbddbd5697138e', 0, '2026-10-12 20:32:59', '2026-10-12 20:16:10', '2026-10-12 20:32:59'),
+	(208, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 34, '/staff/inventory', '7e20ec112f06d34b72651d2429b192fa5bb92f2907ae527dbcdbddbd5697138e', 0, '2026-10-12 20:28:44', '2026-10-12 20:16:13', '2026-10-12 20:28:44'),
+	(209, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 34, '/staff/inventory', '7e20ec112f06d34b72651d2429b192fa5bb92f2907ae527dbcdbddbd5697138e', 0, NULL, '2026-10-12 20:16:16', '2026-10-12 20:16:16'),
+	(210, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 34, '/staff/inventory', '7e20ec112f06d34b72651d2429b192fa5bb92f2907ae527dbcdbddbd5697138e', 0, NULL, '2026-10-12 20:16:19', '2026-10-12 20:16:19'),
+	(211, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 34, '/staff/inventory', '7e20ec112f06d34b72651d2429b192fa5bb92f2907ae527dbcdbddbd5697138e', 0, NULL, '2026-10-12 20:16:23', '2026-10-12 20:16:23'),
+	(212, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 35, '/donations', '1c74cc97c32301ec92cc9d88969a9972c05ccc025f21870bcef433aae262f5e3', 0, '2026-10-12 20:28:08', '2026-10-12 20:16:26', '2026-10-12 20:28:08'),
+	(213, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 35, '/staff/inventory', '2ad55ce50ad35af0bf34ddbad4c80569dbe132507714d38743bc8af4074cbd08', 0, NULL, '2026-10-12 20:16:30', '2026-10-12 20:16:30'),
+	(214, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 35, '/staff/inventory', '2ad55ce50ad35af0bf34ddbad4c80569dbe132507714d38743bc8af4074cbd08', 0, '2026-10-12 20:32:59', '2026-10-12 20:16:33', '2026-10-12 20:32:59'),
+	(215, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 35, '/staff/inventory', '2ad55ce50ad35af0bf34ddbad4c80569dbe132507714d38743bc8af4074cbd08', 0, '2026-10-12 20:28:44', '2026-10-12 20:16:37', '2026-10-12 20:28:44'),
+	(216, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 35, '/staff/inventory', '2ad55ce50ad35af0bf34ddbad4c80569dbe132507714d38743bc8af4074cbd08', 0, NULL, '2026-10-12 20:16:40', '2026-10-12 20:16:40'),
+	(217, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 35, '/staff/inventory', '2ad55ce50ad35af0bf34ddbad4c80569dbe132507714d38743bc8af4074cbd08', 0, NULL, '2026-10-12 20:16:43', '2026-10-12 20:16:43'),
+	(218, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 35, '/staff/inventory', '2ad55ce50ad35af0bf34ddbad4c80569dbe132507714d38743bc8af4074cbd08', 0, NULL, '2026-10-12 20:16:46', '2026-10-12 20:16:46'),
+	(219, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 36, '/donations', '4ddc03e3b71848d558ee3204b6694fc5440c3d6d55f01f088725e18d3841a057', 0, '2026-10-12 20:28:08', '2026-10-12 20:16:50', '2026-10-12 20:28:08'),
+	(220, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 36, '/staff/inventory', 'aad1c84331267464d0c2668b74115a1c25c0856665dc937506f4324364be15d4', 0, NULL, '2026-10-12 20:16:53', '2026-10-12 20:16:53'),
+	(221, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 36, '/staff/inventory', 'aad1c84331267464d0c2668b74115a1c25c0856665dc937506f4324364be15d4', 0, '2026-10-12 20:32:59', '2026-10-12 20:16:57', '2026-10-12 20:32:59'),
+	(222, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 36, '/staff/inventory', 'aad1c84331267464d0c2668b74115a1c25c0856665dc937506f4324364be15d4', 0, '2026-10-12 20:28:44', '2026-10-12 20:17:00', '2026-10-12 20:28:44'),
+	(223, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 36, '/staff/inventory', 'aad1c84331267464d0c2668b74115a1c25c0856665dc937506f4324364be15d4', 0, NULL, '2026-10-12 20:17:04', '2026-10-12 20:17:04'),
+	(224, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 36, '/staff/inventory', 'aad1c84331267464d0c2668b74115a1c25c0856665dc937506f4324364be15d4', 0, NULL, '2026-10-12 20:17:10', '2026-10-12 20:17:10'),
+	(225, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 36, '/staff/inventory', 'aad1c84331267464d0c2668b74115a1c25c0856665dc937506f4324364be15d4', 0, NULL, '2026-10-12 20:17:14', '2026-10-12 20:17:14'),
+	(226, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 37, '/donations', 'ad43251b8e1bcf777a2c1affbf7498e1d3f27a2ac1f1ce19d2f4a032311587e4', 0, '2026-10-12 20:28:08', '2026-10-12 20:17:18', '2026-10-12 20:28:08'),
+	(227, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 37, '/staff/inventory', '3db280c5e815a90549e02d536af9bf65740912b90e60602d714de12aa9d49cde', 0, NULL, '2026-10-12 20:17:23', '2026-10-12 20:17:23'),
+	(228, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 37, '/staff/inventory', '3db280c5e815a90549e02d536af9bf65740912b90e60602d714de12aa9d49cde', 0, '2026-10-12 20:32:59', '2026-10-12 20:17:26', '2026-10-12 20:32:59'),
+	(229, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 37, '/staff/inventory', '3db280c5e815a90549e02d536af9bf65740912b90e60602d714de12aa9d49cde', 0, '2026-10-12 20:28:44', '2026-10-12 20:17:30', '2026-10-12 20:28:44'),
+	(230, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 37, '/staff/inventory', '3db280c5e815a90549e02d536af9bf65740912b90e60602d714de12aa9d49cde', 0, NULL, '2026-10-12 20:17:33', '2026-10-12 20:17:33'),
+	(231, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 37, '/staff/inventory', '3db280c5e815a90549e02d536af9bf65740912b90e60602d714de12aa9d49cde', 0, NULL, '2026-10-12 20:17:36', '2026-10-12 20:17:36'),
+	(232, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 37, '/staff/inventory', '3db280c5e815a90549e02d536af9bf65740912b90e60602d714de12aa9d49cde', 0, NULL, '2026-10-12 20:17:39', '2026-10-12 20:17:39'),
+	(233, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 38, '/donations', '4e3b87e17cd85e7d3b2dfe9dfc05037094a7909ac799027cc39c0b3bcd03f435', 0, '2026-10-12 20:28:08', '2026-10-12 20:17:43', '2026-10-12 20:28:08'),
+	(234, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 38, '/staff/inventory', 'e9c6e5673ea8e4dfee640261714a5f2dbc6904550fc3ad4b2e0964e73c440e39', 0, NULL, '2026-10-12 20:17:46', '2026-10-12 20:17:46'),
+	(235, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 38, '/staff/inventory', 'e9c6e5673ea8e4dfee640261714a5f2dbc6904550fc3ad4b2e0964e73c440e39', 0, '2026-10-12 20:32:59', '2026-10-12 20:17:49', '2026-10-12 20:32:59'),
+	(236, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 38, '/staff/inventory', 'e9c6e5673ea8e4dfee640261714a5f2dbc6904550fc3ad4b2e0964e73c440e39', 0, '2026-10-12 20:28:44', '2026-10-12 20:17:52', '2026-10-12 20:28:44'),
+	(237, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 38, '/staff/inventory', 'e9c6e5673ea8e4dfee640261714a5f2dbc6904550fc3ad4b2e0964e73c440e39', 0, NULL, '2026-10-12 20:17:56', '2026-10-12 20:17:56'),
+	(238, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 38, '/staff/inventory', 'e9c6e5673ea8e4dfee640261714a5f2dbc6904550fc3ad4b2e0964e73c440e39', 0, NULL, '2026-10-12 20:17:59', '2026-10-12 20:17:59'),
+	(239, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 38, '/staff/inventory', 'e9c6e5673ea8e4dfee640261714a5f2dbc6904550fc3ad4b2e0964e73c440e39', 0, NULL, '2026-10-12 20:18:03', '2026-10-12 20:18:03'),
+	(240, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 39, '/donations', '6271ff56512e06f385e166d816a7d7ae38406cef3c395dcb4810479bbb590560', 0, '2026-10-12 20:28:08', '2026-10-12 20:18:06', '2026-10-12 20:28:08'),
+	(241, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 39, '/staff/inventory', '5421d1519871fffc607b6af16a437c450da129abb1ce737bb6cb2bb2604b48a9', 0, NULL, '2026-10-12 20:18:10', '2026-10-12 20:18:10'),
+	(242, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 39, '/staff/inventory', '5421d1519871fffc607b6af16a437c450da129abb1ce737bb6cb2bb2604b48a9', 0, '2026-10-12 20:32:59', '2026-10-12 20:18:13', '2026-10-12 20:32:59'),
+	(243, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 39, '/staff/inventory', '5421d1519871fffc607b6af16a437c450da129abb1ce737bb6cb2bb2604b48a9', 0, '2026-10-12 20:28:44', '2026-10-12 20:18:16', '2026-10-12 20:28:44'),
+	(244, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 39, '/staff/inventory', '5421d1519871fffc607b6af16a437c450da129abb1ce737bb6cb2bb2604b48a9', 0, NULL, '2026-10-12 20:18:20', '2026-10-12 20:18:20'),
+	(245, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 39, '/staff/inventory', '5421d1519871fffc607b6af16a437c450da129abb1ce737bb6cb2bb2604b48a9', 0, NULL, '2026-10-12 20:18:23', '2026-10-12 20:18:23'),
+	(246, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 39, '/staff/inventory', '5421d1519871fffc607b6af16a437c450da129abb1ce737bb6cb2bb2604b48a9', 0, NULL, '2026-10-12 20:18:27', '2026-10-12 20:18:27'),
+	(247, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 40, '/donations', 'c2b4ccf21250942ad75054905e609f8cf6d273d5213d3035bb2091fc50dc391a', 0, '2026-10-12 20:28:08', '2026-10-12 20:18:32', '2026-10-12 20:28:08'),
+	(248, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 40, '/staff/inventory', '248fa4bc36df7e3d416da5f5604b813efaf276e38b9dcb0a0430900607c47f0a', 0, NULL, '2026-10-12 20:18:35', '2026-10-12 20:18:35'),
+	(249, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 40, '/staff/inventory', '248fa4bc36df7e3d416da5f5604b813efaf276e38b9dcb0a0430900607c47f0a', 0, '2026-10-12 20:32:59', '2026-10-12 20:18:41', '2026-10-12 20:32:59'),
+	(250, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 40, '/staff/inventory', '248fa4bc36df7e3d416da5f5604b813efaf276e38b9dcb0a0430900607c47f0a', 0, '2026-10-12 20:28:44', '2026-10-12 20:18:46', '2026-10-12 20:28:44'),
+	(251, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 40, '/staff/inventory', '248fa4bc36df7e3d416da5f5604b813efaf276e38b9dcb0a0430900607c47f0a', 0, NULL, '2026-10-12 20:18:50', '2026-10-12 20:18:50'),
+	(252, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 40, '/staff/inventory', '248fa4bc36df7e3d416da5f5604b813efaf276e38b9dcb0a0430900607c47f0a', 0, NULL, '2026-10-12 20:18:54', '2026-10-12 20:18:54'),
+	(253, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 40, '/staff/inventory', '248fa4bc36df7e3d416da5f5604b813efaf276e38b9dcb0a0430900607c47f0a', 0, NULL, '2026-10-12 20:18:57', '2026-10-12 20:18:57'),
+	(254, 58, 'Your donation was submitted and is ready for staff intake.', 'donation', 'normal', 'App\\Models\\Donation', 41, '/donations', '340dcc2f2affdbc13970c8da6984a36d2e3beb11afb28d249230eda622f3f3d3', 0, '2026-10-12 20:28:08', '2026-10-12 20:19:00', '2026-10-12 20:28:08'),
+	(255, 1, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 41, '/staff/inventory', '2e6d2fef53af1355c26a78296903b2b42f7f07eb84cfeaa99c124906093d057f', 0, NULL, '2026-10-12 20:19:04', '2026-10-12 20:19:04'),
+	(256, 2, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 41, '/staff/inventory', '2e6d2fef53af1355c26a78296903b2b42f7f07eb84cfeaa99c124906093d057f', 0, '2026-10-12 20:32:59', '2026-10-12 20:19:07', '2026-10-12 20:32:59'),
+	(257, 16, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 41, '/staff/inventory', '2e6d2fef53af1355c26a78296903b2b42f7f07eb84cfeaa99c124906093d057f', 0, '2026-10-12 20:28:44', '2026-10-12 20:19:10', '2026-10-12 20:28:44'),
+	(258, 17, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 41, '/staff/inventory', '2e6d2fef53af1355c26a78296903b2b42f7f07eb84cfeaa99c124906093d057f', 0, NULL, '2026-10-12 20:19:13', '2026-10-12 20:19:13'),
+	(259, 42, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 41, '/staff/inventory', '2e6d2fef53af1355c26a78296903b2b42f7f07eb84cfeaa99c124906093d057f', 0, NULL, '2026-10-12 20:19:16', '2026-10-12 20:19:16'),
+	(260, 47, 'A new donation requires warehouse processing.', 'donation', 'normal', 'App\\Models\\Donation', 41, '/staff/inventory', '2e6d2fef53af1355c26a78296903b2b42f7f07eb84cfeaa99c124906093d057f', 0, NULL, '2026-10-12 20:19:20', '2026-10-12 20:19:20'),
+	(261, 58, 'Your donation has been physically collected and handed off!', 'handoff', 'normal', 'App\\Models\\DonationMatch', 5, '/donor/fulfillment', 'e7afcc9b810661bec44cbae9005fe1507b4aab827785a3c613d24982b7136ca5', 0, '2026-10-15 23:10:55', '2026-10-12 20:33:27', '2026-10-15 23:10:55'),
+	(262, 59, 'Your aid request item has been successfully handed off to you!', 'handoff', 'normal', 'App\\Models\\DonationMatch', 5, '/beneficiary/fulfillment', 'b52c833aa9487e62ef7b67d639d12276ef256e36f4cfddeb9261cab9a1a68a5e', 0, '2026-10-12 20:33:51', '2026-10-12 20:33:37', '2026-10-12 20:33:51');
 
 -- Dumping structure for table relief_link.requests
+DROP TABLE IF EXISTS `requests`;
 CREATE TABLE IF NOT EXISTS `requests` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `beneficiary_id` bigint unsigned NOT NULL,
-  `request_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'physical',
-  `category` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `request_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'physical',
+  `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `quantity_needed` int unsigned NOT NULL,
-  `unit` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `unit` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `amount_requested` decimal(12,2) DEFAULT NULL,
-  `currency` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT 'PHP',
-  `purpose_of_funds` text COLLATE utf8mb4_unicode_ci,
-  `urgency` enum('low','medium','high') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'medium',
-  `justification` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `preferred_assistance_date` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `item_details` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `additional_info` text COLLATE utf8mb4_unicode_ci,
-  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending_review',
+  `currency` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'PHP',
+  `purpose_of_funds` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `urgency` enum('low','medium','high') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'medium',
+  `justification` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `preferred_assistance_date` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `item_details` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `additional_info` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending_review',
   `is_walk_in` tinyint(1) NOT NULL DEFAULT '0',
-  `walk_in_status` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `walk_in_status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `verified_by_user_id` bigint unsigned DEFAULT NULL,
   `created_by_staff_id` bigint unsigned DEFAULT NULL,
   `verification_decided_at` timestamp NULL DEFAULT NULL,
-  `verification_tier` enum('unverified','identity_verified','financial_hardship','emergency') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unverified',
-  `verification_state` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `verification_tier` enum('unverified','identity_verified','financial_hardship','emergency') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unverified',
+  `verification_state` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
   `verification_checklist` json DEFAULT NULL,
-  `verification_notes` text COLLATE utf8mb4_unicode_ci,
-  `staff_internal_notes` text COLLATE utf8mb4_unicode_ci,
-  `referral_destination` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `verification_decision_reason` text COLLATE utf8mb4_unicode_ci,
-  `student_id_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `verification_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `staff_internal_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `referral_destination` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `verification_decision_reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `student_id_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  `alternative_categories` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `pickup_location` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `availability_window` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `supporting_document_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `cancellation_reason` text COLLATE utf8mb4_unicode_ci,
+  `alternative_categories` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pickup_location` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `availability_window` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `supporting_document_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cancellation_reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `cancelled_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `requests_beneficiary_id_foreign` (`beneficiary_id`),
@@ -625,44 +888,53 @@ CREATE TABLE IF NOT EXISTS `requests` (
   CONSTRAINT `requests_beneficiary_id_foreign` FOREIGN KEY (`beneficiary_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `requests_created_by_staff_id_foreign` FOREIGN KEY (`created_by_staff_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `requests_verified_by_user_id_foreign` FOREIGN KEY (`verified_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.requests: ~2 rows (approximately)
-INSERT INTO `requests` (`id`, `beneficiary_id`, `request_type`, `category`, `quantity_needed`, `unit`, `amount_requested`, `currency`, `purpose_of_funds`, `urgency`, `justification`, `preferred_assistance_date`, `item_details`, `additional_info`, `status`, `is_walk_in`, `walk_in_status`, `verified_by_user_id`, `created_by_staff_id`, `verification_decided_at`, `verification_tier`, `verification_state`, `verification_checklist`, `verification_notes`, `staff_internal_notes`, `referral_destination`, `verification_decision_reason`, `student_id_number`, `created_at`, `updated_at`, `alternative_categories`, `pickup_location`, `availability_window`, `supporting_document_path`, `cancellation_reason`, `cancelled_at`) VALUES
-	(17, 50, 'physical', 'School Supplies', 5, 'sets', NULL, 'PHP', NULL, 'high', 'Needed for laboratory classes and daily coursework this term.', 'October 15, 2026', 'Scientific calculator and notebook set', NULL, 'partially_fulfilled', 0, NULL, NULL, NULL, NULL, 'identity_verified', 'approved', NULL, NULL, NULL, NULL, NULL, '2026-004218', '2026-10-02 21:02:34', '2026-10-02 21:02:34', NULL, 'Student Affairs Office', 'Weekdays, 9:00 AM–4:00 PM', NULL, NULL, NULL),
-	(18, 50, 'physical', 'books', 2, 'books', NULL, 'PHP', NULL, 'medium', 'Required reference text for the second-year programming course.', 'November 3, 2026', 'Introduction to programming textbook', NULL, 'approved', 0, NULL, 1, NULL, '2026-10-08 06:54:51', 'unverified', 'approved', '[]', NULL, NULL, NULL, NULL, '2026-004218', '2026-10-02 21:04:53', '2026-10-08 06:54:51', NULL, NULL, NULL, NULL, NULL, NULL);
+-- Dumping data for table relief_link.requests: ~7 rows (approximately)
+INSERT IGNORE INTO `requests` (`id`, `beneficiary_id`, `request_type`, `category`, `quantity_needed`, `unit`, `amount_requested`, `currency`, `purpose_of_funds`, `urgency`, `justification`, `preferred_assistance_date`, `item_details`, `additional_info`, `status`, `is_walk_in`, `walk_in_status`, `verified_by_user_id`, `created_by_staff_id`, `verification_decided_at`, `verification_tier`, `verification_state`, `verification_checklist`, `verification_notes`, `staff_internal_notes`, `referral_destination`, `verification_decision_reason`, `student_id_number`, `created_at`, `updated_at`, `alternative_categories`, `pickup_location`, `availability_window`, `supporting_document_path`, `cancellation_reason`, `cancelled_at`) VALUES
+	(17, 50, 'physical', 'School Supplies', 5, 'sets', NULL, 'PHP', NULL, 'high', 'Needed for laboratory classes and daily coursework this term.', 'October 15, 2026', 'Scientific calculator and notebook set', NULL, 'partially_fulfilled', 0, NULL, NULL, NULL, NULL, 'identity_verified', 'approved', NULL, NULL, NULL, NULL, NULL, '2026-004218', '2026-10-02 21:02:34', '2026-10-02 21:02:34', NULL, 'Student Affairs Office', 'Weekdays, 9:00 AMâ€“4:00 PM', NULL, NULL, NULL),
+	(18, 50, 'physical', 'books', 2, 'books', NULL, 'PHP', NULL, 'medium', 'Required reference text for the second-year programming course.', 'November 3, 2026', 'Introduction to programming textbook', NULL, 'approved', 0, NULL, 1, NULL, '2026-10-08 06:54:51', 'unverified', 'approved', '[]', NULL, NULL, NULL, NULL, '2026-004218', '2026-10-02 21:04:53', '2026-10-08 06:54:51', NULL, NULL, NULL, NULL, NULL, NULL),
+	(19, 52, 'physical', 'Medical & Health', 1, NULL, NULL, 'PHP', NULL, 'medium', '[Walk-In Desk] idk men someone donated', NULL, NULL, NULL, 'matched', 1, 'referred', 2, 2, NULL, 'identity_verified', 'pending', NULL, 'Walk-in on-site request verified by staff desk.', 'ok ok ok', 'sample', NULL, '24-099894', '2026-10-09 20:56:23', '2026-10-12 06:34:21', NULL, NULL, NULL, NULL, NULL, NULL),
+	(20, 53, 'physical', 'Food & Meals', 1, NULL, NULL, 'PHP', NULL, 'medium', '[Walk-In Desk] awdadwadadaad', NULL, NULL, NULL, 'matched', 1, 'referred', 2, 2, NULL, 'emergency', 'pending', NULL, 'Walk-in on-site request verified by staff desk.', 'what teh', 'dddd', NULL, '344343-33', '2026-10-09 21:07:15', '2026-10-09 21:07:15', NULL, NULL, NULL, NULL, NULL, NULL),
+	(23, 59, 'physical', 'Clothing & Apparel', 1, 'sets', NULL, 'PHP', NULL, 'high', 'wadadwad', 'dd', 'awdda', NULL, 'approved', 0, NULL, 16, NULL, '2026-10-12 01:21:29', 'unverified', 'approved', NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-12 01:18:55', '2026-10-12 01:21:29', NULL, 'Campus Student Center - Main Entrance', 'Weekdays 2:00 PM - 5:00 PM', NULL, NULL, NULL),
+	(24, 59, 'financial', 'Daily Living & Food Allowance', 1, NULL, 2000.00, 'PHP', 'buy a new wireless 8k polling rate mouse with small size for fingertip grip', 'high', 'to make my gaming experience more pay to win nigga', 'ddd', NULL, NULL, 'rejected', 0, NULL, 2, NULL, '2026-10-12 01:29:01', 'unverified', 'rejected', '{"identity": true, "eligibility": true, "justification": true}', 'bro what the fuck is u talm bout dawg😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂', NULL, NULL, 'blud ion verifying ts pmo by js reading ts lol get lost', '23-233444', '2026-10-12 01:24:23', '2026-10-12 01:29:01', NULL, NULL, NULL, NULL, NULL, NULL),
+	(25, 59, 'physical', 'Electronics & Tech', 1, 'pieces (pcs)', NULL, 'PHP', NULL, 'medium', 'mouse niga', 'tomorrw asap', 'mouse', NULL, 'fulfilled', 0, NULL, 2, NULL, '2026-10-12 05:32:38', 'identity_verified', 'approved', '{"identity": true, "eligibility": false, "justification": false}', 'dwadawdwadwad', NULL, NULL, NULL, '2304290348234', '2026-10-12 05:31:39', '2026-10-12 20:33:27', NULL, 'Campus Student Center - Main Entrance', 'Weekdays 2:00 PM - 5:00 PM', NULL, NULL, NULL);
 
 -- Dumping structure for table relief_link.sessions
+DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE IF NOT EXISTS `sessions` (
-  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_id` bigint unsigned DEFAULT NULL,
-  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `user_agent` text COLLATE utf8mb4_unicode_ci,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `last_activity` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `sessions_user_id_index` (`user_id`),
   KEY `sessions_last_activity_index` (`last_activity`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.sessions: ~11 rows (approximately)
-INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-	('cFkjm7hah3qrrqj7MDRpHfvM92CJO06ohcDGglu8', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiM3BOSWZiT2hjVlZhSFp0aUJlZ2ZnSzkyVTNSRmxWYVpobTgxSjJPUyI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mzc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9zdGFmZi9pbnZlbnRvcnkiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1791295340),
-	('gIPwAJG5XbMFaq4RDLrXG4PtPNIIDGxGZIodkcN6', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoieUNObzVkaTJ1bWYzRFdvaVR6Z2tPbmFVZWpNd1BydFhzM2pQNUxGViI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9wcm9maWxlIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1791382357),
-	('HFA6Zs2SNVjGAlQ6CpgAuxx7dIPfmiS5EsgC43Hq', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.9549', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiZUNhdUlTRDVXMXlxMWowSGFYT2VhRUNwdGk5ZXBCNHNiY3lUR1paViI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1791101741),
-	('hJiGZTctsnVl7Cgusf3blYfcgMXOmnbHi5HHFQp6', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.9549', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoicUVyQ1FJbjJTUndzaVJWcVlJVW1ZbkpCZlVQT0R5Z3hGWDhCZXpBcCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9iYW5uZXItcHJldmlldy5odG1sIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1791101826),
-	('jJH9lPeSK6kqkKZP1H6zELGY9uAHCxAUTR5cgJbO', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiOU9yVk0wQjhPOEN0SjI1TkJBOGVsdFFOd1Q2Z0I4OGsxWEpXS25NeSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mzc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9zdGFmZi9pbnZlbnRvcnkiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1791327165),
-	('Ne64bDgXHVfQD0UhgFGETCc5ra2dARynCe09jAyB', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiNXFvQ0ZHQ3Zsb1V1Z3pSblBiaXJ3Ykl4bXh4blhuVXAyTndKdTc3dCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDA6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9iYW5uZXItcHJldmlldy5jc3MiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1791102034),
-	('Re2igB3O4BMLNPgZlDjHi45D9a38USPbEskcb1WY', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoicHpUVHNpdHZkR21NVFNEU0I5dFQ1NmVnOXJlVzF4VnZMalhKQWlvQiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mzc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9kb25vci9kYXNoYm9hcmQiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1791472342),
-	('RqUPpZZa9FO9ovRXdGCXWXiM5gz8ayZtNFrZSNDF', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiWVMzMEFHa1Vwek9YZDBJc2g2WkphcGViVmZqSzZvSnE2b2c2VXF5QyI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9kYXNoYm9hcmQiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1791107582),
-	('Rt9Tr8B9ha9T1h8RmIfehoSpbupeIUwmod3yBRl3', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoib3ZIaG5LdkpET2FYMTlldnpFYnNEUzlBZzc2YVVNOW1aNlliN3huayI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mzc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9zdGFmZi9pbnZlbnRvcnkiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1791214781),
-	('uP9ffN1iWxGJNR0aPLSx2weqxffSyH6g1bSLJWut', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.9549', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiSURQRDY0Z1I2aVNiRWtwcnRmcHl1dUxHYzhNUHFBaVN1amZzMEtieSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1791101734),
-	('X4GQIbQ3XsI2OEVMmDygSLwinF9AFf8Gs0X08dht', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36 Edg/154.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiQzZZYXpoM082Rjl5bnFZMHFQQzRESVNWVm9zUllRR2t5UU5lbzJ5aCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1791516367);
+-- Dumping data for table relief_link.sessions: ~13 rows (approximately)
+INSERT IGNORE INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
+	('1lEMke6Y9t2rFiFlJTCcCtHH37pyEzz69QXNIdy0', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoibDdVaVV6ZnFxcmpGM25PbVlTemR6bmlGR1NpRWFuWkJ6bFZJVXRtNiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1791865953),
+	('2tK7ZHatzjMYNsXH4uHHt9pNLuOjXiLy5Mf45ywd', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiWlE1WkRORFpLZWNhTFNDTW5wZWFBTUVGUzUwUVVLQjh6VTF4Wk5mbiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1792134655),
+	('9XVt1loSKjw71U8YFNp1dYiJzKHcbFUfhLkw9a6g', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiajVhVmdjTnRaRDNha0VzSDhDVXJKbmlVcWprYmZXNm85VjRpYWJPQiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6ODE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9wcm9maWxlLXBob3Rvcy9TaWxIN2FjVXNudUpsOU5YeUlwTnhybGRRcWRRNDY2Rm5SY0tMZ2VtLmpwZyI7czo1OiJyb3V0ZSI7czoxOToicHJvZmlsZS1waG90b3Muc2hvdyI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1791815695),
+	('fNfHBmXxIkoj0JEyGvfJZUIpgXYIWBvVjc9s6RFP', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiMWJyZVFoMXNjbnNUY2pmR1pPTmlneHBsRUFieUZ1a2ZlRTBtWGx1NiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1791627025),
+	('jFXyIhuu5eSyoD6IpzK7EmTfq9i8k2QGHWgk94rL', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiOFl5U0FnNUhjMHJ0cHkyUWdWUXFuUmxEUWhQVmZyNzJzODFGcXdOVyI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9kYXNoYm9hcmQiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1792134983),
+	('LA1jRF2rhjCigRDNTaIAiodCIm8UTAa2gj6PhHGv', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiTkdLTW9uTlFqUkdQalJhMjhjY3gzVno0ZExDeHhQNExxNWFMZnhwMSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tYXRjaGVzIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1791866033),
+	('LC40zIHrPMJ9aTmu9be08vV4ow25oq1MxnvNeMjZ', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiMGRWN0tCWVJoSnB3Qk1KQllVS253VlFqTzR3ZTFYajdHU0twY0NTcyI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1792134643),
+	('MWQAhhkdbaD3Mggrucd74zmZag25xd9d4gqsqGfa', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiTkRPNWxyQ3R1c3JYZzZUVU16S1B6QmM4TFY3cjFPVWlJNFhodFNJRiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tYXRjaGVzIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1791815344),
+	('O9bMCLXLfhWYnpllvFnWwCbgnNqy8wxPcw7Wk2Pn', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiQW5KY1QzZUxsczd3R1JERjUxYTA5cUtKNEJjR01nS0JLajJOUWwzTSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1792135022),
+	('PXImPuBe1yipgNRC4FAPOfZuQ6KaNUONfxwSHpyE', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoick1wQmZDcHFnUlNvZ3RWMEpiZmxBVDFsNkVUOGc3UnZiRGxxNktFbCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzQ6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9yZXF1ZXN0LWhlbHAiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1791798470),
+	('SjQBB0XxqEye1Uh1AWfKknk91gv2BCEjuCXIup4x', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiM3dNN1ppVjlveGdFN0FBSFFoSkdySTFSWFUzcklWVnF0eE45NWtpbCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tYXRjaGVzIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1791815592),
+	('TxFWtTT4tJdari3XzoeMqETbL19dnck9xtyQhqBW', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiWDdFeFI4S0dXRkgwR1hBYWlibFhnWTJUWk9ndFdGb0FtRmw2ek5EVCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mjk6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tYXRjaGVzIjtzOjU6InJvdXRlIjtOO31zOjY6Il9mbGFzaCI7YToyOntzOjM6Im9sZCI7YTowOnt9czozOiJuZXciO2E6MDp7fX19', 1791815377),
+	('zIF8irSk6GVfz4XbJ0XUzLscRUviBPHva63vm5Xk', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiQ3RrcGxJSHNwbzk1MkhIMUMwbDRBZWRvd2RFMkpyRDNqb1hHNUNIaCI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MzA6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9yZXF1ZXN0cyI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==', 1792134662);
 
 -- Dumping structure for table relief_link.system_settings
+DROP TABLE IF EXISTS `system_settings`;
 CREATE TABLE IF NOT EXISTS `system_settings` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `value` json NOT NULL,
   `updated_by_user_id` bigint unsigned DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -676,36 +948,38 @@ CREATE TABLE IF NOT EXISTS `system_settings` (
 -- Dumping data for table relief_link.system_settings: ~0 rows (approximately)
 
 -- Dumping structure for table relief_link.users
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `first_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `middle_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `last_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `first_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `middle_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `last_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role` enum('donor','beneficiary','admin','staff') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'donor',
-  `account_type` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `contact_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `campus_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `address` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `address_line_1` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `state_province_region` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `city_municipality` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `district_local_area` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `postal_zip_code` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `valid_id_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `valid_id_type` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `student_id_number` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `school_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `department` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `course` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `year_level` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `country` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `country_code` varchar(2) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `profile_photo_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role` enum('donor','beneficiary','admin','staff') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'donor',
+  `account_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contact_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `campus_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `address_line_1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `state_province_region` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `city_municipality` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `district_local_area` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `postal_zip_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `valid_id_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `valid_id_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `student_id_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `beneficiary_type` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `school_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `department` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `course` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `year_level` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `country` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `country_code` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `profile_photo_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
@@ -717,36 +991,40 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `users_valid_id_number_unique` (`valid_id_number`),
   KEY `users_role_index` (`role`),
   KEY `users_is_active_index` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table relief_link.users: ~26 rows (approximately)
-INSERT INTO `users` (`id`, `name`, `first_name`, `middle_name`, `last_name`, `email`, `email_verified_at`, `password`, `role`, `account_type`, `contact_number`, `campus_id`, `address`, `address_line_1`, `state_province_region`, `city_municipality`, `district_local_area`, `postal_zip_code`, `valid_id_number`, `valid_id_type`, `student_id_number`, `school_email`, `department`, `course`, `year_level`, `country`, `country_code`, `profile_photo_path`, `remember_token`, `created_at`, `updated_at`, `is_active`) VALUES
-	(1, 'ReliefLinkrgtfdgfdgfdg Admin', 'ReliefLinkrgtfdgfdgfdg', NULL, 'Admin', 'admin@relieflink.test', '2026-08-26 18:44:23', '$2y$12$q.SvH6U4FgDuA1fTZPwUnOsYOLLhei77k7giVvt9bNTjMzj.4WtBO', 'admin', 'admin', '+639086820592', '24-463489', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'css', NULL, NULL, NULL, NULL, 'profiles/csMBYCuiVOP10vKkLCje7WkzUX1Yz33EZ24MBnrf.jpg', 'DLZSLzc9RT', '2026-08-26 18:44:23', '2026-10-02 17:59:14', 1),
-	(2, 'ReliefLink Campus Staff', NULL, NULL, NULL, 'staff@relieflink.test', '2026-08-26 18:44:23', '$2y$12$lI5ZTaK5/klp4fwbC5AUyOz5Xlg7B7zKV82.13zG9qLUoCPyupEhi', 'staff', 'staff', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'TqQ2nsdKbF', '2026-08-26 18:44:24', '2026-10-01 22:38:57', 1),
-	(13, 'Marnito Cadenas', NULL, NULL, NULL, 'marnitocadenas453@gmail.com', '2026-08-26 19:33:18', '$2y$12$Auh8jd4UDHm8/NAvqsfsjeW8IB2BPYZQglR8NvKIrJ3QkC8ve.1Ky', 'donor', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'eR7Oi6rIlc', '2026-08-26 19:09:26', '2026-08-26 19:33:18', 1),
-	(14, 'Marnito Cadenas', NULL, NULL, NULL, 'marnitocadenas@gmail.com', '2026-08-26 19:33:18', '$2y$12$6hlqbnifRNcr7T.Q0O4HAe7O1asOzKTNAy7Qf9hKHJsAZO5w667Q6', 'beneficiary', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'marnitocadenas@gmail.com', NULL, NULL, NULL, NULL, NULL, 'profiles/SilH7acUsnuJl9NXyIpNxrldQqdQ466FnRcKLgem.jpg', 'E2n6de1sBR', '2026-08-26 19:13:55', '2026-10-05 04:15:34', 1),
-	(16, 'admin', NULL, NULL, NULL, 'admin@gmail.com', '2026-08-27 01:08:01', '$2y$12$nOYBpRscqemYk6giQSE2O.Iz/ShT/U2GHsrLvof60OVE0ITsXfmfK', 'admin', 'admin', '+639086820597', '', '', NULL, NULL, NULL, NULL, NULL, '', NULL, '', '', '', '', '', 'Philippines', 'PH', 'profiles/yYpoZcO00KlvAH7BUXSExJj38yT14SEvoX7WYNHf.jpg', 'poziaBGAkY', '2026-08-27 01:07:33', '2026-10-08 05:53:30', 1),
-	(17, 'staff', NULL, NULL, NULL, 'staff@gmail.com', '2026-08-28 05:25:12', '$2y$12$hM/HzfiJTRPP4sYp.kWB0uXUl9Z/LOBhqibIjtvHYfQilOclNsSaW', 'staff', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'profiles/pSquJSO8SiuZUGbtXKNKMzHSUHeHQ2r6DnwXDESv.png', 'JALdiFczdA', '2026-08-28 05:24:43', '2026-08-31 06:58:54', 1),
-	(18, 'donor aki', 'donor', NULL, 'aki', 'donor@gmail.com', '2026-08-28 06:09:20', '$2y$12$qhQfZ7zj0O8pXj9ymyTtBuGN7X.Lx.4h.ogD/7oKxfr9W1d2gtzRO', 'donor', 'donor', '+636567657676', '3666666666666666664', 'gffffffffffffff, Philippines', 'gffffffffffffff', NULL, NULL, NULL, NULL, '3666666666666666664', 'Driver\'s License', NULL, NULL, NULL, NULL, NULL, 'Philippines', 'PH', NULL, 'f7cp0ZxD5T', '2026-08-28 06:09:06', '2026-09-29 05:14:37', 1),
-	(19, 'bene', NULL, NULL, NULL, 'bene@gmail.com', '2026-08-28 06:11:06', '$2y$12$LVn83szqeUcdy5KPtRRy0.ORUcu3wwf5ZxCvacwVUAS.e3S1./ZAq', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'SPKGnPj7yk', '2026-08-28 06:10:52', '2026-08-28 06:11:06', 1),
-	(20, 'marn', NULL, NULL, NULL, 'ron@gmail.com', '2026-09-15 03:12:25', '$2y$12$MVgGkCjTJVpUD/YL1RVofeUxWZWFg1xAliiBBTeO8pX9b69dgLxim', 'beneficiary', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ron@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, 'tdstCEfmDU', '2026-09-15 03:12:07', '2026-10-03 23:58:06', 1),
-	(21, 'Test Donor', NULL, NULL, NULL, 'testdonor@example.com', NULL, '$2y$12$GtVMxCrHTZsNDp3hF46gO.Jbt/Of/mvD73qnphjIb.d3WXtdhOtzm', 'donor', NULL, '1234567890', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-09-16 06:01:22', '2026-09-16 06:01:22', 1),
-	(22, 'Test Beneficiary', NULL, NULL, NULL, 'testbene@example.com', NULL, '$2y$12$ygyVlDtBc5bRA8Kjf0pawOJZbq5ffRGErlheLmvLaf1GlCJihhomi', 'beneficiary', NULL, '0987654321', 'STU12345', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-09-16 06:01:22', '2026-09-16 06:01:22', 1),
-	(24, 'Other Donor', NULL, NULL, NULL, 'other@example.com', NULL, '$2y$12$hHlykG1X8PYTUV2vPo0oOOrmpRLrKI7MgIAM2AGEC95odGwof9qLm', 'donor', NULL, '1234567890-dup-24', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-09-16 06:01:55', '2026-09-16 06:01:55', 1),
-	(25, 'Other Bene', NULL, NULL, NULL, 'otherbene@example.com', NULL, '$2y$12$eqL2ByGFm6d/a0lb/kcnUeSMkdytRF3cJdRcSBQsxcFEn.m0qCXru', 'beneficiary', NULL, '1234567890-dup-25', 'STU999', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-09-16 06:01:55', '2026-09-16 06:01:55', 1),
-	(26, 'Alex Kal', NULL, NULL, NULL, 'cadenasmarnito@gmail.com', '2026-09-16 21:17:58', '$2y$12$1/w/iv9fETx.jNvKZ7T9DeutFTN4EW0xAMzHamaPycy6Tzmf5GBh6', 'beneficiary', NULL, '+639086820599', '2026-019852', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '31Qsr5OCHr', '2026-09-16 21:17:58', '2026-09-16 21:17:58', 1),
-	(27, 'Kila Al', NULL, NULL, NULL, 'alim@gmail.com', '2026-09-16 21:29:35', '$2y$12$h76dd2Jcb5XIzxT4wuFczOw2mesLr0NUL8qQiJf3t7jQ76GX0.ora', 'beneficiary', NULL, '+639123456789', '2026-123456', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, 'efCdGIYtd6', '2026-09-16 21:29:35', '2026-09-16 21:29:35', 1),
-	(30, 'marnito cadenas', NULL, NULL, NULL, 'arn@gmail.com', '2026-09-17 19:05:53', '$2y$12$/TycOSG496JXf7NcdGAXSuASuXnW3b7Jk9cgoB45T4J6TFBYn77ki', 'donor', 'donor', '+639654635656', '2026-654321-DUP-30', NULL, NULL, NULL, NULL, NULL, NULL, '2026-654321-DUP-30', NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, 'Y4N1hYUdPl', '2026-09-17 19:05:53', '2026-10-02 05:44:56', 1),
-	(35, 'Marnito Cadenas,Marnito Cadenas', NULL, NULL, NULL, 'marnitocadenas3@gmail.cpm', '2026-09-19 07:16:08', '$2y$12$9vpTFLj9i9.LDx5cNIi2r.QUBilXbdMf9pjd9AtKcuBLoMO2xzqlK', 'beneficiary', NULL, '+639086820596', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-123456890', 'marnitocadenas@gmail.com', 'rryr', '67', '7', 'Philippines', 'PH', NULL, 'WpXWv7oOc8', '2026-09-19 07:16:08', '2026-09-19 07:16:08', 1),
-	(41, 'terv hhf', NULL, NULL, NULL, 'denas3@gmail.cpm', '2026-09-19 08:25:28', '$2y$12$xmbFOsjfWi5.4moS/1jcnuOo0MozqtZbtjUlBq5bBfaS7KG3rygWK', 'beneficiary', NULL, '+639086820595', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-123456823', 'cadenas453@gmail.com', 'it', 'it', '3', 'Philippines', 'PH', NULL, 'LpWT8AzgwN', '2026-09-19 08:25:28', '2026-09-19 08:25:28', 1),
-	(42, 'alim', NULL, NULL, NULL, 'denas30@gmail.cpm', '2026-09-19 16:52:53', '$2y$12$aGe9V6w5NpRac4aOUzeAKu85tFYiZ.MEA.JdEmUtXJCpmqN0DXzf2', 'admin', NULL, '0908 682 0597', '2024-453453', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', NULL, NULL, NULL, '2026-09-19 16:52:53', '2026-09-19 16:52:53', 1),
-	(44, 'poul gsgfs', NULL, NULL, NULL, 'py@gmail.cpm', '2026-09-19 19:59:45', '$2y$12$AtB3FE1sNiPskePZ4QxZRuC4Ncfx9NHTXTsFUJqERoYotLMwWt5fy', 'donor', NULL, '0908 682 0594', NULL, '2024-453458', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', NULL, NULL, 'hGy1eUUTfx', '2026-09-19 19:59:45', '2026-09-19 20:01:56', 1),
-	(45, 'ger bg', NULL, NULL, NULL, 'ger@gmail.cpm', '2026-09-19 20:00:50', '$2y$12$16UhBTvY/B6o7LYJblTE5eE3.THbAcVwPQtF.g7.P8nRonnbgsZDK', 'beneficiary', NULL, '0908 682 0591', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '45645456456', 'tmv@gmail.cpm', 'fdfdfd', '987', '8', 'Philippines', NULL, NULL, NULL, '2026-09-19 20:00:50', '2026-09-19 20:00:50', 1),
-	(47, 'owen', NULL, NULL, NULL, 'w@gmail.com', '2026-09-22 03:04:35', '$2y$12$KkgQVAeBEQhYaUhRjcMUcu2mv80f9Kn1ZJo3NBgUMz3MZXTLve5iq', 'admin', NULL, '254713247325456', '877666664', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', NULL, NULL, NULL, '2026-09-22 03:04:35', '2026-09-22 03:04:35', 1),
-	(48, 'iuggfjsd', NULL, NULL, NULL, 'gdhvf@gmail.com', '2026-09-22 03:06:13', '$2y$12$.MDanUlXWIV8HUL.EbYpQOfQlo9CVOdcd8Xjr9mgJ6uopsv/Z7l1C', 'donor', 'donor', '8743657346', '67', 'guinobatan', NULL, NULL, NULL, NULL, NULL, '67', NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', NULL, NULL, NULL, '2026-09-22 03:06:13', '2026-10-08 05:53:58', 1),
-	(49, 'Jordan Reyes', NULL, NULL, NULL, 'jordan.reyes.preview@relieflink.test', NULL, '$2y$12$dy/hiE2hdfVTjv98BlgvH.Xe8Fo85GmaD13XM8YhzwgFJsrw5fkIu', 'donor', 'donor', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Student Affairs', NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-02 21:02:33', '2026-10-08 05:53:38', 1),
-	(50, 'Maya Santos', NULL, NULL, NULL, 'maya.santos.preview@relieflink.test', NULL, '$2y$12$JSp7lsZcAiXfUYfKjJjjguu6BMwKIS.b8.52nWLROPYMPyrOWSApm', 'beneficiary', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'maya.santos.preview@relieflink.test', 'Engineering', 'BS Information Technology', '2nd Year', NULL, NULL, NULL, NULL, '2026-10-02 21:02:34', '2026-10-02 21:02:34', 1),
-	(51, 'cvc cxvcx xcv', 'cvc', 'cxvcx', 'xcv', 'marnit@gmail.com', '2026-10-08 06:57:59', '$2y$12$HSQ.pwGmKJKDRSvjw61ZpOADo5lqDv9AAyysi2utXMxc8jMv0ZfsC', 'donor', 'donor', '+639086825655', '46456666666', NULL, 'gdf,vbdf', 'bohol', 'bohol', 'guinochc', '6324', '46456666666', 'National Identity Card', NULL, NULL, NULL, NULL, NULL, 'Philippines', 'PH', NULL, 'X3J3oGscFi', '2026-10-08 06:57:59', '2026-10-08 06:57:59', 1);
+-- Dumping data for table relief_link.users: ~30 rows (approximately)
+INSERT IGNORE INTO `users` (`id`, `name`, `first_name`, `middle_name`, `last_name`, `email`, `email_verified_at`, `password`, `role`, `account_type`, `contact_number`, `campus_id`, `address`, `address_line_1`, `state_province_region`, `city_municipality`, `district_local_area`, `postal_zip_code`, `valid_id_number`, `valid_id_type`, `student_id_number`, `beneficiary_type`, `school_email`, `department`, `course`, `year_level`, `country`, `country_code`, `profile_photo_path`, `remember_token`, `created_at`, `updated_at`, `is_active`) VALUES
+	(1, 'ReliefLinkrgtfdgfdgfdg Admin', 'ReliefLinkrgtfdgfdgfdg', NULL, 'Admin', 'admin@relieflink.test', '2026-08-26 18:44:23', '$2y$12$q.SvH6U4FgDuA1fTZPwUnOsYOLLhei77k7giVvt9bNTjMzj.4WtBO', 'admin', 'admin', '+639086820592', '24-463489', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'css', NULL, NULL, NULL, NULL, 'profiles/csMBYCuiVOP10vKkLCje7WkzUX1Yz33EZ24MBnrf.jpg', 'DLZSLzc9RT', '2026-08-26 18:44:23', '2026-10-02 17:59:14', 1),
+	(2, 'ReliefLink Campus Staff', NULL, NULL, NULL, 'staff@relieflink.test', '2026-08-26 18:44:23', '$2y$12$lI5ZTaK5/klp4fwbC5AUyOz5Xlg7B7zKV82.13zG9qLUoCPyupEhi', 'staff', 'staff', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'TqQ2nsdKbF', '2026-08-26 18:44:24', '2026-10-01 22:38:57', 1),
+	(13, 'Marnito Cadenas', NULL, NULL, NULL, 'marnitocadenas453@gmail.com', '2026-08-26 19:33:18', '$2y$12$Auh8jd4UDHm8/NAvqsfsjeW8IB2BPYZQglR8NvKIrJ3QkC8ve.1Ky', 'donor', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'eR7Oi6rIlc', '2026-08-26 19:09:26', '2026-08-26 19:33:18', 1),
+	(14, 'Marnito Cadenas', NULL, NULL, NULL, 'marnitocadenas@gmail.com', '2026-08-26 19:33:18', '$2y$12$6hlqbnifRNcr7T.Q0O4HAe7O1asOzKTNAy7Qf9hKHJsAZO5w667Q6', 'beneficiary', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'marnitocadenas@gmail.com', NULL, NULL, NULL, NULL, NULL, 'profiles/SilH7acUsnuJl9NXyIpNxrldQqdQ466FnRcKLgem.jpg', 'E2n6de1sBR', '2026-08-26 19:13:55', '2026-10-05 04:15:34', 1),
+	(16, 'admin', NULL, NULL, NULL, 'admin@gmail.com', '2026-08-27 01:08:01', '$2y$12$nOYBpRscqemYk6giQSE2O.Iz/ShT/U2GHsrLvof60OVE0ITsXfmfK', 'admin', 'admin', '+639086820597', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', 'PH', 'profiles/UAMZilp9FUztx2uYUAzj45XzcN9MrxoLJMioY2eR.png', 'poziaBGAkY', '2026-08-27 01:07:33', '2026-10-09 21:35:05', 1),
+	(17, 'staff', NULL, NULL, NULL, 'staff@gmail.com', '2026-08-28 05:25:12', '$2y$12$hM/HzfiJTRPP4sYp.kWB0uXUl9Z/LOBhqibIjtvHYfQilOclNsSaW', 'staff', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'profiles/pSquJSO8SiuZUGbtXKNKMzHSUHeHQ2r6DnwXDESv.png', 'JALdiFczdA', '2026-08-28 05:24:43', '2026-08-31 06:58:54', 1),
+	(18, 'donor aki', 'donor', NULL, 'aki', 'donor@gmail.com', '2026-08-28 06:09:20', '$2y$12$qhQfZ7zj0O8pXj9ymyTtBuGN7X.Lx.4h.ogD/7oKxfr9W1d2gtzRO', 'donor', 'donor', '+636567657676', '3666666666666666664', 'gffffffffffffff, Philippines', 'gffffffffffffff', NULL, NULL, NULL, NULL, '3666666666666666664', 'Driver\'s License', NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', 'PH', NULL, 'f7cp0ZxD5T', '2026-08-28 06:09:06', '2026-09-29 05:14:37', 1),
+	(19, 'bene', NULL, NULL, NULL, 'bene@gmail.com', '2026-08-28 06:11:06', '$2y$12$LVn83szqeUcdy5KPtRRy0.ORUcu3wwf5ZxCvacwVUAS.e3S1./ZAq', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'SPKGnPj7yk', '2026-08-28 06:10:52', '2026-08-28 06:11:06', 1),
+	(20, 'marn', NULL, NULL, NULL, 'ron@gmail.com', '2026-09-15 03:12:25', '$2y$12$MVgGkCjTJVpUD/YL1RVofeUxWZWFg1xAliiBBTeO8pX9b69dgLxim', 'beneficiary', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ron@gmail.com', NULL, NULL, NULL, NULL, NULL, NULL, 'tdstCEfmDU', '2026-09-15 03:12:07', '2026-10-03 23:58:06', 1),
+	(21, 'Test Donor', NULL, NULL, NULL, 'testdonor@example.com', NULL, '$2y$12$GtVMxCrHTZsNDp3hF46gO.Jbt/Of/mvD73qnphjIb.d3WXtdhOtzm', 'donor', NULL, '1234567890', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-09-16 06:01:22', '2026-09-16 06:01:22', 1),
+	(22, 'Test Beneficiary', NULL, NULL, NULL, 'testbene@example.com', NULL, '$2y$12$ygyVlDtBc5bRA8Kjf0pawOJZbq5ffRGErlheLmvLaf1GlCJihhomi', 'beneficiary', NULL, '0987654321', 'STU12345', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-09-16 06:01:22', '2026-09-16 06:01:22', 1),
+	(24, 'Other Donor', NULL, NULL, NULL, 'other@example.com', NULL, '$2y$12$hHlykG1X8PYTUV2vPo0oOOrmpRLrKI7MgIAM2AGEC95odGwof9qLm', 'donor', NULL, '1234567890-dup-24', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-09-16 06:01:55', '2026-09-16 06:01:55', 1),
+	(25, 'Other Bene', NULL, NULL, NULL, 'otherbene@example.com', NULL, '$2y$12$eqL2ByGFm6d/a0lb/kcnUeSMkdytRF3cJdRcSBQsxcFEn.m0qCXru', 'beneficiary', NULL, '1234567890-dup-25', 'STU999', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-09-16 06:01:55', '2026-09-16 06:01:55', 1),
+	(26, 'Alex Kal', NULL, NULL, NULL, 'cadenasmarnito@gmail.com', '2026-09-16 21:17:58', '$2y$12$1/w/iv9fETx.jNvKZ7T9DeutFTN4EW0xAMzHamaPycy6Tzmf5GBh6', 'beneficiary', NULL, '+639086820599', '2026-019852', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, '31Qsr5OCHr', '2026-09-16 21:17:58', '2026-09-16 21:17:58', 1),
+	(27, 'Kila Al', NULL, NULL, NULL, 'alim@gmail.com', '2026-09-16 21:29:35', '$2y$12$h76dd2Jcb5XIzxT4wuFczOw2mesLr0NUL8qQiJf3t7jQ76GX0.ora', 'beneficiary', NULL, '+639123456789', '2026-123456', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, 'efCdGIYtd6', '2026-09-16 21:29:35', '2026-09-16 21:29:35', 1),
+	(30, 'marnito cadenas', NULL, NULL, NULL, 'arn@gmail.com', '2026-09-17 19:05:53', '$2y$12$/TycOSG496JXf7NcdGAXSuASuXnW3b7Jk9cgoB45T4J6TFBYn77ki', 'donor', 'donor', '+639654635656', '2026-654321-DUP-30', NULL, NULL, NULL, NULL, NULL, NULL, '2026-654321-DUP-30', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, 'Y4N1hYUdPl', '2026-09-17 19:05:53', '2026-10-02 05:44:56', 1),
+	(35, 'Marnito Cadenas,Marnito Cadenas', NULL, NULL, NULL, 'marnitocadenas3@gmail.cpm', '2026-09-19 07:16:08', '$2y$12$9vpTFLj9i9.LDx5cNIi2r.QUBilXbdMf9pjd9AtKcuBLoMO2xzqlK', 'beneficiary', NULL, '+639086820596', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-123456890', 'student', 'marnitocadenas@gmail.com', 'rryr', '67', '7', 'Philippines', 'PH', NULL, 'WpXWv7oOc8', '2026-09-19 07:16:08', '2026-09-19 07:16:08', 1),
+	(41, 'terv hhf', NULL, NULL, NULL, 'denas3@gmail.cpm', '2026-09-19 08:25:28', '$2y$12$xmbFOsjfWi5.4moS/1jcnuOo0MozqtZbtjUlBq5bBfaS7KG3rygWK', 'beneficiary', NULL, '+639086820595', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-123456823', 'student', 'cadenas453@gmail.com', 'it', 'it', '3', 'Philippines', 'PH', NULL, 'LpWT8AzgwN', '2026-09-19 08:25:28', '2026-09-19 08:25:28', 1),
+	(42, 'alim', NULL, NULL, NULL, 'denas30@gmail.cpm', '2026-09-19 16:52:53', '$2y$12$aGe9V6w5NpRac4aOUzeAKu85tFYiZ.MEA.JdEmUtXJCpmqN0DXzf2', 'admin', NULL, '0908 682 0597', '2024-453453', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', NULL, NULL, NULL, '2026-09-19 16:52:53', '2026-09-19 16:52:53', 1),
+	(44, 'poul gsgfs', NULL, NULL, NULL, 'py@gmail.cpm', '2026-09-19 19:59:45', '$2y$12$AtB3FE1sNiPskePZ4QxZRuC4Ncfx9NHTXTsFUJqERoYotLMwWt5fy', 'donor', NULL, '0908 682 0594', NULL, '2024-453458', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', NULL, NULL, 'hGy1eUUTfx', '2026-09-19 19:59:45', '2026-09-19 20:01:56', 1),
+	(45, 'ger bg', NULL, NULL, NULL, 'ger@gmail.cpm', '2026-09-19 20:00:50', '$2y$12$16UhBTvY/B6o7LYJblTE5eE3.THbAcVwPQtF.g7.P8nRonnbgsZDK', 'beneficiary', NULL, '0908 682 0591', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '45645456456', 'student', 'tmv@gmail.cpm', 'fdfdfd', '987', '8', 'Philippines', NULL, NULL, NULL, '2026-09-19 20:00:50', '2026-09-19 20:00:50', 1),
+	(47, 'owen', NULL, NULL, NULL, 'w@gmail.com', '2026-09-22 03:04:35', '$2y$12$KkgQVAeBEQhYaUhRjcMUcu2mv80f9Kn1ZJo3NBgUMz3MZXTLve5iq', 'admin', NULL, '254713247325456', '877666664', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', NULL, NULL, NULL, '2026-09-22 03:04:35', '2026-09-22 03:04:35', 1),
+	(48, 'iuggfjsd', NULL, NULL, NULL, 'gdhvf@gmail.com', '2026-09-22 03:06:13', '$2y$12$.MDanUlXWIV8HUL.EbYpQOfQlo9CVOdcd8Xjr9mgJ6uopsv/Z7l1C', 'donor', 'donor', '8743657346', '67', 'guinobatan', NULL, NULL, NULL, NULL, NULL, '67', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', NULL, NULL, NULL, '2026-09-22 03:06:13', '2026-10-08 05:53:58', 1),
+	(49, 'Jordan Reyes', NULL, NULL, NULL, 'jordan.reyes.preview@relieflink.test', NULL, '$2y$12$dy/hiE2hdfVTjv98BlgvH.Xe8Fo85GmaD13XM8YhzwgFJsrw5fkIu', 'donor', 'donor', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Student Affairs', NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-02 21:02:33', '2026-10-08 05:53:38', 1),
+	(50, 'Maya Santos', NULL, NULL, NULL, 'maya.santos.preview@relieflink.test', NULL, '$2y$12$JSp7lsZcAiXfUYfKjJjjguu6BMwKIS.b8.52nWLROPYMPyrOWSApm', 'beneficiary', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'maya.santos.preview@relieflink.test', 'Engineering', 'BS Information Technology', '2nd Year', NULL, NULL, NULL, NULL, '2026-10-02 21:02:34', '2026-10-02 21:02:34', 1),
+	(51, 'cvc cxvcx xcv', 'cvc', 'cxvcx', 'xcv', 'marnit@gmail.com', '2026-10-08 06:57:59', '$2y$12$HSQ.pwGmKJKDRSvjw61ZpOADo5lqDv9AAyysi2utXMxc8jMv0ZfsC', 'donor', 'donor', '+639086825655', '46456666666', NULL, 'gdf,vbdf', 'bohol', 'bohol', 'guinochc', '6324', '46456666666', 'National Identity Card', NULL, NULL, NULL, NULL, NULL, NULL, 'Philippines', 'PH', NULL, 'X3J3oGscFi', '2026-10-08 06:57:59', '2026-10-08 06:57:59', 1),
+	(52, 'awdfiubhaw', NULL, NULL, NULL, 'soigm@fwaoiuh.cc', NULL, '$2y$12$QE250QGXDhAB/OY6Sbm.0e5C/uZZIr1BjAEwIZoj7LHiel27YxmNC', 'beneficiary', 'beneficiary', NULL, '24-099894', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'faculty_staff', 'soigm@fwaoiuh.cc', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-09 20:56:23', '2026-10-09 20:56:23', 1),
+	(53, 'wa', NULL, NULL, NULL, 'wdw223@weaf', NULL, '$2y$12$OLRIhg6oD.FNs0XCxQMX7euLPdBeCUrkx9Zr2e5Y8J7ZOj5DYLnsi', 'beneficiary', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '344343-33', 'student', 'wdw223@weaf', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-09 21:07:15', '2026-10-09 21:07:15', 1),
+	(58, 'Test Donor', 'Test', NULL, 'Donor', 'donor@owen.com', '2026-10-12 01:02:27', '$2y$10$ucV3saeDkbabNgHby2rR8ecjFHPmMZ8TR3Urq1k8fZGmcTbUVQhUy', 'donor', 'donor', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'qSURm3Yg5G', '2026-10-12 09:01:42', '2026-10-12 01:02:27', 1),
+	(59, 'Test Beneficiary', 'Test', NULL, 'Beneficiary', 'benefits@owen.com', '2026-10-12 01:02:47', '$2y$10$ucV3saeDkbabNgHby2rR8ecjFHPmMZ8TR3Urq1k8fZGmcTbUVQhUy', 'beneficiary', 'beneficiary', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'benefits@owen.com', NULL, NULL, NULL, NULL, NULL, NULL, 'r7FNiz0R03', '2026-10-12 09:01:42', '2026-10-12 01:02:47', 1);
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

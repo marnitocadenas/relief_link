@@ -46,6 +46,18 @@ const title = (s = '') =>
         .replace(/_/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
+const toLocalDateTimeInput = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
+
+const toUtcIsoString = (value) => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? value : date.toISOString();
+};
+
 const truncateDonationText = (value, maxLength) => {
     const text = String(value || '');
     const characters = Array.from(text);
@@ -8823,8 +8835,17 @@ function Matches(){
                         e.preventDefault();
                         const when = e.target.when.value;
                         const notes = e.target.notes.value;
-                        setSchedule(null);
-                        action(() => api.patch(`/matches/${schedule.id}/schedule`, {handoff_scheduled_at: when, handoff_notes: notes}));
+                        setWorking(true);
+                        setError('');
+                        api.patch(`/matches/${schedule.id}/schedule`, {handoff_scheduled_at: toUtcIsoString(when), handoff_notes: notes})
+                            .then(response => {
+                                const updatedMatch = response.data?.data || response.data;
+                                setData(current => current.map(match => match.id === updatedMatch.id ? { ...match, ...updatedMatch } : match));
+                                setSchedule(null);
+                                load();
+                            })
+                            .catch(err => setError(err.response?.data?.message || 'Could not save the handoff schedule.'))
+                            .finally(() => setWorking(false));
                     }}>
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
                             <h2 className="text-lg font-extrabold text-[#2563EB]">Schedule Handoff</h2>
@@ -8832,9 +8853,10 @@ function Matches(){
                                 <Icon name="close"/>
                             </button>
                         </div>
+                        {error && <Error>{error}</Error>}
                         <label className="block text-xs font-bold text-[#2563EB]">
                             Date and Time
-                            <input name="when" className="field mt-1 text-sm" type="datetime-local" required defaultValue={schedule.handoff_scheduled_at ? new Date(schedule.handoff_scheduled_at).toISOString().slice(0,16) : ''}/>
+                            <input name="when" className="field mt-1 text-sm" type="datetime-local" required defaultValue={toLocalDateTimeInput(schedule.handoff_scheduled_at)}/>
                         </label>
                         <label className="block text-[#2563EB] text-xs font-bold">
                             Handoff Location & Notes
@@ -13200,8 +13222,7 @@ function FulfillmentPage({ role }) {
         let defaultDate = '';
         if (m.handoff_scheduled_at) {
             const d = new Date(m.handoff_scheduled_at);
-            const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-            defaultDate = iso;
+            defaultDate = toLocalDateTimeInput(d);
         }
         setScheduleForm({
             scheduled_at: defaultDate,
@@ -13222,7 +13243,7 @@ function FulfillmentPage({ role }) {
         setScheduleError('');
         try {
             await api.patch(`/matches/${schedulingMatch.id}/schedule`, {
-                handoff_scheduled_at: scheduleForm.scheduled_at,
+                handoff_scheduled_at: toUtcIsoString(scheduleForm.scheduled_at),
                 handoff_notes: scheduleForm.notes.trim(),
             });
             setActionMessage('Handoff schedule saved successfully.');
@@ -13550,13 +13571,20 @@ function FulfillmentPage({ role }) {
                                                 <Button
                                                     variant="primary"
                                                     className="text-xs py-2 px-3"
+                                                    disabled={m.status !== 'confirmed'}
                                                     onClick={() => openScheduleModal(m)}
                                                 >
                                                     <Icon name="calendar" className="mr-1.5" size={14} />
-                                                    {m.handoff_scheduled_at ? 'Reschedule Meeting' : 'Schedule Meeting'}
+                                                    {m.status !== 'confirmed'
+                                                        ? 'Awaiting Staff Confirmation'
+                                                        : m.handoff_scheduled_at ? 'Reschedule Meeting' : 'Schedule Meeting'}
                                                 </Button>
 
-                                                <span className="text-xs font-bold text-[#2563EB]/75">Staff records completion after secure identity and PIN verification.</span>
+                                                <span className="text-xs font-bold text-[#2563EB]/75">
+                                                    {m.status === 'confirmed'
+                                                        ? 'Staff records completion after secure identity and PIN verification.'
+                                                        : 'You can schedule pickup after staff confirms this proposed match.'}
+                                                </span>
                                             </div>
 
                                             <div className="flex flex-wrap items-center gap-2">
