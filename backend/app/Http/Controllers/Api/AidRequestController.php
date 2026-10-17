@@ -168,6 +168,7 @@ class AidRequestController extends Controller
         DB::transaction(function () use ($aidRequest, $reason, $request, $matchingService) {
             $aidRequest->update([
                 'status' => 'cancelled',
+                'verification_state' => 'cancelled',
                 'cancellation_reason' => $reason,
                 'cancelled_at' => now(),
             ]);

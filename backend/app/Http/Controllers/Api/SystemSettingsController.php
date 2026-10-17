@@ -26,6 +26,8 @@ class SystemSettingsController extends Controller
             'max_pending_per_user' => 'required|integer|between:1,20', 'allow_self_registration' => 'required|boolean',
             'maintenance_mode' => 'required|boolean', 'session_timeout_minutes' => 'required|integer|between:5,1440',
             'max_photo_size_mb' => 'required|integer|between:1,10', 'items_per_page' => 'required|integer|between:5,100',
+            'donation_dropoff_location' => 'nullable|string|max:255',
+            'donation_dropoff_instructions' => 'nullable|string|max:1000',
         ]);
 
         $saved = SystemSettings::save($data, $request->user());

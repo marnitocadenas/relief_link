@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreDonationRequest;
 use App\Http\Resources\DonationResource;
 use App\Models\{AidRequest, Donation};
-use App\Services\{ActivityService, AlertService};
+use App\Services\{ActivityService, AlertService, SystemSettings};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -69,9 +69,20 @@ class DonationController extends Controller
                 $d = $r->user()->donations()->create($data);
                 ActivityService::log($r->user(), 'created donation', $d);
 
+                if (($data['donation_type'] ?? 'physical') === 'physical') {
+                    $dropoffLocation = trim((string) SystemSettings::get('donation_dropoff_location'));
+                    $dropoffInstructions = trim((string) SystemSettings::get('donation_dropoff_instructions'));
+                    $dropoffMessage = $dropoffLocation !== ''
+                        ? " Please bring the item to {$dropoffLocation}." . ($dropoffInstructions !== '' ? " {$dropoffInstructions}" : '')
+                        : ' Please contact campus staff for the drop-off location and hours before bringing the item in.';
+                    $donorMessage = 'Your physical donation pledge was submitted and is awaiting staff intake.' . $dropoffMessage;
+                } else {
+                    $donorMessage = 'Your financial donation pledge was submitted and is awaiting staff review. Please follow official campus instructions for completing financial donations.';
+                }
+
                 AlertService::send(
                     $r->user(),
-                    'Your donation was submitted and is ready for staff intake.',
+                    $donorMessage,
                     'donation',
                     'normal',
                     $d,

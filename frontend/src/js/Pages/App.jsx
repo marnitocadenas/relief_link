@@ -9692,6 +9692,8 @@ function StaffVerificationDesk() {
     const [confirmingAction, setConfirmingAction] = useState(null);
     const [error, setError] = useState('');
 
+    const isFinalVerificationStatus = (status) => ['approved', 'matched', 'fulfilled', 'completed', 'cancelled', 'rejected'].includes(String(status || '').toLowerCase());
+
     const [form, setForm] = useState({
         verification_tier: 'identity_verified',
         verification_notes: '',
@@ -9714,10 +9716,11 @@ function StaffVerificationDesk() {
 
     const openModal = async (req) => {
         setInspecting(req);
+        const profileIdNumber = req.beneficiary?.student_id_number || req.beneficiary?.campus_id || '';
         setForm({
             verification_tier: req.verification_tier || 'identity_verified',
             verification_notes: req.verification_notes || '',
-            student_id_number: req.student_id_number || '',
+            student_id_number: profileIdNumber || req.student_id_number || '',
             verification_decision_reason: req.verification_decision_reason || '',
             verification_checklist: { identity: false, eligibility: false, justification: false, ...(req.verification_checklist || {}) },
         });
@@ -9729,7 +9732,7 @@ function StaffVerificationDesk() {
                     verification_state: 'under_review',
                     verification_tier: req.verification_tier || 'unverified',
                     verification_notes: req.verification_notes || '',
-                    student_id_number: req.student_id_number || '',
+                    student_id_number: profileIdNumber || req.student_id_number || '',
                     verification_checklist: req.verification_checklist || {},
                 });
                 const updated = response.data.data || response.data;
@@ -9753,6 +9756,10 @@ function StaffVerificationDesk() {
     };
 
     const handleUpdateStatus = async (id, status) => {
+        if (inspecting && isFinalVerificationStatus(inspecting.status)) {
+            setError('This request already has a final decision and is read-only.');
+            return;
+        }
         if (user && inspecting && inspecting.beneficiary_id === user.id) {
             setError('Anti-Fraud Guard: You cannot verify or approve your own aid request.');
             return;
@@ -9804,7 +9811,7 @@ function StaffVerificationDesk() {
     filtered = [...filtered].sort((a, b) => ({ high: 0, medium: 1, low: 2 }[a.urgency] ?? 3) - ({ high: 0, medium: 1, low: 2 }[b.urgency] ?? 3));
     const summary = {
         pending: requests.filter((r) => r.status === 'pending_review' && r.verification_state !== 'needs_revision').length,
-        review: requests.filter((r) => r.verification_state === 'under_review').length,
+        review: requests.filter((r) => r.verification_state === 'under_review' && ['pending_review', 'under_review'].includes(r.status)).length,
         approved: requests.filter((r) => r.status === 'approved').length,
         rejected: requests.filter((r) => r.status === 'rejected').length,
         attention: requests.filter((r) => r.urgency === 'high' || r.verification_state === 'needs_revision').length,
@@ -9819,7 +9826,7 @@ function StaffVerificationDesk() {
                         <span className="eyebrow staff-module-badge">MODULE 1: ELIGIBILITY & PROOF</span>
                         <h1 className="text-2xl font-extrabold text-[#2563EB]">Student Request Verifications Desk</h1>
                         <p className="text-xs font-semibold text-[#2563EB]/80">
-                            Review student credentials, check anti-fraud guards, set verification tiers, and approve aid.
+                            Review credentials, check anti-fraud guards, set verification tiers, and approve aid.
                         </p>
                     </div>
                     <Button variant="secondary" onClick={loadData} loading={loading}>
@@ -9942,8 +9949,8 @@ function StaffVerificationDesk() {
                                                             {studentName}
                                                         </strong>
                                                         <div className="text-[10px] text-[#2563EB]/70 truncate max-w-[150px]" title={req.beneficiary?.email}>{req.beneficiary?.email}</div>
-                                                        {req.student_id_number && (
-                                                            <div className="text-[10px] font-bold text-[#22C55E]">ID: {req.student_id_number}</div>
+                                                        {(req.beneficiary?.student_id_number || req.beneficiary?.campus_id || req.student_id_number) && (
+                                                            <div className="text-[10px] font-bold text-[#22C55E]">ID: {req.beneficiary?.student_id_number || req.beneficiary?.campus_id || req.student_id_number}</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -9977,7 +9984,7 @@ function StaffVerificationDesk() {
                                                         </span>
                                                     ) : (
                                                         <Button variant="secondary" onClick={() => openModal(req)}>
-                                                            <Icon name="eye" size={14}/><span className="ml-1 text-xs">View & Verify</span>
+                                                            <Icon name="eye" size={14}/><span className="ml-1 text-xs">{isFinalVerificationStatus(req.status) ? 'View record' : 'View & Verify'}</span>
                                                         </Button>
                                                     )}
                                                 </div>
@@ -9996,13 +10003,14 @@ function StaffVerificationDesk() {
                 <div className="fixed inset-0 z-50 grid place-items-center modal-overlay p-4"><ModalBlurBackdrop />
                     <div className="panel no-hover w-full max-w-xl p-6 bg-white space-y-4">
                         <div className="flex items-center justify-between border-b border-[#2563EB]/20 pb-3">
-                            <h3 className="text-lg font-extrabold text-[#2563EB]">Verification Desk Inspection</h3>
+                            <h3 className="text-lg font-extrabold text-[#2563EB]">{isFinalVerificationStatus(inspecting.status) ? 'Read-only Request Record' : 'Verification Desk Inspection'}</h3>
                             <button className="nav-link p-1 panel-modal-close" onClick={() => setInspecting(null)}>
                                 <Icon name="close" />
                             </button>
                         </div>
 
                         {error && <div className="p-3 rounded-lg bg-red-100 border border-red-300 text-red-700 text-xs font-bold">{error}</div>}
+                        {isFinalVerificationStatus(inspecting.status) && <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs font-bold text-slate-700">This request is {String(inspecting.status).replaceAll('_', ' ')}. Its verification record can be viewed, but it cannot be verified or changed again.</div>}
 
                         <div className="grid grid-cols-2 gap-4 text-xs">
                             <div>
@@ -10038,19 +10046,26 @@ function StaffVerificationDesk() {
 
                         <div className="rounded-xl border border-dashed border-[#2563EB]/30 p-3"><div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-lg bg-[#2563EB]/10"><Icon name="request" size={16}/></span><div><p className="text-xs font-extrabold">Supporting documents</p><p className="text-[10px] font-semibold text-[#2563EB]/65">{inspecting.supporting_document_url ? 'A private supporting document is attached.' : 'No documents are attached to this request.'}</p></div></div>{inspecting.supporting_document_url && <Button type="button" variant="secondary" className="mt-3 text-xs" onClick={() => openSupportingDocument(inspecting)}><Icon name="view" size={14}/><span className="ml-1">Open securely</span></Button>}</div>
 
-                        <div className="space-y-3 pt-2 border-t border-[#2563EB]/20">
+                        <fieldset disabled={isFinalVerificationStatus(inspecting.status)} className="space-y-3 pt-2 border-t border-[#2563EB]/20">
                             <h4 className="font-extrabold text-xs uppercase tracking-wider text-[#2563EB]">Staff Verification Protocol</h4>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Student ID Number</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. STU-2026-8891"
-                                        value={form.student_id_number}
-                                        onChange={(e) => setForm({ ...form, student_id_number: e.target.value })}
-                                        className="input text-xs w-full mt-1"
-                                    />
+                                    <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">{inspecting.beneficiary?.student_id_number || inspecting.beneficiary?.campus_id ? 'ID Number from Beneficiary Profile' : 'Student ID Number'}</label>
+                                    {inspecting.beneficiary?.student_id_number || inspecting.beneficiary?.campus_id ? (
+                                        <div className="input mt-1 flex min-h-[2.75rem] w-full items-center justify-between gap-2 bg-slate-50 px-3 py-2 text-xs font-bold">
+                                            <span>{inspecting.beneficiary.student_id_number || inspecting.beneficiary.campus_id}</span>
+                                            <span className="text-[10px] font-extrabold uppercase tracking-wide text-emerald-700">From profile</span>
+                                        </div>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            placeholder="Enter the beneficiary's ID number"
+                                            value={form.student_id_number}
+                                            onChange={(e) => setForm({ ...form, student_id_number: e.target.value })}
+                                            className="input text-xs w-full mt-1"
+                                        />
+                                    )}
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Assign Verification Tier</label>
@@ -10089,10 +10104,12 @@ function StaffVerificationDesk() {
                             </div>
 
                             <div className="rounded-lg border border-[#2563EB]/15 p-3 text-[11px] font-semibold text-[#2563EB]/75"><span className="font-extrabold text-[#2563EB]">Request history: </span>submitted {new Date(inspecting.created_at).toLocaleString()}{inspecting.verified_by?.name ? ` · last reviewed by ${inspecting.verified_by.name}` : ' · no earlier verification recorded'}{inspecting.verification_decided_at ? ` · decision updated ${new Date(inspecting.verification_decided_at).toLocaleString()}` : ''}.</div>
-                        </div>
+                        </fieldset>
 
                         <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-[#2563EB]/20">
-                            {confirmingAction ? <div className="flex w-full flex-wrap items-center justify-between gap-3 rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-3"><p className="text-xs font-bold">Confirm: {confirmingAction === 'approved' ? 'approve this request' : confirmingAction === 'rejected' ? 'reject this request' : 'request more information'}?</p><div className="flex gap-2"><Button variant="secondary" onClick={() => setConfirmingAction(null)}>Cancel</Button><Button loading={actionLoading} onClick={() => { handleUpdateStatus(inspecting.id, confirmingAction); setConfirmingAction(null); }}>{confirmingAction === 'approved' ? 'Confirm approval' : 'Confirm decision'}</Button></div></div> : <><Button variant="secondary" onClick={() => setConfirmingAction('pending_review')} disabled={actionLoading}>Request revision</Button><Button variant="secondary" onClick={() => setConfirmingAction('rejected')} disabled={actionLoading}>Reject request</Button><Button onClick={() => setConfirmingAction('approved')} disabled={actionLoading}><Icon name="check"/><span className="ml-1">Verify & approve</span></Button></>}
+                            {isFinalVerificationStatus(inspecting.status)
+                                ? <Button variant="secondary" onClick={() => setInspecting(null)}>Close record</Button>
+                                : confirmingAction ? <div className="flex w-full flex-wrap items-center justify-between gap-3 rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-3"><p className="text-xs font-bold">Confirm: {confirmingAction === 'approved' ? 'approve this request' : confirmingAction === 'rejected' ? 'reject this request' : 'request more information'}?</p><div className="flex gap-2"><Button variant="secondary" onClick={() => setConfirmingAction(null)}>Cancel</Button><Button loading={actionLoading} onClick={() => { handleUpdateStatus(inspecting.id, confirmingAction); setConfirmingAction(null); }}>{confirmingAction === 'approved' ? 'Confirm approval' : 'Confirm decision'}</Button></div></div> : <><Button variant="secondary" onClick={() => setConfirmingAction('pending_review')} disabled={actionLoading}>Request revision</Button><Button variant="secondary" onClick={() => setConfirmingAction('rejected')} disabled={actionLoading}>Reject request</Button><Button onClick={() => setConfirmingAction('approved')} disabled={actionLoading}><Icon name="check"/><span className="ml-1">Verify & approve</span></Button></>}
                         </div>
                     </div>
                 </div>
@@ -10918,10 +10935,13 @@ function StaffHandoffDispatch() {
         }
     };
 
-    let activeMatches = matches.filter((m) => m.status === 'proposed' || m.status === 'confirmed');
+    const activeMatches = matches.filter((m) => m.status === 'proposed' || m.status === 'confirmed');
+    const historyMatches = matches.filter((m) => m.status === 'fulfilled' || m.status === 'rejected');
+    const visibleMatches = statusFilter === 'history'
+        ? historyMatches
+        : activeMatches.filter((m) => statusFilter === 'all' || m.status === statusFilter);
 
-    let filtered = activeMatches.filter((m) => {
-        if (statusFilter !== 'all' && m.status !== statusFilter) return false;
+    const filtered = visibleMatches.filter((m) => {
         if (hubFilter !== 'all' && (m.pickup_hub || 'Main Relief Desk Hub') !== hubFilter) return false;
         if (!search.trim()) return true;
         const q = search.toLowerCase();
@@ -10966,7 +10986,7 @@ function StaffHandoffDispatch() {
                         onChange={(e) => setSearch(e.target.value)}
                         className="input text-xs w-full"
                     />
-                    <DropdownSelect value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="input text-xs w-full"><option value="all">All active statuses</option><option value="proposed">Pending</option><option value="confirmed">Ready for pickup</option></DropdownSelect>
+                    <DropdownSelect value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="input text-xs w-full"><option value="all">Active handoffs</option><option value="proposed">Pending</option><option value="confirmed">Ready for pickup</option><option value="history">Completed & cancelled (view only)</option></DropdownSelect>
                     <DropdownSelect value={hubFilter} onChange={(e)=>setHubFilter(e.target.value)} className="input text-xs w-full"><option value="all">All pickup locations</option>{hubs.map((hub)=><option key={hub} value={hub}>{hub}</option>)}</DropdownSelect>
                 </div>
 
@@ -10989,7 +11009,7 @@ function StaffHandoffDispatch() {
                             ) : !filtered.length ? (
                                 <tr>
                                     <td colSpan="7" className="p-8 text-center text-[#2563EB]/70">
-                                        No active handoffs scheduled currently.
+                                        {statusFilter === 'history' ? 'No completed or cancelled handoffs to show.' : 'No active handoffs scheduled currently.'}
                                     </td>
                                 </tr>
                             ) : (
@@ -10997,7 +11017,10 @@ function StaffHandoffDispatch() {
                                     const scheduledAt = m.handoff_scheduled_at ? new Date(m.handoff_scheduled_at) : null;
                                     const pinExpired = !!m.pin_expires_at && new Date(m.pin_expires_at) < new Date();
                                     const scheduleIsFuture = scheduledAt && scheduledAt > new Date();
-                                    const handoffBlockedReason = m.pin_locked_at
+                                    const isHistory = m.status === 'fulfilled' || m.status === 'rejected';
+                                    const handoffBlockedReason = isHistory
+                                        ? (m.status === 'fulfilled' ? 'Already fulfilled — view only' : 'Cancelled — view only')
+                                        : m.pin_locked_at
                                         ? 'PIN locked — contact a supervisor'
                                         : pinExpired
                                             ? 'PIN expired — reschedule pickup'
@@ -11010,7 +11033,7 @@ function StaffHandoffDispatch() {
                                                         : !m.pin_expires_at
                                                             ? 'Reschedule to issue a pickup PIN'
                                                             : '';
-                                    const handoffReady = !handoffBlockedReason;
+                                    const handoffReady = m.status === 'confirmed' && !handoffBlockedReason;
                                     return (
                                     <tr key={m.id}>
                                         <td>
@@ -11037,7 +11060,7 @@ function StaffHandoffDispatch() {
                                             <p className="staff-dispatch-readiness-note mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{m.matched_quantity} unit{m.matched_quantity===1?'':'s'} · ID check required</p>
                                         </td>
                                         <td>
-                                            <Badge status={m.status} />
+                                            {m.status === 'rejected' ? <Badge status="Cancelled" /> : <Badge status={m.status} />}
                                         </td>
                                         <td>
                                             <div className="flex items-center justify-center">
@@ -11046,7 +11069,7 @@ function StaffHandoffDispatch() {
                                                         <Icon name="check" size={14}/><span className="ml-1 text-xs">Verify PIN & Handoff</span>
                                                     </Button>
                                                 ) : (
-                                                    <span className="max-w-40 text-center text-[10px] font-bold text-amber-700">{handoffBlockedReason}</span>
+                                                    <span className={`max-w-40 text-center text-[10px] font-bold ${isHistory ? 'text-slate-500' : 'text-amber-700'}`}>{handoffBlockedReason}</span>
                                                 )}
                                             </div>
                                         </td>
@@ -16037,7 +16060,9 @@ function AdminSettings(){
         maintenance_mode:false,
         session_timeout_minutes:60,
         max_photo_size_mb:2,
-        items_per_page:10
+        items_per_page:10,
+        donation_dropoff_location:'',
+        donation_dropoff_instructions:''
     };
 
     const[settings,setSettings]=useState({...defaultSettings});
@@ -16420,6 +16445,33 @@ function AdminSettings(){
 
             {activeTab==='system'&&(
                 <div className="space-y-6">
+                    <div className="panel p-5 sm:p-6 bg-white space-y-4">
+                        <SectionHeader icon="donation" title="Physical Donation Drop-off" description="Tell donors where and when to bring physical items for staff inspection"/>
+                        <label className="block text-xs font-bold text-[#2563EB]">
+                            Campus drop-off location
+                            <input
+                                type="text"
+                                className="field mt-1 w-full text-xs"
+                                maxLength={255}
+                                placeholder="e.g. Student Affairs Office, Campus Center Room 104"
+                                value={settings.donation_dropoff_location}
+                                onChange={e=>update('donation_dropoff_location',e.target.value)}
+                            />
+                        </label>
+                        <label className="block text-xs font-bold text-[#2563EB]">
+                            Drop-off instructions
+                            <textarea
+                                className="field mt-1 w-full text-xs"
+                                rows={3}
+                                maxLength={1000}
+                                placeholder="Add office hours, who to ask for, or what the donor should bring."
+                                value={settings.donation_dropoff_instructions}
+                                onChange={e=>update('donation_dropoff_instructions',e.target.value)}
+                            />
+                        </label>
+                        <p className="text-xs font-semibold text-[#2563EB]/65">These details are included in the donor’s pledge notification. Leave the location blank if donors should contact staff first.</p>
+                    </div>
+
                     <div className="panel p-5 sm:p-6 bg-white space-y-1">
                         <SectionHeader icon="activity" title="Platform Behavior" description="General system-wide settings"/>
 
