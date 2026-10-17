@@ -9,6 +9,11 @@ const STAFF_THEME_KEY = 'relieflink_theme_staff';
 const MEMBER_THEME_KEY = 'relieflink_theme_member';
 
 export const getPanelForPathAndUser = (pathname, user) => {
+    // Administrators can enter shared staff workflows such as inventory from
+    // the Admin Panel. Keep those routes on the administrator's saved theme.
+    if (user?.role === 'admin') {
+        return 'admin';
+    }
     if (pathname && pathname.startsWith('/staff')) {
         return 'staff';
     }

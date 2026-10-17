@@ -107,6 +107,55 @@ class AdminAddMemberComprehensiveTest extends TestCase
             ->assertJsonFragment(['role' => ['Please select an account type.']]);
     }
 
+    public function test_add_user_rejects_duplicate_email_without_changing_existing_credentials(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $existingPassword = 'Existing#Pass2026';
+        $existing = User::factory()->create([
+            'role' => 'staff',
+            'email' => 'already.registered@example.test',
+            'password' => Hash::make($existingPassword),
+        ]);
+        $originalHash = $existing->password;
+        Sanctum::actingAs($admin);
+
+        $this->postJson('/api/admin/users', [
+            'role' => 'staff',
+            'first_name' => 'New',
+            'last_name' => 'Account',
+            'campus_id' => 'STF-DUPLICATE-001',
+            'email' => $existing->email,
+            'department' => 'Operations',
+            'contact_number' => '+639171112233',
+            'password' => 'NewAccount#2026',
+            'password_confirmation' => 'NewAccount#2026',
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
+
+        $this->assertSame(1, User::where('email', $existing->email)->count());
+        $this->assertSame($originalHash, $existing->fresh()->password);
+        $this->assertTrue(Hash::check($existingPassword, $existing->fresh()->password));
+    }
+
+    public function test_add_user_rejects_mismatched_password_confirmation_without_creating_account(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        Sanctum::actingAs($admin);
+
+        $this->postJson('/api/admin/users', [
+            'role' => 'staff',
+            'first_name' => 'Mismatch',
+            'last_name' => 'Password',
+            'campus_id' => 'STF-MISMATCH-001',
+            'email' => 'mismatch.password@example.test',
+            'department' => 'Operations',
+            'contact_number' => '+639171112244',
+            'password' => 'NewAccount#2026',
+            'password_confirmation' => 'Different#2026',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password');
+
+        $this->assertDatabaseMissing('users', ['email' => 'mismatch.password@example.test']);
+    }
+
     /**
      * QA Test A: Administrator Account Creation (Rank #1 - #10).
      */
