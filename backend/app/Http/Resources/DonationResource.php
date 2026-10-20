@@ -14,12 +14,18 @@ class DonationResource extends JsonResource
         $owner = $viewer && $viewer->id === $this->donor_id;
 
         $reservedQty = (int) ($this->relationLoaded('matches')
-            ? $this->matches->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->sum('matched_quantity')
-            : $this->matches()->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->sum('matched_quantity'));
+            ? $this->matches->whereIn('status', ['proposed', 'confirmed'])->sum('matched_quantity')
+            : $this->matches()->whereIn('status', ['proposed', 'confirmed'])->sum('matched_quantity'));
+        $fulfilledQty = (int) ($this->relationLoaded('matches')
+            ? $this->matches->where('status', 'fulfilled')->sum('matched_quantity')
+            : $this->matches()->where('status', 'fulfilled')->sum('matched_quantity'));
 
         $reservedAmt = (float) ($this->relationLoaded('matches')
-            ? $this->matches->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->sum('matched_amount')
-            : $this->matches()->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->sum('matched_amount'));
+            ? $this->matches->whereIn('status', ['proposed', 'confirmed'])->sum('matched_amount')
+            : $this->matches()->whereIn('status', ['proposed', 'confirmed'])->sum('matched_amount'));
+        $fulfilledAmt = (float) ($this->relationLoaded('matches')
+            ? $this->matches->where('status', 'fulfilled')->sum('matched_amount')
+            : $this->matches()->where('status', 'fulfilled')->sum('matched_amount'));
 
         $data = [
             'id' => $this->id,
@@ -28,11 +34,14 @@ class DonationResource extends JsonResource
             'category' => $this->category,
             'quantity' => (int) $this->quantity,
             'reserved_quantity' => $reservedQty,
-            'available_quantity' => $this->status === 'pending_intake' ? 0 : max(0, (int) $this->quantity - $reservedQty),
+            'fulfilled_quantity' => $fulfilledQty,
+            'on_hand_quantity' => max(0, (int) $this->quantity - $fulfilledQty),
+            'available_quantity' => $this->status === 'pending_intake' ? 0 : max(0, (int) $this->quantity - $reservedQty - $fulfilledQty),
             'amount' => $this->amount ? (float) $this->amount : null,
             'currency' => $this->currency ?? 'PHP',
             'reserved_amount' => $reservedAmt,
-            'available_amount' => $this->status === 'pending_intake' ? 0.0 : max(0.0, round((float) ($this->amount ?? 0) - $reservedAmt, 2)),
+            'fulfilled_amount' => $fulfilledAmt,
+            'available_amount' => $this->status === 'pending_intake' ? 0.0 : max(0.0, round((float) ($this->amount ?? 0) - $reservedAmt - $fulfilledAmt, 2)),
             'condition_notes' => $this->condition_notes,
             'availability_window' => $this->availability_window,
             'pickup_location' => $this->pickup_location,

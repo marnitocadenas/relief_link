@@ -4185,7 +4185,7 @@ function BeneficiaryRequestForm() {
         if (savedDraft) {
             try {
                 const parsed = JSON.parse(savedDraft);
-                setF((prev) => ({ ...prev, ...parsed, currency: 'PHP', image: null }));
+                setF((prev) => ({ ...prev, ...parsed, request_type: 'physical', currency: 'PHP', image: null }));
                 setActionBanner('Restored your previously saved request draft.');
                 setTimeout(() => setActionBanner(''), 4000);
             } catch (err) {
@@ -4265,8 +4265,8 @@ function BeneficiaryRequestForm() {
     };
 
     // Sequential Field Validation Logic
-    const isPhysical = f.request_type === 'physical';
-    const isFinancial = f.request_type === 'financial';
+    const isPhysical = true;
+    const isFinancial = false;
 
     // Step 1: Type is chosen
     const typeValid = !!f.request_type;
@@ -4388,7 +4388,7 @@ function BeneficiaryRequestForm() {
                 <p className="eyebrow">BENEFICIARY WORKSPACE</p>
                 <h1 className="page-title">Create Support Request</h1>
                 <p className="page-copy">
-                    Submit an assistance request for educational supplies, living essentials, or campus financial aid.
+                    Submit an online request for physical goods and essential supplies.
                 </p>
             </div>
 
@@ -4546,68 +4546,9 @@ function BeneficiaryRequestForm() {
                         setShowConfirmModal(true);
                     }}
                 >
-                    {/* STEP 1: Request Type Selection */}
-                    <div>
-                        <div className="flex items-center gap-2 border-b border-[#2563EB] pb-2 mb-4">
-                            <Icon name="request" className="text-[#2563EB]" size={18} />
-                            <h2 className="text-base font-extrabold text-[#2563EB]">
-                                1. Select Request Type
-                            </h2>
-                        </div>
-
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <label
-                                className={`flex cursor-pointer items-center gap-3.5 rounded-2xl border p-4 transition ${
-                                    f.request_type === 'physical'
-                                        ? 'border-[#2563EB] bg-[#2563EB] text-white shadow-md'
-                                        : 'border-[#2563EB]/40 bg-white text-[#2563EB] hover:bg-[#2563EB]/5'
-                                }`}
-                            >
-                                <input
-                                    type="radio"
-                                    name="request_type"
-                                    value="physical"
-                                    checked={f.request_type === 'physical'}
-                                    onChange={(e) => setF({ ...f, request_type: e.target.value, category: '' })}
-                                    className="hidden"
-                                />
-                                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${f.request_type === 'physical' ? 'border-white bg-white/20 text-white' : 'border-[#2563EB] bg-white text-[#2563EB]'}`}>
-                                    <Icon name="donation" size={20} />
-                                </span>
-                                <div>
-                                    <h3 className="text-sm font-extrabold">Physical Item Request</h3>
-                                    <p className={`text-xs ${f.request_type === 'physical' ? 'text-white/80' : 'text-[#2563EB]/70'}`}>
-                                        Books, meals, school supplies, clothes, medical gear, tech
-                                    </p>
-                                </div>
-                            </label>
-
-                            <label
-                                className={`flex cursor-pointer items-center gap-3.5 rounded-2xl border p-4 transition ${
-                                    f.request_type === 'financial'
-                                        ? 'border-[#2563EB] bg-[#2563EB] text-white shadow-md'
-                                        : 'border-[#2563EB]/40 bg-white text-[#2563EB] hover:bg-[#2563EB]/5'
-                                }`}
-                            >
-                                <input
-                                    type="radio"
-                                    name="request_type"
-                                    value="financial"
-                                    checked={f.request_type === 'financial'}
-                                    onChange={(e) => setF({ ...f, request_type: e.target.value, category: '' })}
-                                    className="hidden"
-                                />
-                                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${f.request_type === 'financial' ? 'border-white bg-white/20 text-white' : 'border-[#2563EB] bg-white text-[#2563EB]'}`}>
-                                    <Icon name="report" size={20} />
-                                </span>
-                                <div>
-                                    <h3 className="text-sm font-extrabold">Financial Assistance Request</h3>
-                                    <p className={`text-xs ${f.request_type === 'financial' ? 'text-white/80' : 'text-[#2563EB]/70'}`}>
-                                        Tuition aid, transport allowance, study grants, emergency funds
-                                    </p>
-                                </div>
-                            </label>
-                        </div>
+                    <div className="rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/5 p-4">
+                        <p className="text-xs font-extrabold text-[#2563EB]">Online physical item requests</p>
+                        <p className="mt-1 text-xs font-semibold text-[#2563EB]/70">ReliefLink currently supports requests for physical goods and supplies.</p>
                     </div>
 
                     {/* STEP 2: Category Selection */}
@@ -7401,7 +7342,6 @@ function RequestEditModal({ item, close, done }) {
                         <DropdownSelect className="field w-full text-xs font-semibold" value={f.request_type}
                             onChange={e => setF({...f, request_type: e.target.value})}>
                             <option value="physical">Physical (Items)</option>
-                            <option value="financial">Financial (Monetary)</option>
                         </DropdownSelect>
                     </div>
                     <div>
@@ -7546,7 +7486,6 @@ function RequestManager(){
     const {user} = useAuth();
     const [state, setState] = useState({loading: true, data: [], error: ''});
     const [search, setSearch] = useState('');
-    const [typeFilter, setTypeFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortBy, setSortBy] = useState('date_desc');
@@ -7594,7 +7533,7 @@ function RequestManager(){
     if(!['beneficiary','admin'].includes(user.role)) return <Navigate to={getRoleDashboard(user.role)} replace/>;
 
     let filtered = state.data.filter(r => {
-        const matchesType = typeFilter === 'all' || (r.request_type || 'physical') === typeFilter;
+        const matchesType = (r.request_type || 'physical') === 'physical';
         const matchesCategory = categoryFilter === 'all' || r.category === categoryFilter;
         const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
         const q = search.toLowerCase();
@@ -7785,19 +7724,6 @@ function RequestManager(){
                     />
                 </div>
 
-                <div className="min-w-[130px]">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Type</label>
-                    <DropdownSelect
-                        className="field w-full text-sm"
-                        value={typeFilter}
-                        onChange={e => { setTypeFilter(e.target.value); setPage(1); }}
-                    >
-                        <option value="all">All Types</option>
-                        <option value="physical">Physical Item</option>
-                        <option value="financial">Financial Assistance</option>
-                    </DropdownSelect>
-                </div>
-
                 <div className="min-w-[140px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Category</label>
                     <DropdownSelect
@@ -7812,9 +7738,6 @@ function RequestManager(){
                         <option value="School Supplies">School Supplies</option>
                         <option value="Medical & Health Supplies">Medical Supplies</option>
                         <option value="Electronics & Tech">Electronics & Tech</option>
-                        <option value="Tuition & Academic Fees">Tuition Aid</option>
-                        <option value="Transportation Allowance">Transport Allowance</option>
-                        <option value="Daily Living & Food Allowance">Living Allowance</option>
                     </DropdownSelect>
                 </div>
 
@@ -8542,13 +8465,14 @@ function Matches(){
                         <h2 id="matches-engine-result-title" className="mt-5 text-xl font-extrabold text-[#2563EB]">Match engine complete</h2>
                         <p className="mt-2 pr-4 text-sm font-medium leading-relaxed text-slate-600">{matchMessage}</p>
                         <div className="mt-6 flex justify-end">
-                            <button
+                            <Button
                                 type="button"
+                                variant="secondary"
                                 onClick={() => setMatchMessage('')}
-                                className="rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-extrabold text-white shadow-md shadow-[#2563EB]/20 transition hover:bg-[#1D4ED8] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2"
+                                className="min-w-28 justify-center px-5 py-2.5 text-sm font-extrabold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2"
                             >
                                 Dismiss
-                            </button>
+                            </Button>
                         </div>
                     </section>
                 </div>
@@ -9153,13 +9077,14 @@ function Dashboard(){
                         <h2 id="dashboard-match-result-title" className="mt-5 text-xl font-extrabold text-[#2563EB]">Match engine complete</h2>
                         <p className="mt-2 pr-4 text-sm font-medium leading-relaxed text-slate-600">{matchMessage}</p>
                         <div className="mt-6 flex justify-end">
-                            <button
+                            <Button
                                 type="button"
+                                variant="secondary"
                                 onClick={() => setMatchMessage('')}
-                                className="rounded-xl bg-[#2563EB] px-5 py-2.5 text-sm font-extrabold text-white shadow-md shadow-[#2563EB]/20 transition hover:bg-[#1D4ED8] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:ring-offset-2"
+                                className="min-w-28 justify-center px-5 py-2.5 text-sm font-extrabold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2"
                             >
                                 Dismiss
-                            </button>
+                            </Button>
                         </div>
                     </section>
                 </div>
@@ -9575,8 +9500,8 @@ function StaffDashboard() {
         submitted: requests.filter((request) => sameDay(request.created_at, date)).length,
     }));
     const warehouseOverview = [
-        { name: 'Available', value: donations.filter((donation) => donation.status === 'pending_match').reduce((total, donation) => total + Number(donation.quantity || 0), 0) },
-        { name: 'Reserved', value: donations.filter((donation) => donation.status === 'matched').reduce((total, donation) => total + Number(donation.quantity || 0), 0) },
+        { name: 'Available', value: donations.reduce((total, donation) => total + Number(donation.available_quantity || 0), 0) },
+        { name: 'Reserved', value: donations.reduce((total, donation) => total + Number(donation.reserved_quantity || 0), 0) },
         { name: 'Dispatched', value: matches.filter((match) => ['fulfilled', 'completed'].includes(match.status)).reduce((total, match) => total + Number(match.quantity || match.matched_quantity || 0), 0) },
     ];
     const handoffOverview = [
@@ -10244,7 +10169,7 @@ function StaffWarehouseInventory() {
     const [search, setSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [gradeFilter, setGradeFilter] = useState('all');
-    const [stockFilter, setStockFilter] = useState('all');
+    const [stockFilter, setStockFilter] = useState('active');
 
     // Modals
     const [showIntakeModal, setShowIntakeModal] = useState(false);
@@ -10339,6 +10264,10 @@ function StaffWarehouseInventory() {
         setError('');
     };
 
+    const isDistributedItem = (item) => (item.donation_type || 'physical') === 'physical'
+        && Number(item.quantity || 0) > 0
+        && Number(item.fulfilled_quantity || 0) >= Number(item.quantity || 0);
+
     let filtered = donations.filter((item) => {
         if (categoryFilter !== 'all' && item.category !== categoryFilter) return false;
         if (gradeFilter !== 'all' && (item.condition_grade || 'good') !== gradeFilter) return false;
@@ -10347,6 +10276,10 @@ function StaffWarehouseInventory() {
         const isLow = availableQuantity > 0 && availableQuantity <= 2;
         const isExpired = daysUntilExpiry !== null && daysUntilExpiry < 0;
         const isExpiring = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
+        if (stockFilter === 'active' && isDistributedItem(item)) return false;
+        if (stockFilter === 'ready' && ((item.donation_type || 'physical') !== 'physical' || item.status !== 'pending_match' || availableQuantity <= 0)) return false;
+        if (stockFilter === 'reserved' && Number(item.reserved_quantity || 0) <= 0) return false;
+        if (stockFilter === 'distributed' && !isDistributedItem(item)) return false;
         if (stockFilter === 'low' && !isLow) return false;
         if (stockFilter === 'out' && (item.available_quantity ?? item.quantity) !== 0) return false;
         if (stockFilter === 'expiring' && !isExpiring) return false;
@@ -10363,7 +10296,9 @@ function StaffWarehouseInventory() {
     });
     const stockSummary = {
         total: donations.length,
-        available: donations.filter((item) => item.status === 'pending_match').reduce((total, item) => total + (item.available_quantity ?? item.quantity), 0),
+        available: donations.filter((item) => (item.donation_type || 'physical') === 'physical' && item.status === 'pending_match').reduce((total, item) => total + Number(item.available_quantity ?? item.quantity), 0),
+        ready: donations.filter((item) => (item.donation_type || 'physical') === 'physical' && item.status === 'pending_match' && Number(item.available_quantity ?? item.quantity) > 0).length,
+        distributed: donations.filter(isDistributedItem).length,
         low: donations.filter((item) => { const availableQuantity = item.available_quantity ?? item.quantity; return availableQuantity > 0 && availableQuantity <= 2; }).length,
         expiring: donations.filter((item) => item.expiry_date && new Date(item.expiry_date).getTime() - Date.now() <= 30 * 86400000 && new Date(item.expiry_date).getTime() >= Date.now()).length,
         attention: donations.filter((item) => item.condition_grade === 'damaged' || (item.expiry_date && new Date(item.expiry_date) < new Date())).length,
@@ -10373,7 +10308,10 @@ function StaffWarehouseInventory() {
         if (item.condition_grade === 'damaged') return 'Damaged';
         if (item.expiry_date && new Date(item.expiry_date) < new Date()) return 'Expired';
         if (item.expiry_date && new Date(item.expiry_date).getTime() - Date.now() <= 30 * 86400000) return 'Expiring soon';
-        if ((item.available_quantity ?? item.quantity) === 0) return item.reserved_quantity ? 'Reserved' : 'Out of stock';
+        if ((item.available_quantity ?? item.quantity) === 0) {
+            if (isDistributedItem(item)) return 'Distributed';
+            return item.reserved_quantity ? 'Reserved' : 'Out of stock';
+        }
         if ((item.available_quantity ?? item.quantity) <= 2) return 'Low stock';
         return item.status === 'pending_match' ? 'Available' : 'Reserved';
     };
@@ -10402,13 +10340,14 @@ function StaffWarehouseInventory() {
 
                 <Error>{error}</Error>
 
-                <section aria-label="Inventory summary" className="staff-inventory-summary grid grid-cols-2 gap-3 lg:grid-cols-5">
+                <section aria-label="Inventory summary" className="staff-inventory-summary grid grid-cols-2 gap-3 lg:grid-cols-6">
                     {[
                         ['Donation records', stockSummary.total, 'Includes items awaiting staff intake', 'box', 'all'],
-                        ['Available units', stockSummary.available, 'Ready for matching', 'check', 'all'],
+                        ['Available units', stockSummary.available, 'Ready for matching', 'check', 'ready'],
                         ['Low stock', stockSummary.low, 'Two units or fewer', 'alert', 'low'],
                         ['Expiring soon', stockSummary.expiring, 'Within 30 days', 'clock', 'expiring'],
                         ['Needs attention', stockSummary.attention, 'Damaged or expired', 'alert', 'damaged'],
+                        ['Distributed', stockSummary.distributed, 'Fully handed off', 'check', 'distributed'],
                     ].map(([label, value, detail, icon, filter]) => <button key={label} onClick={() => setStockFilter(filter)} className="rounded-xl border border-[#2563EB]/20 bg-white p-3 text-left transition hover:border-[#2563EB] hover:shadow-sm"><div className="flex items-start justify-between gap-2"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={filter !== 'all' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${filter !== 'all' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></button>)}
                 </section>
 
@@ -10465,7 +10404,7 @@ function StaffWarehouseInventory() {
                     </div>
                     <div>
                         <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Stock health</label>
-                        <DropdownSelect value={stockFilter} onChange={(e) => setStockFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="all">All stock health</option><option value="low">Low stock</option><option value="out">Out of stock</option><option value="expiring">Expiring soon</option><option value="expired">Expired</option><option value="damaged">Damaged</option></DropdownSelect>
+                        <DropdownSelect value={stockFilter} onChange={(e) => setStockFilter(e.target.value)} className="input text-xs w-full mt-1"><option value="active">Active warehouse items</option><option value="ready">Ready for matching ({stockSummary.ready})</option><option value="reserved">Reserved ({donations.filter((item) => Number(item.reserved_quantity || 0) > 0).length})</option><option value="distributed">Distributed ({stockSummary.distributed})</option><option value="all">All inventory</option><option value="low">Low stock</option><option value="out">Out of stock</option><option value="expiring">Expiring soon</option><option value="expired">Expired</option><option value="damaged">Damaged</option></DropdownSelect>
                     </div>
                 </div>
                 </div>
@@ -10509,8 +10448,8 @@ function StaffWarehouseInventory() {
                                             </span>
                                         </td>
                                         <td>
-                                            <p className="font-black text-sm text-[#2563EB]">{item.quantity} <span className="text-[10px] font-bold text-[#2563EB]/60">on hand</span></p>
-                                            <p className="mt-0.5 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? ` · ${item.reserved_quantity} reserved` : ''}</p>
+                                            <p className="font-black text-sm text-[#2563EB]">{item.on_hand_quantity ?? item.quantity} <span className="text-[10px] font-bold text-[#2563EB]/60">on hand</span></p>
+                                            <p className="mt-0.5 text-[10px] font-bold text-[#2563EB]/65">{item.available_quantity ?? item.quantity} available{item.reserved_quantity ? `; ${item.reserved_quantity} reserved` : ""}{item.fulfilled_quantity ? `; ${item.fulfilled_quantity} distributed` : ""}</p>
                                         </td>
                                         <td>
                                             <span className="staff-inventory-condition-grade uppercase text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
@@ -12158,7 +12097,6 @@ function DonorNeeds() {
 
     // Filter, Search, Sort & Pagination States
     const [search, setSearch] = useState('');
-    const [typeFilter, setTypeFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [urgencyFilter, setUrgencyFilter] = useState('all');
     const [sortBy, setSortBy] = useState('latest');
@@ -12197,9 +12135,6 @@ function DonorNeeds() {
         { value: 'household', label: 'Household & Bedding' },
         { value: 'hygiene', label: 'Personal Care & Hygiene' },
         { value: 'emergency', label: 'Emergency & Disaster Relief' },
-        { value: 'tuition', label: 'Tuition & Academic Fees' },
-        { value: 'living_allowance', label: 'Living & Food Allowance' },
-        { value: 'transportation', label: 'Transportation & Commute' },
         { value: 'other', label: 'Other Useful Needs' },
     ];
 
@@ -12234,9 +12169,7 @@ function DonorNeeds() {
         }
 
         // Type filter
-        if (typeFilter !== 'all' && (req.request_type || 'physical') !== typeFilter) {
-            return false;
-        }
+        if ((req.request_type || 'physical') !== 'physical') return false;
 
         // Category filter
         if (categoryFilter !== 'all' && req.category !== categoryFilter) {
@@ -12275,7 +12208,6 @@ function DonorNeeds() {
 
     const resetFilters = () => {
         setSearch('');
-        setTypeFilter('all');
         setCategoryFilter('all');
         setUrgencyFilter('all');
         setSortBy('latest');
@@ -12379,7 +12311,7 @@ function DonorNeeds() {
                 <p className="eyebrow">COMMUNITY IMPACT</p>
                 <h1 className="page-title">Requests & Campus Needs</h1>
                 <p className="page-copy">
-                    Explore verified campus needs and offer physical goods or financial assistance. Financial contributions are coordinated with campus staff; ReliefLink does not process payments.
+                    Explore verified campus needs and offer physical goods and supplies.
                 </p>
             </div>
 
@@ -12407,26 +12339,6 @@ function DonorNeeds() {
                                 <Icon name="search" size={16} />
                             </div>
                         </div>
-                    </div>
-
-                    {/* Type Filter */}
-                    <div>
-                        <label htmlFor="filter_type" className="block text-xs font-bold text-[#2563EB] mb-1">
-                            Request Type
-                        </label>
-                        <DropdownSelect
-                            id="filter_type"
-                            className="field text-xs"
-                            value={typeFilter}
-                            onChange={(e) => {
-                                setTypeFilter(e.target.value);
-                                setPage(1);
-                            }}
-                        >
-                            <option value="all">All Request Types</option>
-                            <option value="physical">Physical Goods</option>
-                            <option value="financial">Financial Assistance</option>
-                        </DropdownSelect>
                     </div>
 
                     {/* Category Filter */}
@@ -12474,7 +12386,7 @@ function DonorNeeds() {
                 </div>
 
                 {/* Filter Summary & Reset Action */}
-                {(search || typeFilter !== 'all' || categoryFilter !== 'all' || urgencyFilter !== 'all' || sortBy !== 'latest') && (
+                {(search || categoryFilter !== 'all' || urgencyFilter !== 'all' || sortBy !== 'latest') && (
                     <div className="flex items-center justify-between border-t border-[#2563EB]/20 pt-3 text-xs font-bold text-[#2563EB]">
                         <span>
                             Showing filtered results ({sortedRequests.length} item{sortedRequests.length === 1 ? '' : 's'})

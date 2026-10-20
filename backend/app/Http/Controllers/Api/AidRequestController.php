@@ -19,6 +19,7 @@ class AidRequestController extends Controller
 {
     public function show(Request $request, AidRequest $aidRequest)
     {
+        abort_if($aidRequest->request_type === 'financial', 404);
         abort_unless(
             in_array($request->user()->role, ['admin', 'staff'], true) ||
             $aidRequest->beneficiary_id === $request->user()->id,
@@ -30,7 +31,9 @@ class AidRequestController extends Controller
 
     public function index(Request $request)
     {
-        $query = AidRequest::with(['beneficiary', 'verifiedBy', 'matches.donation.donor'])->filter($request->all());
+        $query = AidRequest::with(['beneficiary', 'verifiedBy', 'matches.donation.donor'])
+            ->where(fn ($q) => $q->whereNull('request_type')->orWhere('request_type', 'physical'))
+            ->filter($request->all());
 
         if (in_array($request->user()->role, ['admin', 'staff'], true)) {
             // Operations users can review the complete queue.
@@ -100,6 +103,7 @@ class AidRequestController extends Controller
 
     public function update(StoreAidRequest $request, AidRequest $aidRequest)
     {
+        abort_if($aidRequest->request_type === 'financial', 404);
         abort_unless(
             $aidRequest->beneficiary_id === $request->user()->id &&
             in_array($aidRequest->status, ['pending_review', 'under_review'], true),

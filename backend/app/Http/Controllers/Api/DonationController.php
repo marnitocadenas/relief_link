@@ -17,7 +17,9 @@ class DonationController extends Controller
 {
     public function index(Request $r)
     {
-        $q = Donation::with(['donor', 'matches.request.beneficiary'])->filter($r->all());
+        $q = Donation::with(['donor', 'matches.request.beneficiary'])
+            ->where(fn ($query) => $query->whereNull('donation_type')->orWhere('donation_type', 'physical'))
+            ->filter($r->all());
         $role = $r->user()->role;
         if ($role === 'donor') {
             $q->where('donor_id', $r->user()->id);
@@ -123,6 +125,7 @@ class DonationController extends Controller
 
     public function update(StoreDonationRequest $r, Donation $donation)
     {
+        abort_if($donation->donation_type === 'financial', 404);
         abort_unless($donation->donor_id === $r->user()->id && in_array($donation->status, ['pending_intake', 'pending_match'], true), 403);
         $data = $this->data($r);
         unset($data['request_id']);

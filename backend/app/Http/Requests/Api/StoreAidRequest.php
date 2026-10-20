@@ -19,7 +19,7 @@ class StoreAidRequest extends FormRequest
         $requireJustification = SystemSettings::get('require_justification');
 
         $rules = [
-            'request_type' => ['nullable', Rule::in(['physical', 'financial'])],
+            'request_type' => ['nullable', Rule::in(['physical'])],
             'category' => 'required|string|max:80',
             'urgency' => ['required', Rule::in(['low', 'medium', 'high'])],
             'justification' => ($requireJustification ? 'required' : 'nullable') . '|string|max:2000',

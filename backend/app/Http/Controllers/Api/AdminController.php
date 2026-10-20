@@ -718,7 +718,9 @@ class AdminController extends Controller
 
     public function donations(Request $r)
     {
-        return DonationResource::collection(Donation::with(['donor', 'matches'])->filter($r->all())->latest()->paginate(50));
+        return DonationResource::collection(Donation::with(['donor', 'matches'])
+            ->where(fn ($q) => $q->whereNull('donation_type')->orWhere('donation_type', 'physical'))
+            ->filter($r->all())->latest()->paginate(50));
     }
 
     public function inventoryMovements(Request $r)
@@ -731,16 +733,20 @@ class AdminController extends Controller
 
     public function requests(Request $r)
     {
-        return AidRequestResource::collection(AidRequest::with(['beneficiary', 'verifiedBy'])->filter($r->all())->latest()->paginate(50));
+        return AidRequestResource::collection(AidRequest::with(['beneficiary', 'verifiedBy'])
+            ->where(fn ($q) => $q->whereNull('request_type')->orWhere('request_type', 'physical'))
+            ->filter($r->all())->latest()->paginate(50));
     }
 
     public function showRequest(Request $r, AidRequest $aidRequest)
     {
+        abort_if($aidRequest->request_type === 'financial', 404);
         return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy', 'matches.donation.donor']));
     }
 
     public function updateRequest(Request $r, AidRequest $aidRequest, MatchingService $matchingService)
     {
+        abort_if($aidRequest->request_type === 'financial', 404);
         // Anti-Fraud Self Approval Check
         if ($r->user()->id === $aidRequest->beneficiary_id) {
             return response()->json(['message' => 'Anti-Fraud Guard: Staff members cannot approve or reject their own aid requests.'], 403);
@@ -821,7 +827,7 @@ class AdminController extends Controller
     public function editRequestContent(Request $r, AidRequest $aidRequest)
     {
         $validated = $r->validate([
-            'request_type'              => 'nullable|in:physical,financial',
+            'request_type'              => 'nullable|in:physical',
             'category'                  => 'required|string|max:80',
             'urgency'                   => 'required|in:low,medium,high',
             'quantity_needed'           => 'nullable|integer|min:1',
@@ -987,7 +993,10 @@ class AdminController extends Controller
 
     public function matches()
     {
-        return DonationMatchResource::collection(DonationMatch::with(['donation.donor', 'request.beneficiary', 'handedOffBy'])->latest()->paginate(50));
+        return DonationMatchResource::collection(DonationMatch::with(['donation.donor', 'request.beneficiary', 'handedOffBy'])
+            ->whereHas('donation', fn ($q) => $q->whereNull('donation_type')->orWhere('donation_type', 'physical'))
+            ->whereHas('request', fn ($q) => $q->whereNull('request_type')->orWhere('request_type', 'physical'))
+            ->latest()->paginate(50));
     }
 
     public function run(MatchingService $s)

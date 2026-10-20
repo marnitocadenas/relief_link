@@ -12,7 +12,9 @@ class MatchController extends Controller
 {
     public function index(Request $r)
     {
-        $q = DonationMatch::with(['donation.donor', 'request.beneficiary']);
+        $q = DonationMatch::with(['donation.donor', 'request.beneficiary'])
+            ->whereHas('donation', fn ($query) => $query->whereNull('donation_type')->orWhere('donation_type', 'physical'))
+            ->whereHas('request', fn ($query) => $query->whereNull('request_type')->orWhere('request_type', 'physical'));
         if (!in_array($r->user()->role, ['admin', 'staff'], true)) {
             $q->where(function ($q) use ($r) {
                 $q->whereHas('donation', fn ($x) => $x->where('donor_id', $r->user()->id))

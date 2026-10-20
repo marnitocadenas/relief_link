@@ -17,7 +17,7 @@ class StoreDonationRequest extends FormRequest
         $type = $this->input('donation_type', 'physical');
 
         $rules = [
-            'donation_type' => ['nullable', Rule::in(['physical', 'financial'])],
+            'donation_type' => ['nullable', Rule::in(['physical'])],
             'item_name' => 'required|string|max:255',
             'category' => 'required|string|max:80',
             'condition_notes' => 'nullable|string|max:2000',

@@ -83,69 +83,6 @@ class MatchingService
                     }
                 });
 
-            // 2. Financial Donations Matching
-            Donation::where('status', 'pending_match')
-                ->where('donation_type', 'financial')
-                ->lockForUpdate()
-                ->get()
-                ->each(function ($donation) use (&$created) {
-                    $availableAmt = (float) $donation->amount - $this->activeAmount($donation->matches());
-                    if ($availableAmt <= 0) return;
-
-                    $made = false;
-                    $requests = AidRequest::where('request_type', 'financial')
-                        ->where('category', $donation->category)
-                        ->whereIn('status', ['approved', 'partially_fulfilled'])
-                        ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$donation->preferred_request_id])
-                        ->orderByRaw("CASE urgency WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")
-                        ->oldest()
-                        ->lockForUpdate()
-                        ->get();
-
-                    foreach ($requests as $request) {
-                        if ($availableAmt <= 0) break;
-                        $remainingAmt = (float) $request->amount_requested - $this->activeAmount($request->matches());
-                        if ($remainingAmt <= 0) continue;
-
-                        $amt = min($availableAmt, $remainingAmt);
-                        $match = DonationMatch::create([
-                            'donation_id' => $donation->id,
-                            'request_id' => $request->id,
-                            'matched_quantity' => 1,
-                            'matched_amount' => $amt,
-                            'status' => 'proposed',
-                        ]);
-
-                        AlertService::send(
-                            $request->beneficiary,
-                            "A {$request->currency} " . number_format($amt, 2) . " financial donation has been proposed for your request.",
-                            'match',
-                            'normal',
-                            $match,
-                            '/matches'
-                        );
-                        if ($donation->donor) {
-                            AlertService::send(
-                                $donation->donor,
-                                "Your {$donation->currency} " . number_format($amt, 2) . " donation has been proposed for a verified request.",
-                                'match',
-                                'normal',
-                                $match,
-                                '/matches'
-                            );
-                        }
-
-                        $availableAmt -= $amt;
-                        $created++;
-                        $made = true;
-                        $this->refreshStatuses($match);
-                    }
-
-                    if (!$made) {
-                        $this->refreshDonation($donation);
-                    }
-                });
-
             return $created;
         });
     }
