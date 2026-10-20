@@ -739,7 +739,7 @@ class AdminController extends Controller
         return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy', 'matches.donation.donor']));
     }
 
-    public function updateRequest(Request $r, AidRequest $aidRequest)
+    public function updateRequest(Request $r, AidRequest $aidRequest, MatchingService $matchingService)
     {
         // Anti-Fraud Self Approval Check
         if ($r->user()->id === $aidRequest->beneficiary_id) {
@@ -804,6 +804,13 @@ class AdminController extends Controller
             'checklist' => $d['verification_checklist'] ?? [],
         ]);
 
+        // Matching also needs to run when a request becomes eligible after its
+        // donation has already cleared staff intake.
+        if ($aidRequest->status === 'approved' && $previousStatus !== 'approved' && SystemSettings::get('auto_matching')) {
+            $matchingService->run();
+            $aidRequest->refresh();
+        }
+
         return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy']));
     }
 
@@ -853,130 +860,6 @@ class AdminController extends Controller
         ActivityService::log($r->user(), 'edited support request content', $aidRequest);
 
         return new AidRequestResource($aidRequest->load(['beneficiary', 'verifiedBy']));
-    }
-
-    public function storeWalkInRequest(Request $r, MatchingService $s)
-    {
-        $d = $r->validate([
-            'beneficiary_name' => 'required|string|max:255',
-            'beneficiary_email' => 'required|email',
-            'beneficiary_type' => 'required|in:student,faculty_staff',
-            'beneficiary_id_number' => 'required|string|max:100',
-            'category' => 'required|string',
-            'quantity_needed' => 'required|integer|min:1',
-            'urgency' => 'required|in:low,medium,high',
-            'justification' => 'required|string|max:2000',
-            'verification_tier' => 'nullable|in:unverified,identity_verified,financial_hardship,emergency',
-            'instant_donation_id' => 'nullable|exists:donations,id',
-            'staff_internal_notes' => 'nullable|string|max:1000',
-            'referral_destination' => 'nullable|string|max:255',
-        ]);
-
-        $instantDonation = null;
-        if (!empty($d['instant_donation_id'])) {
-            $instantDonation = Donation::with('matches')->findOrFail($d['instant_donation_id']);
-            $reservedQuantity = (int) $instantDonation->matches
-                ->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])
-                ->sum('matched_quantity');
-            $availableQuantity = $instantDonation->quantity - $reservedQuantity;
-
-            if ($instantDonation->status !== 'pending_match'
-                || $instantDonation->category !== $d['category']
-                || $instantDonation->condition_grade === 'damaged'
-                || ($instantDonation->expiry_date && $instantDonation->expiry_date->isPast())
-                || $availableQuantity < $d['quantity_needed']) {
-                throw ValidationException::withMessages([
-                    'instant_donation_id' => 'The selected item is not an eligible, available match for this walk-in request.',
-                ]);
-            }
-        }
-
-        // Find or register beneficiary
-        $user = User::where('email', $d['beneficiary_email'])->first();
-        $identifierField = $d['beneficiary_type'] === 'student' ? 'student_id_number' : 'campus_id';
-        $identifierOwner = User::where($identifierField, $d['beneficiary_id_number'])->first();
-        if ($identifierOwner && (!$user || $identifierOwner->id !== $user->id)) {
-            throw ValidationException::withMessages([
-                'beneficiary_id_number' => 'This campus ID is already assigned to another account.',
-            ]);
-        }
-        if (!$user) {
-            $user = User::create([
-                'name' => $d['beneficiary_name'],
-                'email' => $d['beneficiary_email'],
-                'password' => Hash::make(Str::password(32)),
-                'role' => 'beneficiary',
-                'beneficiary_type' => $d['beneficiary_type'],
-                'student_id_number' => $d['beneficiary_type'] === 'student' ? $d['beneficiary_id_number'] : null,
-                'campus_id' => $d['beneficiary_type'] === 'faculty_staff' ? $d['beneficiary_id_number'] : null,
-            ]);
-        } elseif ($user->role !== 'beneficiary') {
-            throw ValidationException::withMessages([
-                'beneficiary_email' => 'This email belongs to a non-beneficiary account and cannot be used for a walk-in request.',
-            ]);
-        } else {
-            $user->update([
-                'beneficiary_type' => $d['beneficiary_type'],
-                'student_id_number' => $d['beneficiary_type'] === 'student' ? $d['beneficiary_id_number'] : null,
-                'campus_id' => $d['beneficiary_type'] === 'faculty_staff' ? $d['beneficiary_id_number'] : null,
-            ]);
-        }
-
-        $duplicate = AidRequest::where('beneficiary_id', $user->id)
-            ->where('category', $d['category'])
-            ->whereIn('status', ['pending_review', 'approved', 'proposed', 'matched'])
-            ->latest()
-            ->first();
-        if ($duplicate) {
-            return response()->json(['message' => 'A current ' . $d['category'] . ' request already exists for this student (Request #' . $duplicate->id . '). Review that record before opening another walk-in request.'], 422);
-        }
-
-        $request = AidRequest::create([
-            'beneficiary_id' => $user->id,
-            'category' => $d['category'],
-            'quantity_needed' => $d['quantity_needed'],
-            'urgency' => $d['urgency'],
-            'justification' => "[Walk-In Desk] " . $d['justification'],
-            'status' => 'approved',
-            'is_walk_in' => true,
-            'walk_in_status' => !empty($d['referral_destination']) ? 'referred' : (!empty($d['instant_donation_id']) ? 'allocated' : 'waiting'),
-            'created_by_staff_id' => $r->user()->id,
-            'student_id_number' => $d['beneficiary_id_number'],
-            'verification_tier' => $d['verification_tier'] ?? 'identity_verified',
-            'verified_by_user_id' => $r->user()->id,
-            'verification_notes' => 'Walk-in on-site request verified by staff desk.',
-            'staff_internal_notes' => $d['staff_internal_notes'] ?? null,
-            'referral_destination' => $d['referral_destination'] ?? null,
-        ]);
-
-        ActivityService::log($r->user(), 'logged walk-in aid request', $request);
-
-        // Optional Instant Allocation
-        if ($instantDonation) {
-            DB::transaction(function () use ($instantDonation, $request, $s, $r) {
-                $donation = Donation::lockForUpdate()->findOrFail($instantDonation->id);
-                $reservedQuantity = (int) $donation->matches()
-                    ->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])
-                    ->sum('matched_quantity');
-                if ($donation->status !== 'pending_match' || ($donation->quantity - $reservedQuantity) < $request->quantity_needed) {
-                    throw ValidationException::withMessages([
-                        'instant_donation_id' => 'The selected item is no longer available. Refresh inventory and try again.',
-                    ]);
-                }
-                $match = DonationMatch::create([
-                    'donation_id' => $donation->id,
-                    'request_id' => $request->id,
-                    'matched_quantity' => $request->quantity_needed,
-                    'status' => 'confirmed',
-                    'pickup_hub' => 'Main Relief Desk Hub',
-                    'handoff_notes' => 'Instant Walk-in Allocation',
-                ]);
-                $s->refreshStatuses($match);
-                ActivityService::log($r->user(), 'instantly allocated walk-in match', $match);
-            });
-        }
-
-        return new AidRequestResource($request->load(['beneficiary', 'verifiedBy']));
     }
 
     public function storeStaffIntake(Request $r)

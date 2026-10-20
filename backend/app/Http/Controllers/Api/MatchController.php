@@ -25,8 +25,9 @@ class MatchController extends Controller
 
     public function schedule(Request $r, DonationMatch $match)
     {
-        $this->authorize('manageHandoff', $match);
+        $this->authorize('scheduleHandoff', $match);
         abort_unless($match->status === 'confirmed', 422, 'Confirm the match before scheduling the handoff.');
+        $isReschedule = (bool) $match->handoff_scheduled_at;
         $d = $r->validate([
             'handoff_scheduled_at' => 'required|date|after:now',
             'handoff_notes' => 'nullable|string|max:2000',
@@ -38,8 +39,9 @@ class MatchController extends Controller
         $d['pin_verified_at'] = null;
         $match->update($d);
 
-        $this->notifyParticipants($match, 'A handoff has been scheduled for ' . $match->handoff_scheduled_at->format('M j, Y g:i A') . '.');
-        ActivityService::log($r->user(), 'scheduled handoff', $match);
+        $action = $isReschedule ? 'rescheduled' : 'scheduled';
+        $this->notifyParticipants($match, 'Staff ' . $action . ' the handoff for ' . $match->handoff_scheduled_at->format('M j, Y g:i A') . '.');
+        ActivityService::log($r->user(), $action . ' handoff', $match);
 
         return new DonationMatchResource($match->load(['donation', 'request']));
     }

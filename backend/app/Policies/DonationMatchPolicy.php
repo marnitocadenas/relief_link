@@ -8,6 +8,12 @@ use Illuminate\Auth\Access\Response;
 
 class DonationMatchPolicy
 {
+    public function scheduleHandoff(User $user, DonationMatch $match): bool
+    {
+        return in_array($user->role, ['admin', 'staff'], true)
+            && $match->status === 'confirmed';
+    }
+
     public function manageHandoff(User $user, DonationMatch $match): bool
     {
         if (!in_array($match->status, ['proposed', 'confirmed'], true)) {

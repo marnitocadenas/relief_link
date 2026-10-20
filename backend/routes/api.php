@@ -67,7 +67,6 @@ Route::middleware(['auth:sanctum', 'active-account'])->group(function () {
         Route::patch('donations/{donation}/stock', [AdminController::class, 'updateDonationStock']);
         Route::get('requests', [AdminController::class, 'requests']);
         Route::get('requests/{aidRequest}', [AdminController::class, 'showRequest']);
-        Route::post('requests/walk-in', [AdminController::class, 'storeWalkInRequest']);
         Route::patch('requests/{aidRequest}', [AdminController::class, 'updateRequest']);
         Route::put('requests/{aidRequest}/content', [AdminController::class, 'editRequestContent']);
 

@@ -334,7 +334,6 @@ const getModulesForRole = (role) => {
             { name: 'Dashboard', path: '/staff/dashboard', icon: 'dashboard' },
             { name: 'Request Verifications', path: '/staff/verifications', icon: 'approvals' },
             { name: 'Warehouse & Inventory', path: '/staff/inventory', icon: 'donation' },
-            { name: 'Walk-In Relief Desk', path: '/staff/desk', icon: 'request' },
             { name: 'Match Review', path: '/matches', icon: 'match' },
             { name: 'Support & Fulfillment', path: '/staff/handoffs', icon: 'fulfillment' },
             { name: 'Activity Log', path: '/staff/activity-log', icon: 'activity' },
@@ -3357,6 +3356,7 @@ function DonorDonationForm() {
         { value: 'food', label: 'Food & Meals' },
         { value: 'clothing', label: 'Clothing & Apparel' },
         { value: 'books', label: 'Educational & Books' },
+        { value: 'school', label: 'School Supplies' },
         { value: 'medical', label: 'Medical & Health Supplies' },
         { value: 'electronics', label: 'Electronics & Tech' },
         { value: 'household', label: 'Household & Bedding' },
@@ -6921,6 +6921,16 @@ function DonationManager(){
     const pendingCount = state.data.filter(d => ['pending_intake', 'proposed'].includes(d.status)).length;
     const matchedCount = state.data.filter(d => d.status === 'matched' || d.status === 'confirmed').length;
     const fulfilledCount = state.data.filter(d => d.status === 'fulfilled' || d.status === 'completed').length;
+    const donorMatchReadiness = (donation) => {
+        if (user.role !== 'donor') return '';
+        const available = donation.donation_type === 'financial' ? Number(donation.available_amount || 0) : Number(donation.available_quantity || 0);
+        if (donation.status === 'pending_intake') return 'Waiting for staff to receive and inspect this donation.';
+        if (donation.status === 'pending_match' && available > 0) return 'Received and eligible for matching · ' + available + ' ' + (donation.donation_type === 'financial' ? donation.currency || 'PHP' : 'unit(s)') + ' available.';
+        if (donation.status === 'proposed') return 'A match is proposed and awaiting staff review.';
+        if (['matched', 'confirmed'].includes(donation.status)) return 'Matched; handoff arrangements are next.';
+        if (['fulfilled', 'completed'].includes(donation.status)) return 'Donation fulfilled.';
+        return '';
+    };
 
     const confirmDelete = async () => {
         if(!deletingDonation) return;
@@ -7116,7 +7126,7 @@ function DonationManager(){
                                         <td className="max-w-[180px] truncate" title={item.donor?.name || 'Campus Donor'}>
                                             <span className="block whitespace-nowrap text-sm font-semibold text-[#2563EB]">{truncateDonationText(item.donor?.name || 'Campus Donor', 21)}</span>
                                         </td>
-                                        <td><Badge status={item.status}/></td>
+                                        <td><Badge status={item.status}/>{donorMatchReadiness(item) && <p className="mt-1 max-w-52 text-[10px] font-semibold leading-relaxed text-[#2563EB]/70">{donorMatchReadiness(item)}</p>}</td>
                                         <td>
                                             <div className="flex flex-wrap gap-2">
                                                 <Button title="View Donation" variant="secondary" onClick={() => setViewingDonation(item)}>
@@ -7151,7 +7161,7 @@ function DonationManager(){
                                         <strong className="text-base text-[#2563EB] block">{item.item_name || title(item.category)}</strong>
                                         <span className="text-xs font-semibold text-[#2563EB]/80">{title(item.category)} • {item.quantity || 1} units</span>
                                     </div>
-                                    <Badge status={item.status}/>
+                                    <div className="flex flex-col items-end gap-1"><Badge status={item.status}/>{donorMatchReadiness(item) && <span className="max-w-44 text-right text-[10px] font-semibold leading-relaxed text-[#2563EB]/70">{donorMatchReadiness(item)}</span>}</div>
                                 </div>
                                 <div className="text-xs font-semibold text-[#2563EB]/70 border-t border-[#2563EB]/20 pt-2 flex items-center justify-between">
                                     <span>Donor: {item.donor?.name || 'Campus Donor'}</span>
@@ -7616,6 +7626,20 @@ function RequestManager(){
     const pendingCount = state.data.filter(r => ['pending_review', 'under_review', 'proposed'].includes(r.status)).length;
     const approvedCount = state.data.filter(r => ['approved', 'matched', 'partially_fulfilled'].includes(r.status)).length;
     const fulfilledCount = state.data.filter(r => ['fulfilled', 'completed'].includes(r.status)).length;
+    const requestMatchReadiness = (request) => {
+        if (user.role !== 'beneficiary' || (request.request_type || 'physical') !== 'physical') return '';
+        const remaining = Number(request.remaining_quantity ?? request.quantity_needed ?? 0);
+        if (request.status === 'approved' && remaining > 0) {
+            return request.item_details?.trim()
+                ? 'Verified and eligible for matching; waiting for a compatible donation.'
+                : 'Verified, but an item title is needed before it can match.';
+        }
+        if (request.status === 'partially_fulfilled' && remaining > 0) return 'Partly matched; the remaining need is eligible for matching.';
+        if (request.status === 'proposed') return 'A match is proposed and waiting for staff review.';
+        if (request.status === 'matched') return 'Matched; handoff arrangements are next.';
+        if (request.status === 'fulfilled') return 'Request fulfilled.';
+        return '';
+    };
 
     const handleApproveDecline = async (id, status) => {
         setActionLoading(true);
@@ -7880,6 +7904,7 @@ function RequestManager(){
                                             </td>
                                             <td>
                                                 <Badge status={item.status}/>
+                                                {requestMatchReadiness(item) && <p className="mt-1 max-w-56 text-[10px] font-semibold leading-relaxed text-[#2563EB]/70">{requestMatchReadiness(item)}</p>}
                                             </td>
                                             <td>
                                                 <div className="request-management-actions flex flex-nowrap items-center gap-1">
@@ -7940,6 +7965,7 @@ function RequestManager(){
                                         <div className="flex flex-col items-end gap-1">
                                             <Badge status={item.status}/>
                                             <Badge status={item.urgency}/>
+                                            {requestMatchReadiness(item) && <span className="max-w-44 text-right text-[10px] font-semibold leading-relaxed text-[#2563EB]/70">{requestMatchReadiness(item)}</span>}
                                         </div>
                                     </div>
                                     <div className="text-xs font-semibold text-[#2563EB]/70 border-t border-[#2563EB]/20 pt-2 flex items-center justify-between">
@@ -8342,6 +8368,9 @@ function List({kind}){
 function Matches(){
     const {user} = useAuth();
     const [data, setData] = useState([]);
+    const [readiness, setReadiness] = useState({ donations: [], requests: [] });
+    const [readinessLoading, setReadinessLoading] = useState(false);
+    const [readinessError, setReadinessError] = useState('');
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -8361,6 +8390,17 @@ function Matches(){
         api.get(user.role === 'admin' ? '/admin/matches' : '/matches?mine=1')
             .then(r => setData(r.data.data || r.data || []))
             .catch(() => setError('Could not load matches.'));
+        if (['admin', 'staff'].includes(user.role)) {
+            setReadinessLoading(true);
+            setReadinessError('');
+            Promise.all([api.get('/admin/donations'), api.get('/admin/requests')])
+                .then(([donationResponse, requestResponse]) => setReadiness({
+                    donations: donationResponse.data.data || donationResponse.data || [],
+                    requests: requestResponse.data.data || requestResponse.data || [],
+                }))
+                .catch(() => setReadinessError('Could not load inventory and approved requests for the readiness check.'))
+                .finally(() => setReadinessLoading(false));
+        }
     };
 
     useEffect(() => {
@@ -8389,7 +8429,7 @@ function Matches(){
         try {
             const r = await api.post('/admin/matches/run');
             const createdCount = r.data.created || 0;
-            setMatchMessage(createdCount > 0 ? `Successfully generated ${createdCount} new match(es)!` : 'Match algorithm finished. No new matches found.');
+            setMatchMessage(createdCount > 0 ? `Successfully generated ${createdCount} new match(es)!` : (r.data.message || 'Match algorithm finished. No new matches found.'));
             load();
         } catch(e) {
             setError(e.response?.data?.message || 'Could not run matching engine.');
@@ -8427,6 +8467,36 @@ function Matches(){
     const proposedMatches = data.filter(m => m.status === 'proposed').length;
     const confirmedMatches = data.filter(m => m.status === 'confirmed').length;
     const fulfilledMatches = data.filter(m => m.status === 'fulfilled' || m.status === 'completed').length;
+    const normalizeMatchText = (value) => String(value || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
+    const categoryGroups = {
+        food: ['food', 'Food & Meals'],
+        clothing: ['clothing', 'Clothing & Apparel'],
+        books: ['books', 'Educational & Books'],
+        medical: ['medical', 'Medical & Health Supplies'],
+        electronics: ['electronics', 'Electronics & Tech', 'Technology'],
+        household: ['household', 'Household & Bedding'],
+        hygiene: ['hygiene', 'Personal Care & Hygiene'],
+        emergency: ['emergency', 'Emergency & Disaster Relief'],
+        other: ['other', 'Other Useful Items'],
+        school_supplies: ['school', 'School Supplies'],
+    };
+    const canonicalCategory = (value) => {
+        const normalized = normalizeMatchText(value);
+        return Object.entries(categoryGroups).find(([, aliases]) => aliases.some(alias => normalizeMatchText(alias) === normalized))?.[0] || normalized;
+    };
+    const readyOffers = readiness.donations.filter(donation =>
+        (donation.donation_type || 'physical') === 'physical' && donation.status === 'pending_match' && Number(donation.available_quantity ?? donation.quantity ?? 0) > 0
+    );
+    const readyNeeds = readiness.requests.filter(request =>
+        (request.request_type || 'physical') === 'physical' && ['approved', 'partially_fulfilled'].includes(request.status) && Number(request.remaining_quantity ?? request.quantity_needed ?? 0) > 0
+    );
+    const isCompatiblePair = (donation, request) =>
+        canonicalCategory(donation.category) === canonicalCategory(request.category) &&
+        normalizeMatchText(donation.item_name) !== '' &&
+        normalizeMatchText(donation.item_name) === normalizeMatchText(request.item_details);
+    const compatibleOffersCount = (request) => readyOffers.filter(donation => isCompatiblePair(donation, request)).length;
+    const compatibleNeedsCount = (donation) => readyNeeds.filter(request => isCompatiblePair(donation, request)).length;
+    const compatiblePairCount = readyOffers.reduce((total, donation) => total + compatibleNeedsCount(donation), 0);
 
     return (
         <main className="page space-y-6">
@@ -8440,10 +8510,10 @@ function Matches(){
                             : 'Authorize, schedule, and track matches connecting campus resource donations with verified campus needs.'}
                     </p>
                 </div>
-                {user.role === 'admin' && (
+                {['admin', 'staff'].includes(user.role) && (
                     <Button loading={working} onClick={handleRunMatches}>
                         <Icon name="match"/>
-                        <span className="ml-2">Run Match Engine</span>
+                        <span className="ml-2">Find Eligible Matches</span>
                     </Button>
                 )}
             </div>
@@ -8526,6 +8596,64 @@ function Matches(){
                 </article>
             </div>
 
+            {['admin', 'staff'].includes(user.role) && (
+                <section aria-label="Matching readiness" className="panel no-hover space-y-4 p-4 sm:p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#2563EB]/15 pb-3">
+                        <div>
+                            <h2 className="text-lg font-extrabold text-[#2563EB]">Matching readiness</h2>
+                            <p className="mt-1 text-xs font-semibold text-[#2563EB]/70">See eligible stock, approved needs, and exact category/item pairs before running the matcher.</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-[11px] font-extrabold">
+                            <span className="rounded-full bg-[#2563EB]/10 px-3 py-1.5 text-[#2563EB]">{readyOffers.length} available offers</span>
+                            <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700">{readyNeeds.length} approved needs</span>
+                            <span className="rounded-full bg-amber-50 px-3 py-1.5 text-amber-800">{compatiblePairCount} exact pairs</span>
+                        </div>
+                    </div>
+
+                    {readinessError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-xs font-bold text-red-700">{readinessError}</p>}
+                    {readinessLoading ? <div className="animate-pulse rounded-lg bg-[#2563EB]/10 p-8 text-center text-xs font-bold text-[#2563EB]">Loading inventory and approved requests…</div> : (
+                        <div className="grid gap-4 lg:grid-cols-2">
+                            <div className="min-w-0 rounded-xl border border-[#2563EB]/15 bg-[#2563EB]/[0.03] p-3 sm:p-4">
+                                <div className="mb-3 flex items-center justify-between gap-2">
+                                    <h3 className="font-extrabold text-[#2563EB]">Products ready for matching</h3>
+                                    <span className="text-[10px] font-bold text-[#2563EB]/60">Received · stock available</span>
+                                </div>
+                                <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                                    {readyOffers.length ? readyOffers.map(donation => (
+                                        <article key={donation.id} className="rounded-lg border border-[#2563EB]/10 bg-white p-3">
+                                            <div className="flex flex-wrap items-start justify-between gap-2">
+                                                <div className="min-w-0"><p className="break-words text-sm font-extrabold text-[#2563EB]">{donation.item_name}</p><p className="mt-0.5 text-[11px] font-semibold text-[#2563EB]/65">{title(donation.category)} · {donation.donor?.name || donation.external_donor_name || 'Campus donor'}</p></div>
+                                                <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-extrabold text-emerald-700">{donation.available_quantity} available</span>
+                                            </div>
+                                            <p className="mt-2 text-[10px] font-bold text-[#2563EB]/70">Exact eligible requests: {compatibleNeedsCount(donation)}</p>
+                                        </article>
+                                    )) : <p className="rounded-lg bg-white p-4 text-xs font-semibold text-[#2563EB]/65">No physical donations are currently released with unreserved stock.</p>}
+                                </div>
+                            </div>
+
+                            <div className="min-w-0 rounded-xl border border-emerald-700/15 bg-emerald-50/30 p-3 sm:p-4">
+                                <div className="mb-3 flex items-center justify-between gap-2">
+                                    <h3 className="font-extrabold text-[#2563EB]">Verified beneficiary needs</h3>
+                                    <span className="text-[10px] font-bold text-[#2563EB]/60">Approved · need remains</span>
+                                </div>
+                                <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                                    {readyNeeds.length ? readyNeeds.map(request => (
+                                        <article key={request.id} className="rounded-lg border border-emerald-700/10 bg-white p-3">
+                                            <div className="flex flex-wrap items-start justify-between gap-2">
+                                                <div className="min-w-0"><p className="break-words text-sm font-extrabold text-[#2563EB]">{request.item_details || 'Item title not provided'}</p><p className="mt-0.5 text-[11px] font-semibold text-[#2563EB]/65">{title(request.category)} · {request.beneficiary?.name || 'Beneficiary'}</p></div>
+                                                <span className="shrink-0 rounded-full bg-[#2563EB]/10 px-2.5 py-1 text-[10px] font-extrabold text-[#2563EB]">{request.remaining_quantity} needed</span>
+                                            </div>
+                                            <p className="mt-2 text-[10px] font-bold text-[#2563EB]/70">Exact eligible offers: {compatibleOffersCount(request)}</p>
+                                        </article>
+                                    )) : <p className="rounded-lg bg-white p-4 text-xs font-semibold text-[#2563EB]/65">No approved physical requests have unreserved need right now.</p>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <p className="text-[10px] font-semibold leading-relaxed text-[#2563EB]/60">An exact pair requires the same normalized category and item title. Beneficiary explanations do not count as an item match. This panel lists the first page of inventory and requests loaded by the staff feed.</p>
+                </section>
+            )}
+
             <div className="panel p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex-1 min-w-[220px]">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#2563EB]/70 mb-1">Search Matches</label>
@@ -8588,7 +8716,7 @@ function Matches(){
                 <div className="panel p-8 text-center">
                     <p className="font-bold text-[#2563EB] text-lg">No matches found.</p>
                     <p className="text-xs text-[#2563EB]/80 font-semibold mt-1">
-                        {user.role === 'admin' ? 'Click "Run Match Engine" above to find new pairings.' : 'Check back soon for match updates.'}
+                        {['admin', 'staff'].includes(user.role) ? 'Click "Find Eligible Matches" above to create proposals for approved requests and received donations.' : 'Check back soon for match updates.'}
                     </p>
                 </div>
             ) : (
@@ -8657,12 +8785,15 @@ function Matches(){
                                             </Button>
                                         </>
                                     )}
-                                    {x.status === 'confirmed' && (
+                                    {x.status === 'confirmed' && ['admin', 'staff'].includes(user.role) && (
                                         <>
                                             <Button variant="secondary" onClick={() => setSchedule(x)}>
-                                                <span className="text-xs">Schedule Handoff</span>
+                                                <span className="text-xs">{x.handoff_scheduled_at ? 'Edit Handoff Schedule' : 'Schedule Handoff'}</span>
                                             </Button>
                                         </>
+                                    )}
+                                    {x.status === 'confirmed' && !['admin', 'staff'].includes(user.role) && (
+                                        <p className="text-xs font-semibold text-[#2563EB]/70">Campus staff will set or update the official handoff time and location.</p>
                                     )}
                                 </div>
                             </div>
@@ -9453,10 +9584,6 @@ function StaffDashboard() {
         { name: 'Confirmed', value: matches.filter((match) => match.status === 'confirmed').length },
         { name: 'Completed', value: matches.filter((match) => ['fulfilled', 'completed'].includes(match.status)).length },
     ];
-    const walkInTrend = chartDays.map((date) => ({
-        day: dayLabel(date),
-        assisted: requests.filter((request) => request.is_walk_in && sameDay(request.created_at, date)).length,
-    }));
     const chartTooltip = isDark ? {
         contentStyle: { backgroundColor: '#1A2434', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', color: '#FFFFFF', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', fontSize: '12px', fontWeight: 700 },
         labelStyle: { color: '#93C5FD', fontWeight: 800 },
@@ -9479,7 +9606,7 @@ function StaffDashboard() {
                         Staff Operations Dashboard
                     </h1>
                     <p className="text-xs sm:text-sm font-semibold opacity-90 text-white leading-relaxed">
-                        {user?.name || 'Staff member'}, monitor verification, warehouse, dispatch, and walk-in operations from one live workspace.
+                        {user?.name || 'Staff member'}, monitor online request verification, warehouse, matching, and handoff operations from one live workspace.
                     </p>
                 </div>
                 <div className="staff-dashboard-header-actions flex flex-wrap items-center gap-3">
@@ -9497,7 +9624,7 @@ function StaffDashboard() {
             {error && <Error>{error}</Error>}
 
             {/* Operational Metrics Grid */}
-            <div className="staff-dashboard-metrics grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="staff-dashboard-metrics grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div
                     onClick={() => navigate('/staff/verifications')}
                     className="panel no-hover p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
@@ -9534,17 +9661,6 @@ function StaffDashboard() {
                     <p className="text-[11px] font-semibold text-[#2563EB]/80">Execute PIN clearance &rarr;</p>
                 </div>
 
-                <div
-                    onClick={() => navigate('/staff/desk')}
-                    className="panel no-hover p-5 bg-white space-y-2 border-l-4 border-l-[#2563EB] cursor-pointer hover:shadow-lg transition"
-                >
-                    <div className="flex justify-between items-center text-xs font-bold text-[#2563EB]/70">
-                        <span>Walk-In Relief Desk</span>
-                        <Icon name="request" />
-                    </div>
-                    <p className="text-3xl font-black text-[#2563EB]">Open Desk</p>
-                    <p className="text-[11px] font-semibold text-[#2563EB]/80">Process offline aid &rarr;</p>
-                </div>
             </div>
 
             {/* Operational Warnings Strip */}
@@ -9588,7 +9704,6 @@ function StaffDashboard() {
                     <AnalyticsChart title="Verification activity trend" description="Requests submitted and completed reviews over the last seven days." ariaLabel="Line chart showing verification activity over the last seven days" hasData={verificationTrend.some((point) => point.submitted || point.reviewed)}><ResponsiveContainer width="100%" height="100%"><LineChart data={verificationTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Legend wrapperStyle={{ color: isDark ? '#8E9DB2' : '#2563EB', fontSize: '12px', fontWeight: 700 }}/><Line type="monotone" dataKey="submitted" name="Submitted" stroke="#2563EB" strokeWidth={3} dot={{ r: 3, fill: '#2563EB' }}/><Line type="monotone" dataKey="reviewed" name="Reviewed" stroke="#22C55E" strokeWidth={3} dot={{ r: 3, fill: '#22C55E' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
                     <AnalyticsChart title="Warehouse inventory overview" description="Current quantity by operational stock stage." ariaLabel="Bar chart showing available, reserved, and dispatched inventory" hasData={warehouseOverview.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={warehouseOverview} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Items" radius={[8, 8, 0, 0]}>{warehouseOverview.map((entry, index) => <Cell key={entry.name} fill={index === 1 ? '#22C55E' : '#2563EB'} fillOpacity={index === 2 ? 0.55 : 1}/>)}</Bar></BarChart></ResponsiveContainer></AnalyticsChart>
                     <AnalyticsChart title="Handoff & dispatch status" description="Track handoffs through the physical release workflow." ariaLabel="Bar chart showing proposed, confirmed, and completed handoffs" hasData={handoffOverview.some((point) => point.value)}><ResponsiveContainer width="100%" height="100%"><BarChart data={handoffOverview} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="name" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Bar dataKey="value" name="Handoffs" fill="#22C55E" radius={[8, 8, 0, 0]}/></BarChart></ResponsiveContainer></AnalyticsChart>
-                    <AnalyticsChart title="Walk-in relief desk activity" description="In-person assistance logged by day during the last seven days." ariaLabel="Line chart showing daily walk-in assistance" hasData={walkInTrend.some((point) => point.assisted)}><ResponsiveContainer width="100%" height="100%"><LineChart data={walkInTrend} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}><CartesianGrid stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#2563EB"} strokeOpacity={isDark ? 1 : 0.12} vertical={false}/><XAxis dataKey="day" tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><YAxis allowDecimals={false} tick={{ fill: isDark ? '#8E9DB2' : '#2563EB', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false}/><Tooltip {...chartTooltip}/><Line type="monotone" dataKey="assisted" name="Assisted" stroke="#22C55E" strokeWidth={3} dot={{ r: 3, fill: '#22C55E' }}/></LineChart></ResponsiveContainer></AnalyticsChart>
                 </div>
             </section>
 
@@ -9621,14 +9736,13 @@ function StaffDashboard() {
                 </div>
             </section>
 
-            <section className="staff-status-grid grid gap-4 lg:grid-cols-3" aria-label="Operational status">
+            <section className="staff-status-grid grid gap-4 lg:grid-cols-2" aria-label="Operational status">
                 <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Warehouse readiness</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Stock ready to be matched</p></div><Icon name="box"/></div><div className="mt-5 h-2 overflow-hidden rounded-full bg-[#2563EB]/10"><div className="h-full rounded-full bg-[#22C55E]" style={{ width: `${donations.length ? Math.max(8, Math.round((readyStock.length / donations.length) * 100)) : 0}%` }}/></div><div className="mt-3 flex items-end justify-between"><p className="text-2xl font-black text-[#22C55E]">{loading ? '—' : readyStock.length}</p><p className="text-right text-xs font-bold text-[#2563EB]/70">of {loading ? '—' : donations.length} items</p></div><button onClick={() => navigate('/staff/inventory')} className="staff-dashboard-plain-action mt-4 text-xs font-extrabold text-[#2563EB]">Manage inventory →</button></div>
                 <div className="panel no-hover p-5"><div className="flex items-start justify-between"><div><h2 className="font-extrabold">Dispatch status</h2><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Proposed and confirmed handoffs</p></div><Icon name="fulfillment"/></div><p className="mt-5 text-2xl font-black text-[#22C55E]">{loading ? '—' : activeHandoffs.length}</p><p className="mt-2 text-xs font-semibold text-[#2563EB]/70">Complete a handoff only after the recipient PIN is verified.</p><button onClick={() => navigate('/staff/handoffs')} className="staff-dashboard-plain-action mt-4 text-xs font-extrabold text-[#2563EB]">Open dispatch hub →</button></div>
-                <div className="rounded-2xl bg-[#2563EB] p-5 text-white"><div className="flex items-start justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.13em] text-white/70">Walk-in relief desk</p><h2 className="mt-1 font-extrabold">Ready to serve</h2></div><span className="grid h-9 w-9 place-items-center rounded-lg bg-white text-[#22C55E]"><Icon name="check"/></span></div><p className="mt-4 text-sm font-semibold leading-relaxed text-white/85">Log verified in-person needs and make an immediate allocation when stock is available.</p><button onClick={() => navigate('/staff/desk')} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-extrabold text-[#2563EB]">Launch desk <Icon name="arrow" size={15}/></button></div>
             </section>
 
             {/* Quick Operational Navigation Hub */}
-            <div className="staff-dashboard-modules grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="staff-dashboard-modules grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div
                     onClick={() => navigate('/staff/verifications')}
                     className="panel no-hover p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
@@ -9662,28 +9776,12 @@ function StaffDashboard() {
                 </div>
 
                 <div
-                    onClick={() => navigate('/staff/desk')}
-                    className="panel no-hover p-6 bg-white space-y-3 hover:border-[#2563EB] transition cursor-pointer flex flex-col justify-between"
-                >
-                    <div className="space-y-2">
-                        <span className="p-2.5 rounded-lg bg-[#2563EB]/10 text-[#2563EB] inline-block font-bold text-xs">
-                            MODULE 3
-                        </span>
-                        <h3 className="font-extrabold text-base text-[#2563EB]">Walk-In Relief Desk</h3>
-                        <p className="text-xs text-[#2563EB]/80 font-semibold leading-relaxed">
-                            Process offline students visiting the campus relief office in person. Log immediate needs & instant allocation.
-                        </p>
-                    </div>
-                    <span className="text-xs font-extrabold text-[#2563EB] mt-4">Launch Walk-In Desk &rarr;</span>
-                </div>
-
-                <div
                     onClick={() => navigate('/staff/handoffs')}
                     className="panel no-hover p-6 bg-white space-y-3 hover:border-[#22C55E] transition cursor-pointer flex flex-col justify-between"
                 >
                     <div className="space-y-2">
                         <span className="p-2.5 rounded-lg bg-[#22C55E]/10 text-[#22C55E] inline-block font-bold text-xs">
-                            MODULE 4
+                            MODULE 3
                         </span>
                         <h3 className="font-extrabold text-base text-[#22C55E]">Handoff & Dispatch</h3>
                         <p className="text-xs text-[#2563EB]/80 font-semibold leading-relaxed">
@@ -10653,249 +10751,6 @@ function StaffWarehouseInventory() {
     );
 }
 
-function StaffWalkInDesk() {
-    const { user } = useAuth();
-    const [donations, setDonations] = useState([]);
-    const [requests, setRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [actionLoading, setActionLoading] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
-    const [receipt, setReceipt] = useState(null);
-    const [error, setError] = useState('');
-
-    const [form, setForm] = useState({
-        beneficiary_name: '',
-        beneficiary_email: '',
-        beneficiary_type: 'student',
-        beneficiary_id_number: '',
-        category: 'Food & Meals',
-        quantity_needed: 1,
-        urgency: 'high',
-        justification: '',
-        verification_tier: 'identity_verified',
-        instant_donation_id: '',
-        staff_internal_notes: '',
-        referral_destination: '',
-    });
-
-    useEffect(() => {
-        Promise.all([api.get('/admin/donations'), api.get('/admin/requests')])
-            .then(([donationResponse, requestResponse]) => { setDonations(donationResponse.data.data || []); setRequests(requestResponse.data.data || []); })
-            .catch(() => {})
-            .finally(() => setLoading(false));
-    }, []);
-
-    const availableDonations = donations.filter((d) => d.status === 'pending_match' && (d.available_quantity ?? d.quantity) >= form.quantity_needed && d.category === form.category);
-    const existingBeneficiaryRequests = requests.filter((request) => (form.beneficiary_email && request.beneficiary?.email?.toLowerCase() === form.beneficiary_email.toLowerCase()) || (form.beneficiary_id_number && request.student_id_number?.toLowerCase() === form.beneficiary_id_number.toLowerCase()));
-    const walkIns = requests.filter((request) => request.is_walk_in);
-    const deskSummary = { waiting: walkIns.filter((request) => request.walk_in_status === 'waiting').length, processing: walkIns.filter((request) => request.walk_in_status === 'processing').length, completed: walkIns.filter((request) => ['allocated', 'completed'].includes(request.walk_in_status)).length, urgent: walkIns.filter((request) => request.urgency === 'high' && !['allocated', 'completed'].includes(request.walk_in_status)).length, referred: walkIns.filter((request) => request.walk_in_status === 'referred').length };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setActionLoading(true);
-        setError('');
-        setSuccessMessage('');
-
-        try {
-            const res = await api.post('/admin/requests/walk-in', form);
-            setSuccessMessage(`Walk-in aid request logged successfully for ${res.data.data?.beneficiary?.name || 'beneficiary'}!`);
-            setReceipt(res.data.data || res.data);
-            setForm({
-                beneficiary_name: '',
-                beneficiary_email: '',
-                beneficiary_type: 'student',
-                beneficiary_id_number: '',
-                category: 'Food & Meals',
-                quantity_needed: 1,
-                urgency: 'high',
-                justification: '',
-                verification_tier: 'identity_verified',
-                instant_donation_id: '',
-                staff_internal_notes: '',
-                referral_destination: '',
-            });
-            const requestResponse = await api.get('/admin/requests');
-            setRequests(requestResponse.data.data || []);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to submit walk-in desk request.');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    return (
-        <main className="shell staff-workspace staff-walkin-page py-8 space-y-6 text-[#2563EB]">
-            <div className="staff-module-sections w-full">
-                <div className="staff-module-hero staff-walkin-hero border-b border-[#2563EB]/20 pb-4 space-y-2">
-                    <span className="eyebrow staff-module-badge">MODULE 3: ON-SITE ASSISTANCE</span>
-                    <h1 className="text-2xl font-extrabold text-[#2563EB]">Walk-In Campus Relief Desk</h1>
-                    <p className="text-xs font-semibold text-[#2563EB]/80">
-                        Process offline requests on behalf of beneficiaries visiting the campus relief office in person.
-                    </p>
-                </div>
-
-                <section aria-label="Walk-in desk summary" className="staff-walkin-summary grid grid-cols-2 gap-3 lg:grid-cols-5">
-                    {[
-                        ['Waiting', deskSummary.waiting, 'Queued for aid', 'clock', 'blue'],
-                        ['In progress', deskSummary.processing, 'Being assisted now', 'activity', 'blue'],
-                        ['Completed', deskSummary.completed, 'Allocated or handed off', 'check', 'green'],
-                        ['Priority', deskSummary.urgent, 'Urgent follow-up needed', 'alert', 'green'],
-                        ['Referred', deskSummary.referred, 'Directed to another service', 'arrow', 'blue'],
-                    ].map(([label, value, detail, icon, tone]) => <article key={label} className="rounded-xl border border-[#2563EB]/20 bg-white p-3"><div className="flex items-start justify-between"><span className="text-[10px] font-extrabold uppercase tracking-wide text-[#2563EB]/65">{label}</span><Icon name={icon} size={15} className={tone === 'green' ? 'text-[#22C55E]' : ''}/></div><p className={`mt-2 text-2xl font-black ${tone === 'green' ? 'text-[#22C55E]' : 'text-[#2563EB]'}`}>{loading ? '—' : value}</p><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/60">{detail}</p></article>)}
-                </section>
-
-                <section aria-label="Walk-in assistance steps" className="staff-walkin-steps"><div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7">{['Identify beneficiary', 'Verify eligibility', 'Assess need', 'Match aid', 'Allocate or queue', 'Confirm assistance', 'Record activity'].map((step, index) => <div key={step} className="flex min-w-0 items-center gap-2 rounded-xl border border-[#2563EB]/15 bg-white px-3 py-3 text-xs font-extrabold shadow-[0_6px_20px_rgba(30,80,180,0.055)]"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB] text-[10px] text-white">{index + 1}</span><span className="min-w-0 leading-snug">{step}</span></div>)}</div></section>
-
-                {successMessage && (
-                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold">
-                        ✓ {successMessage}
-                    </div>
-                )}
-
-                {error && <div className="p-4 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs font-bold">{error}</div>}
-
-                {receipt && <div className="rounded-xl border border-[#22C55E] bg-[#22C55E]/10 p-4 text-xs"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-extrabold text-[#22C55E]">Walk-in assistance recorded · Receipt #{receipt.id}</p><p className="mt-1 font-semibold text-[#2563EB]/75">Status: {(receipt.walk_in_status || 'waiting').replace('_', ' ')} · {receipt.category} · {receipt.quantity_needed} unit{receipt.quantity_needed === 1 ? '' : 's'}</p></div><button onClick={() => setReceipt(null)} className="text-xs font-extrabold underline">Dismiss receipt</button></div></div>}
-
-                {existingBeneficiaryRequests.length > 0 && <div className="rounded-xl border border-[#2563EB] bg-[#2563EB]/5 p-4"><div className="flex items-start gap-3"><Icon name="info" className="mt-0.5"/><div><p className="text-xs font-extrabold">Existing request found for this beneficiary</p><p className="mt-1 text-[11px] font-semibold text-[#2563EB]/70">Review the active record before creating another request to avoid duplicate assistance.</p><div className="mt-2 flex flex-wrap gap-2">{existingBeneficiaryRequests.map((request) => <span key={request.id} className="rounded-full border border-[#2563EB]/20 bg-white px-2 py-1 text-[10px] font-extrabold">#{request.id} · {request.category} · {request.status.replace('_', ' ')}</span>)}</div></div></div></div>}
-
-                <form onSubmit={handleSubmit} className="staff-walkin-form staff-module-form-sections">
-                    <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">1</span><div><h2 className="text-sm font-extrabold">Identify and verify the beneficiary</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Check campus details before recording a new request.</p></div></div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Beneficiary Full Name</label>
-                            <input
-                                type="text"
-                                required
-                                placeholder="Student name"
-                                value={form.beneficiary_name}
-                                onChange={(e) => setForm({ ...form, beneficiary_name: e.target.value })}
-                                className="input text-xs w-full mt-1"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Campus Email</label>
-                            <input
-                                type="email"
-                                required
-                                placeholder="student@university.edu"
-                                value={form.beneficiary_email}
-                                onChange={(e) => setForm({ ...form, beneficiary_email: e.target.value })}
-                                className="input text-xs w-full mt-1"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Beneficiary Type</label>
-                            <DropdownSelect value={form.beneficiary_type} onChange={(e) => setForm({ ...form, beneficiary_type: e.target.value })} className="input text-xs w-full mt-1">
-                                <option value="student">Student</option>
-                                <option value="faculty_staff">Faculty or Staff</option>
-                            </DropdownSelect>
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">{form.beneficiary_type === 'student' ? 'Student ID Number' : 'Campus ID'}</label>
-                            <input
-                                type="text"
-                                required
-                                placeholder="e.g. STU-2026-9041"
-                                value={form.beneficiary_id_number}
-                                onChange={(e) => setForm({ ...form, beneficiary_id_number: e.target.value })}
-                                className="input text-xs w-full mt-1"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">2</span><div><h2 className="text-sm font-extrabold">Assess the immediate need</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Document urgency and on-site eligibility checks.</p></div></div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Aid Category </label>
-                            <DropdownSelect
-                                value={form.category}
-                                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                                className="input text-xs w-full mt-1"
-                            >
-                                <option value="Food & Meals">Food & Meals</option>
-                                <option value="Clothing & Apparel">Clothing & Apparel</option>
-                                <option value="Educational & Books">Educational & Books</option>
-                                <option value="Medical & Health">Medical & Health</option>
-                                <option value="Electronics & Tech">Electronics & Tech</option>
-                                <option value="Household & Bedding">Household & Bedding</option>
-                            </DropdownSelect>
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Quantity Needed </label>
-                            <input
-                                type="number"
-                                min="1"
-                                required
-                                value={form.quantity_needed}
-                                onChange={(e) => setForm({ ...form, quantity_needed: parseInt(e.target.value) || 1 })}
-                                className="input text-xs w-full mt-1"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Urgency Level </label>
-                            <DropdownSelect
-                                value={form.urgency}
-                                onChange={(e) => setForm({ ...form, urgency: e.target.value })}
-                                className="input text-xs w-full mt-1"
-                            >
-                                <option value="low">Low Urgency</option>
-                                <option value="medium">Medium Urgency</option>
-                                <option value="high">High Urgency (Crisis)</option>
-                            </DropdownSelect>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Walk-In Hardship Justification </label>
-                        <textarea
-                            rows="3"
-                            required
-                            placeholder="Explain on-site request..."
-                            value={form.justification}
-                            onChange={(e) => setForm({ ...form, justification: e.target.value })}
-                            className="input text-xs w-full mt-1"
-                        />
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-2"><div><label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Eligibility verification</label><DropdownSelect value={form.verification_tier} onChange={(e) => setForm({ ...form, verification_tier: e.target.value })} className="input text-xs w-full mt-1"><option value="identity_verified">Identity verified on site</option><option value="financial_hardship">Financial hardship verified</option><option value="emergency">Emergency relief</option><option value="unverified">Requires verification</option></DropdownSelect></div><div><label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Referral destination <span className="normal-case text-[#2563EB]/55">(if needed)</span></label><input value={form.referral_destination} onChange={(e) => setForm({ ...form, referral_destination: e.target.value })} placeholder="e.g. Student Services / Financial Aid" className="input text-xs w-full mt-1"/></div></div>
-
-                    <div><label className="text-[10px] font-extrabold uppercase text-[#2563EB]/70">Internal staff remarks</label><textarea rows="2" value={form.staff_internal_notes} onChange={(e) => setForm({ ...form, staff_internal_notes: e.target.value })} placeholder="Record checks completed, context, or follow-up instructions..." className="input text-xs w-full mt-1"/></div>
-
-                    <div className="flex items-center gap-2 border-b border-[#2563EB]/15 pb-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB] text-[10px] font-extrabold text-white">3</span><div><h2 className="text-sm font-extrabold">Match available aid</h2><p className="text-[10px] font-semibold text-[#2563EB]/65">Only stock that fits this category and quantity is shown.</p></div></div>
-
-                    <div className="p-4 rounded-xl border border-[#2563EB]/20 bg-[#2563EB]/5 space-y-3">
-                        <span className="text-xs font-extrabold uppercase text-[#2563EB]">Optional Instant On-the-Spot Allocation</span>
-                        <p className="text-xs text-[#2563EB]/80 font-semibold">
-                            Select an available warehouse item to hand off immediately during this walk-in session.
-                        </p>
-                        <DropdownSelect
-                            value={form.instant_donation_id}
-                            onChange={(e) => setForm({ ...form, instant_donation_id: e.target.value })}
-                            className="input text-xs w-full"
-                        >
-                            <option value="">-- No Instant Allocation (Add to Priority Queue) --</option>
-                            {availableDonations.map((d) => (
-                                <option key={d.id} value={d.id}>
-                                    [{d.category}] {d.item_name} — Qty: {d.quantity} ({d.storage_location || 'Warehouse Bin'})
-                                </option>
-                            ))}
-                        </DropdownSelect>
-                        {!loading && !availableDonations.length && <p className="rounded-lg border border-[#2563EB]/15 bg-white p-2 text-[10px] font-semibold text-[#2563EB]/70">No matching inventory is available for this category and quantity. The request will be added to the priority queue unless it is referred.</p>}
-                    </div>
-
-                    <div className="flex justify-end pt-2">
-                        <Button type="submit" loading={actionLoading}>
-                            <Icon name="check" />
-                            <span className="ml-1 text-xs">Log & Process Walk-In Request</span>
-                        </Button>
-                    </div>
-                </form>
-            </div>
-        </main>
-    );
-}
-
 function StaffHandoffDispatch() {
     const { user } = useAuth();
     const [matches, setMatches] = useState([]);
@@ -10962,7 +10817,7 @@ function StaffHandoffDispatch() {
         : activeMatches.filter((m) => statusFilter === 'all' || m.status === statusFilter);
 
     const filtered = visibleMatches.filter((m) => {
-        if (hubFilter !== 'all' && (m.pickup_hub || 'Main Relief Desk Hub') !== hubFilter) return false;
+        if (hubFilter !== 'all' && (m.pickup_hub || 'Campus Collection Point') !== hubFilter) return false;
         if (!search.trim()) return true;
         const q = search.toLowerCase();
         const item = (m.donation?.item_name || '').toLowerCase();
@@ -10970,7 +10825,7 @@ function StaffHandoffDispatch() {
         const donor = (m.donation?.donor?.name || '').toLowerCase();
         return item.includes(q) || recipient.includes(q) || donor.includes(q);
     });
-    const hubs = [...new Set(matches.map((match) => match.pickup_hub || 'Main Relief Desk Hub'))];
+    const hubs = [...new Set(matches.map((match) => match.pickup_hub || 'Campus Collection Point'))];
     const dispatchSummary = { pending: activeMatches.filter((match) => match.status === 'proposed').length, ready: activeMatches.filter((match) => match.status === 'confirmed').length, inProgress: verifyingMatch ? 1 : 0, completed: matches.filter((match) => match.status === 'fulfilled').length, expired: matches.filter((match) => match.pin_expires_at && new Date(match.pin_expires_at) < new Date() && match.status !== 'fulfilled').length };
 
     return (
@@ -12434,7 +12289,7 @@ function DonorNeeds() {
 
         setDonatingRequest(req);
         setDonationForm({
-            item_name: isFinancial ? `Financial Aid for ${title(req.category)}` : `Donation for ${title(req.category)} Need`,
+            item_name: isFinancial ? `Financial Aid for ${title(req.category)}` : (req.item_details || ''),
             quantity: remainingQty,
             amount: remainingAmt || 100,
             condition_type: 'Gently Used',
@@ -13361,7 +13216,7 @@ function FulfillmentPage({ role }) {
     const isDonor = role === 'donor';
 
     const getWorkflowStage = (m) => {
-        if (m.status === 'fulfilled') return 4;
+        if (m.status === 'fulfilled') return 3;
         const myConfirmed = isDonor ? !!m.donor_completed_at : !!m.beneficiary_completed_at;
         if (myConfirmed) return 3;
         if (m.handoff_scheduled_at || m.status === 'confirmed') return 2;
@@ -13503,7 +13358,7 @@ function FulfillmentPage({ role }) {
                                             <div className="mb-2 text-xs font-extrabold text-[#2563EB]">
                                                 Handoff Workflow Progress
                                             </div>
-                                            <div className="grid grid-cols-4 gap-2 text-center text-[11px] font-extrabold">
+                                            <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-extrabold">
                                                 {/* Step 1: Matched */}
                                                 <div
                                                     className={`rounded-xl p-2 border ${
@@ -13524,7 +13379,7 @@ function FulfillmentPage({ role }) {
                                                 >
                                                     2. Scheduled
                                                 </div>
-                                                {/* Step 3: Confirmed */}
+                                                {/* Step 3: Delivery is the final step; fulfilled means staff recorded it. */}
                                                 <div
                                                     className={`rounded-xl p-2 border ${
                                                         stage >= 3
@@ -13533,16 +13388,6 @@ function FulfillmentPage({ role }) {
                                                     }`}
                                                 >
                                                     3. Delivered
-                                                </div>
-                                                {/* Step 4: Fulfilled */}
-                                                <div
-                                                    className={`rounded-xl p-2 border ${
-                                                        stage >= 4
-                                                            ? 'border-[#22C55E] bg-[#22C55E] text-white'
-                                                            : 'border-[#2563EB] bg-white text-[#2563EB]'
-                                                    }`}
-                                                >
-                                                    4. Completed
                                                 </div>
                                             </div>
                                         </div>
@@ -13610,23 +13455,12 @@ function FulfillmentPage({ role }) {
                                     {m.status !== 'fulfilled' && m.status !== 'rejected' && (
                                         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#2563EB]/20 pt-4">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                {/* Schedule / Reschedule */}
-                                                <Button
-                                                    variant="primary"
-                                                    className="text-xs py-2 px-3"
-                                                    disabled={m.status !== 'confirmed'}
-                                                    onClick={() => openScheduleModal(m)}
-                                                >
-                                                    <Icon name="calendar" className="mr-1.5" size={14} />
-                                                    {m.status !== 'confirmed'
-                                                        ? 'Awaiting Staff Confirmation'
-                                                        : m.handoff_scheduled_at ? 'Reschedule Meeting' : 'Schedule Meeting'}
-                                                </Button>
-
                                                 <span className="text-xs font-bold text-[#2563EB]/75">
                                                     {m.status === 'confirmed'
-                                                        ? 'Staff records completion after secure identity and PIN verification.'
-                                                        : 'You can schedule pickup after staff confirms this proposed match.'}
+                                                        ? (m.handoff_scheduled_at
+                                                            ? 'Staff finalized this handoff time and location. Contact staff if you need a change.'
+                                                            : 'The match is confirmed. Campus staff will set the official handoff time and location.')
+                                                        : 'The proposed match is waiting for staff confirmation.'}
                                                 </span>
                                             </div>
 
@@ -13656,7 +13490,7 @@ function FulfillmentPage({ role }) {
                                         <div className="flex items-center justify-between border-t border-[#2563EB]/20 pt-4 text-xs font-bold text-[#22C55E]">
                                             <div className="flex items-center gap-2">
                                                 <Icon name="check" size={18} />
-                                                <span>This handoff was completed and confirmed by both parties.</span>
+                                                <span>Delivery fulfilled and recorded by campus staff.</span>
                                             </div>
                                             <Button
                                                 variant="secondary"
@@ -18741,7 +18575,6 @@ export default function App() {
                         <Route path="/staff/dashboard" element={<RouteGuard roles={['staff', 'admin']}><StaffDashboard/></RouteGuard>}/>
                         <Route path="/staff/verifications" element={<RouteGuard roles={['staff', 'admin']}><StaffVerificationDesk/></RouteGuard>}/>
                         <Route path="/staff/inventory" element={<RouteGuard roles={['staff', 'admin']}><StaffWarehouseInventory/></RouteGuard>}/>
-                        <Route path="/staff/desk" element={<RouteGuard roles={['staff', 'admin']}><StaffWalkInDesk/></RouteGuard>}/>
                         <Route path="/staff/handoffs" element={<RouteGuard roles={['staff', 'admin']}><StaffHandoffDispatch/></RouteGuard>}/>
                         <Route path="/staff/activity-log" element={<RouteGuard roles={['staff', 'admin']}><Activities/></RouteGuard>}/>
                         <Route path="/staff/activity" element={<RouteGuard roles={['staff', 'admin']}><Activities/></RouteGuard>}/>

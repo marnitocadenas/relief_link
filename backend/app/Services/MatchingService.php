@@ -24,7 +24,7 @@ class MatchingService
                     if ($available < 1) return;
 
                     $made = false;
-                    $requests = AidRequest::where('category', $donation->category)
+                    $requests = AidRequest::whereIn('category', $this->categoryAliases($donation->category))
                         ->where(function ($q) {
                             $q->whereNull('request_type')->orWhere('request_type', 'physical');
                         })
@@ -37,6 +37,11 @@ class MatchingService
 
                     foreach ($requests as $request) {
                         if ($available < 1) break;
+                        // Physical aid must match both the category and the requested item title.
+                        // Keep justification text out of matching so incidental mentions do not match.
+                        if (!$this->sameCategory($donation->category, $request->category)
+                            || !$this->sameItemTitle($donation->item_name, $request->item_details)) continue;
+
                         $remaining = $request->quantity_needed - $this->activeQuantity($request->matches());
                         if ($remaining < 1) continue;
 
@@ -158,6 +163,61 @@ class MatchingService
     private function activeQuantity($relation): int
     {
         return (int) $relation->whereIn('status', ['proposed', 'confirmed', 'fulfilled'])->sum('matched_quantity');
+    }
+
+    private function sameCategory(?string $offeredCategory, ?string $requestedCategory): bool
+    {
+        if (!$offeredCategory || !$requestedCategory) return false;
+
+        return $this->normalizeCategory($offeredCategory) === $this->normalizeCategory($requestedCategory);
+    }
+
+    private function categoryAliases(?string $category): array
+    {
+        $groups = [
+            'food' => ['food', 'Food & Meals'],
+            'clothing' => ['clothing', 'Clothing & Apparel'],
+            'books' => ['books', 'Educational & Books'],
+            'medical' => ['medical', 'Medical & Health Supplies'],
+            'electronics' => ['electronics', 'Electronics & Tech', 'Technology'],
+            'household' => ['household', 'Household & Bedding'],
+            'hygiene' => ['hygiene', 'Personal Care & Hygiene'],
+            'emergency' => ['emergency', 'Emergency & Disaster Relief'],
+            'other' => ['other', 'Other Useful Items'],
+            'school supplies' => ['school', 'School Supplies'],
+        ];
+
+        $normalizedCategory = $this->normalizeMatchText((string) $category);
+        foreach ($groups as $aliases) {
+            if (in_array($normalizedCategory, array_map(fn ($alias) => $this->normalizeMatchText($alias), $aliases), true)) {
+                return $aliases;
+            }
+        }
+
+        return [$category ?? ''];
+    }
+
+    private function normalizeCategory(string $category): string
+    {
+        $aliases = $this->categoryAliases($category);
+        return $this->normalizeMatchText($aliases[0] ?? $category);
+    }
+
+    private function sameItemTitle(?string $offeredTitle, ?string $requestedTitle): bool
+    {
+        if (!$offeredTitle || !$requestedTitle) return false;
+
+        $offered = $this->normalizeMatchText($offeredTitle);
+        $requested = $this->normalizeMatchText($requestedTitle);
+
+        return $offered !== '' && $offered === $requested;
+    }
+
+    private function normalizeMatchText(string $value): string
+    {
+        $value = mb_strtolower(trim($value));
+        $value = preg_replace('/[^\\p{L}\\p{N}]+/u', ' ', $value) ?? '';
+        return trim(preg_replace('/\\s+/u', ' ', $value) ?? $value);
     }
 
     private function activeAmount($relation): float
