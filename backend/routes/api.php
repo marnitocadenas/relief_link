@@ -8,7 +8,8 @@ use App\Http\Controllers\Api\{
     MatchController,
     NotificationController,
     AdminController,
-    SystemSettingsController
+    SystemSettingsController,
+    LandingController
 };
 
 Route::get('/debug-user', function () {
@@ -24,6 +25,12 @@ Route::get('/debug-user', function () {
 Route::get('/api-test', function () { return 'api works'; });
 Route::post('/api-post-test', function () { return 'post works'; })->middleware('web');
 
+// Public Landing Page & Discovery Routes
+Route::get('landing/stats', [LandingController::class, 'stats']);
+Route::get('landing/categories', [LandingController::class, 'categories']);
+Route::get('landing/needs', [LandingController::class, 'needs']);
+Route::get('categories', [LandingController::class, 'categories']);
+
 Route::post('register', [AuthController::class, 'register']);
 Route::post('register/check-availability', [AuthController::class, 'checkRegistrationAvailability'])
     ->middleware('throttle:30,1');
@@ -36,6 +43,7 @@ Route::post('forgot-password/reset-password', [AuthController::class, 'resetPass
 
 Route::middleware(['auth:sanctum', 'active-account'])->group(function () {
     Route::get('user', [AuthController::class, 'user']);
+    Route::get('categories', [LandingController::class, 'categories']);
     Route::post('profile', [AuthController::class, 'updateProfile']);
     Route::post('logout', [AuthController::class, 'logout']);
 

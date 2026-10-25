@@ -392,8 +392,14 @@ class AuthController extends Controller
             'valid_id_number' => $u->role === 'donor' ? ($validIdNum ?: null) : null,
             'valid_id_type' => $u->role === 'donor' ? (trim((string) $r->input('valid_id_type', '')) ?: null) : null,
             'student_id_number' => $u->role === 'beneficiary' ? (RegisterRequest::normalizeId((string) $r->input('student_id_number', '')) ?: null) : null,
-            'beneficiary_type' => in_array($u->role, ['beneficiary'], true) ? ($r->input('beneficiary_type') ?: $u->beneficiary_type) : null,
-            'school_email' => $u->role === 'beneficiary' ? (RegisterRequest::normalizeEmail((string) $r->input('school_email', '')) ?: null) : null,
+            // Campus role is determined at account creation; profile edits must
+            // not silently switch a student into a faculty account (or vice versa).
+            'beneficiary_type' => $u->role === 'beneficiary' ? ($u->beneficiary_type ?: 'student') : null,
+            // Older/admin-created records may have a separate school email.
+            // Keep it when clients that do not expose that field update a profile.
+            'school_email' => $u->role === 'beneficiary'
+                ? (RegisterRequest::normalizeEmail((string) $r->input('school_email', $u->school_email ?? '')) ?: null)
+                : null,
             'address' => $u->role === 'donor' ? ($address ?: null) : null,
             'address_line_1' => $u->role === 'donor' ? ($addr1 ?: null) : null,
             'state_province_region' => $u->role === 'donor' ? ($state ?: null) : null,
@@ -459,9 +465,16 @@ class AuthController extends Controller
                 'nullable', 'string', 'max:30', 'unique:users,contact_number,' . $u->id,
                 'regex:/^09[0-9]{9}$/',
             ];
-            $rules['department'] = ['nullable', 'string', 'max:255', \Illuminate\Validation\Rule::in(RegisterRequest::DEPARTMENTS)];
-            $rules['course'] = ['nullable', 'string', 'max:255', \Illuminate\Validation\Rule::in(RegisterRequest::COURSES)];
-            $rules['year_level'] = ['nullable', 'string', 'max:50', \Illuminate\Validation\Rule::in(RegisterRequest::YEAR_LEVELS)];
+            $isStudentBeneficiary = ($u->beneficiary_type ?: 'student') === 'student';
+            $rules['department'] = $isStudentBeneficiary
+                ? ['nullable', 'string', 'max:255', \Illuminate\Validation\Rule::in(RegisterRequest::BENEFICIARY_DEPARTMENTS)]
+                : ['nullable', 'string', 'max:255'];
+            $rules['course'] = $isStudentBeneficiary
+                ? ['nullable', 'string', 'max:255', \Illuminate\Validation\Rule::in(RegisterRequest::BENEFICIARY_COURSES)]
+                : 'nullable|string|max:255';
+            $rules['year_level'] = $isStudentBeneficiary
+                ? ['nullable', 'string', 'max:50', \Illuminate\Validation\Rule::in(RegisterRequest::BENEFICIARY_YEAR_LEVELS)]
+                : 'nullable|string|max:50';
         } elseif ($u->role === 'donor') {
             $rules['contact_number'] = [
                 'nullable', 'string', 'max:30', 'unique:users,contact_number,' . $u->id,

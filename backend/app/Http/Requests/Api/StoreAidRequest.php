@@ -8,6 +8,17 @@ use Illuminate\Validation\Rule;
 
 class StoreAidRequest extends FormRequest
 {
+    public const PHYSICAL_UNITS = [
+        'pieces (pcs)',
+        'sets',
+        'boxes',
+        'packs',
+        'books',
+        'pairs',
+        'bundles',
+        'kg',
+    ];
+
     public function authorize(): bool
     {
         return true;
@@ -17,12 +28,14 @@ class StoreAidRequest extends FormRequest
     {
         $type = $this->input('request_type', 'physical');
         $requireJustification = SystemSettings::get('require_justification');
+        $isDraft = $this->input('status') === 'draft';
 
         $rules = [
             'request_type' => ['nullable', Rule::in(['physical'])],
-            'category' => 'required|string|max:80',
-            'urgency' => ['required', Rule::in(['low', 'medium', 'high'])],
-            'justification' => ($requireJustification ? 'required' : 'nullable') . '|string|max:2000',
+            'status' => ['sometimes', Rule::in(['draft', 'pending_review'])],
+            'category' => ($isDraft ? 'nullable' : 'required') . '|string|max:80',
+            'urgency' => [$isDraft ? 'nullable' : 'required', Rule::in(['low', 'medium', 'high'])],
+            'justification' => (($requireJustification && !$isDraft) ? 'required' : 'nullable') . '|string|max:2000',
             'preferred_assistance_date' => 'nullable|string|max:100',
             'additional_info' => 'nullable|string|max:2000',
             'alternative_categories' => 'nullable|string|max:255',
@@ -39,8 +52,8 @@ class StoreAidRequest extends FormRequest
             $rules['unit'] = 'nullable|string|max:50';
             $rules['item_details'] = 'nullable|string|max:255';
         } else {
-            $rules['quantity_needed'] = 'required|integer|min:1';
-            $rules['unit'] = 'nullable|string|max:50';
+            $rules['quantity_needed'] = ($isDraft ? 'nullable' : 'required') . '|integer|min:1';
+            $rules['unit'] = ['nullable', 'string', 'max:50', Rule::in(self::PHYSICAL_UNITS)];
             $rules['item_details'] = 'nullable|string|max:255';
             $rules['amount_requested'] = 'nullable|numeric|min:0';
             $rules['currency'] = 'nullable|in:PHP';
