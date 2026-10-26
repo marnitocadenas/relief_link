@@ -36,7 +36,8 @@ class AidRequestController extends Controller
             ->filter($request->all());
 
         if (in_array($request->user()->role, ['admin', 'staff'], true)) {
-            // Operations users can review the complete queue.
+            // Incomplete beneficiary drafts are private and are not review-queue items.
+            $query->where('status', '!=', 'draft');
         } elseif ($request->user()->role === 'beneficiary') {
             $query->where('beneficiary_id', $request->user()->id);
         } else {
@@ -51,24 +52,30 @@ class AidRequestController extends Controller
     {
         $this->authorize('create', AidRequest::class);
         $data = $request->validated();
+        $isDraft = ($data['status'] ?? null) === 'draft';
+        // The existing requests table stores these required columns as non-null.
+        // Neutral defaults keep an incomplete draft saveable until it is resumed.
+        $data['category'] = $data['category'] ?? '';
+        $data['quantity_needed'] = $data['quantity_needed'] ?? 1;
+        $data['urgency'] = $data['urgency'] ?? 'medium';
         $data['justification'] = $data['justification'] ?? '';
 
         $activeRequests = $request->user()->aidRequests()
             ->whereIn('status', ['pending_review', 'under_review', 'approved', 'proposed', 'matched', 'partially_fulfilled']);
 
-        if ((clone $activeRequests)->where('category', $data['category'])->exists()) {
+        if (!$isDraft && (clone $activeRequests)->where('category', $data['category'])->exists()) {
             throw ValidationException::withMessages([
                 'category' => 'You already have an active request in this category. Update or cancel it instead of creating a duplicate.'
             ]);
         }
 
-        if ($activeRequests->count() >= SystemSettings::get('max_pending_per_user')) {
+        if (!$isDraft && $activeRequests->count() >= SystemSettings::get('max_pending_per_user')) {
             throw ValidationException::withMessages([
                 'category' => 'You have reached the maximum number of active support requests.'
             ]);
         }
 
-        $aidRequest = DB::transaction(function () use ($request, $data) {
+        $aidRequest = DB::transaction(function () use ($request, $data, $isDraft) {
             if ($request->hasFile('image')) {
                 $data['supporting_document_path'] = $request->file('image')->store('request-supporting-documents');
             }
@@ -81,19 +88,21 @@ class AidRequestController extends Controller
                 $data['request_type'] = 'physical';
             }
 
-            $data['status'] = 'pending_review';
+            $data['status'] = $isDraft ? 'draft' : 'pending_review';
             $created = $request->user()->aidRequests()->create($data);
 
-            ActivityService::log($request->user(), 'created support request', $created);
-            AlertService::send($request->user(), 'Your support request was submitted and is awaiting verification.', 'request', 'normal', $created, '/requests');
-            AlertService::sendToRoles(
-                ['staff', 'admin'],
-                'A new support request requires verification.',
-                'request',
-                $created->urgency === 'high' ? 'high' : 'normal',
-                $created,
-                '/staff/verifications'
-            );
+            ActivityService::log($request->user(), $isDraft ? 'saved support request draft' : 'created support request', $created);
+            if (!$isDraft) {
+                AlertService::send($request->user(), 'Your support request was submitted and is awaiting verification.', 'request', 'normal', $created, '/requests');
+                AlertService::sendToRoles(
+                    ['staff', 'admin'],
+                    'A new support request requires verification.',
+                    'request',
+                    $created->urgency === 'high' ? 'high' : 'normal',
+                    $created,
+                    '/staff/verifications'
+                );
+            }
 
             return $created;
         });
@@ -106,13 +115,29 @@ class AidRequestController extends Controller
         abort_if($aidRequest->request_type === 'financial', 404);
         abort_unless(
             $aidRequest->beneficiary_id === $request->user()->id &&
-            in_array($aidRequest->status, ['pending_review', 'under_review'], true),
+            in_array($aidRequest->status, ['draft', 'pending_review', 'under_review'], true),
             403
         );
 
         $data = $request->validated();
+        $submittingDraft = $aidRequest->status === 'draft' && ($data['status'] ?? null) === 'pending_review';
+        if ($submittingDraft) {
+            $activeRequests = $request->user()->aidRequests()
+                ->whereIn('status', ['pending_review', 'under_review', 'approved', 'proposed', 'matched', 'partially_fulfilled']);
+            if ((clone $activeRequests)->where('category', $data['category'])->exists()) {
+                throw ValidationException::withMessages([
+                    'category' => 'You already have an active request in this category. Update or cancel it instead of creating a duplicate.'
+                ]);
+            }
+            if ($activeRequests->count() >= SystemSettings::get('max_pending_per_user')) {
+                throw ValidationException::withMessages([
+                    'category' => 'You have reached the maximum number of active support requests.'
+                ]);
+            }
+        }
 
-        $aidRequest = DB::transaction(function () use ($request, $aidRequest, $data) {
+        $wasDraft = $aidRequest->status === 'draft';
+        $aidRequest = DB::transaction(function () use ($request, $aidRequest, $data, $wasDraft, $submittingDraft) {
             if ($request->hasFile('image')) {
                 if ($aidRequest->supporting_document_path) {
                     Storage::delete($aidRequest->supporting_document_path);
@@ -125,8 +150,22 @@ class AidRequestController extends Controller
                 $data['quantity_needed'] = $data['quantity_needed'] ?? 1;
             }
 
+            if ($wasDraft && !isset($data['status'])) {
+                $data['status'] = 'pending_review';
+            }
             $aidRequest->update($data);
             ActivityService::log($request->user(), 'updated support request', $aidRequest);
+            if ($submittingDraft) {
+                AlertService::send($request->user(), 'Your support request was submitted and is awaiting verification.', 'request', 'normal', $aidRequest, '/requests');
+                AlertService::sendToRoles(
+                    ['staff', 'admin'],
+                    'A new support request requires verification.',
+                    'request',
+                    $aidRequest->urgency === 'high' ? 'high' : 'normal',
+                    $aidRequest,
+                    '/staff/verifications'
+                );
+            }
 
             return $aidRequest;
         });

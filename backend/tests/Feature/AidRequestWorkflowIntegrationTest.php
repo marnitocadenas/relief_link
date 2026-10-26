@@ -65,7 +65,7 @@ class AidRequestWorkflowIntegrationTest extends TestCase
                 'category' => 'books',
                 'item_name' => 'Discrete Mathematics Textbook',
                 'quantity_needed' => 2,
-                'unit' => 'copies',
+                'unit' => 'books',
                 'urgency' => 'high',
                 'justification' => 'Required for Midterm exam review in CS201 course this semester.',
                 'alternative_categories' => 'pdf / digital copy',
@@ -76,7 +76,7 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             ->assertJsonPath('data.request_type', 'physical')
             ->assertJsonPath('data.category', 'books')
             ->assertJsonPath('data.quantity_needed', 2)
-            ->assertJsonPath('data.unit', 'copies')
+            ->assertJsonPath('data.unit', 'books')
             ->assertJsonPath('data.urgency', 'high')
             ->assertJsonPath('data.remaining_quantity', 2)
             ->assertJsonPath('data.status', 'pending_review')
@@ -88,7 +88,7 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             'request_type' => 'physical',
             'category' => 'books',
             'quantity_needed' => 2,
-            'unit' => 'copies',
+            'unit' => 'books',
             'urgency' => 'high',
             'status' => 'pending_review',
         ]);
@@ -169,6 +169,46 @@ class AidRequestWorkflowIntegrationTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['quantity_needed']);
+    }
+
+    public function test_physical_request_unit_must_be_approved_and_is_persisted_on_edit(): void
+    {
+        $basePayload = [
+            'request_type' => 'physical',
+            'category' => 'School Supplies',
+            'item_details' => 'Course books',
+            'quantity_needed' => 2,
+            'urgency' => 'medium',
+            'justification' => 'Required for coursework this semester.',
+        ];
+
+        $this->actingAs($this->beneficiary, 'sanctum')
+            ->postJson('/api/requests', [...$basePayload, 'unit' => 'copies'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['unit']);
+
+        $created = $this->postJson('/api/requests', [...$basePayload, 'unit' => 'books'])
+            ->assertCreated()
+            ->assertJsonPath('data.unit', 'books');
+
+        $requestId = $created->json('data.id');
+        $this->patchJson("/api/requests/{$requestId}", [...$basePayload, 'unit' => 'kg'])
+            ->assertOk()
+            ->assertJsonPath('data.unit', 'kg');
+
+        $this->assertDatabaseHas('requests', [
+            'id' => $requestId,
+            'unit' => 'kg',
+        ]);
+
+        $this->patchJson("/api/requests/{$requestId}", [...$basePayload, 'unit' => 'bottles'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['unit']);
+
+        $this->assertDatabaseHas('requests', [
+            'id' => $requestId,
+            'unit' => 'kg',
+        ]);
     }
 
     public function test_admin_and_staff_can_review_and_approve_request(): void

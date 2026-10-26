@@ -17,6 +17,7 @@ use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\Settings;
 use App\Http\Requests\Api\RegisterRequest;
+use App\Http\Requests\Api\StoreAidRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -826,12 +827,17 @@ class AdminController extends Controller
      */
     public function editRequestContent(Request $r, AidRequest $aidRequest)
     {
+        $requestType = $r->input('request_type', $aidRequest->request_type ?? 'physical');
+        $unitRules = $requestType === 'financial'
+            ? 'nullable|string|max:50'
+            : ['nullable', 'string', 'max:50', Rule::in(StoreAidRequest::PHYSICAL_UNITS)];
+
         $validated = $r->validate([
             'request_type'              => 'nullable|in:physical',
             'category'                  => 'required|string|max:80',
             'urgency'                   => 'required|in:low,medium,high',
             'quantity_needed'           => 'nullable|integer|min:1',
-            'unit'                      => 'nullable|string|max:50',
+            'unit'                      => $unitRules,
             'item_details'              => 'nullable|string|max:255',
             'amount_requested'          => 'nullable|numeric|min:0',
             'currency'                  => 'nullable|in:PHP',

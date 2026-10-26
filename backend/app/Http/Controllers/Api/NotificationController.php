@@ -10,11 +10,33 @@ class NotificationController extends Controller
 {
     public function index(Request $request)
     {
-        $request->user()->reliefNotifications()->whereNull('seen_at')->update(['seen_at' => now()]);
+        $user = $request->user();
+        $user->reliefNotifications()->whereNull('seen_at')->update(['seen_at' => now()]);
+
+        $perPage = min(max((int) $request->query('per_page', 100), 1), 100);
+        $notifications = $user->reliefNotifications()->latest()->paginate($perPage);
+        $total = $user->reliefNotifications()->count();
+        $unread = $user->reliefNotifications()->where('is_read', false)->count();
 
         return [
-            'data' => $request->user()->reliefNotifications()->latest()->limit(100)->get(),
-            'unread_count' => $request->user()->reliefNotifications()->where('is_read', false)->count(),
+            'data' => $notifications->items(),
+            'links' => [
+                'first' => $notifications->url(1),
+                'last' => $notifications->url($notifications->lastPage()),
+                'prev' => $notifications->previousPageUrl(),
+                'next' => $notifications->nextPageUrl(),
+            ],
+            'meta' => [
+                'current_page' => $notifications->currentPage(),
+                'last_page' => $notifications->lastPage(),
+                'per_page' => $notifications->perPage(),
+                'total' => $total,
+            ],
+            'summary' => [
+                'total_count' => $total,
+                'unread_count' => $unread,
+                'read_count' => $total - $unread,
+            ],
         ];
     }
 

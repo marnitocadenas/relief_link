@@ -15,6 +15,57 @@ class ReliefLinkWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_beneficiary_can_save_a_partial_request_as_a_private_draft_and_submit_it_later(): void
+    {
+        $beneficiary = User::factory()->create([
+            'role' => 'beneficiary',
+            'account_type' => 'beneficiary',
+        ]);
+        Sanctum::actingAs($beneficiary);
+
+        $draftResponse = $this->postJson('/api/requests', [
+            'request_type' => 'physical',
+            'category' => '',
+            'status' => 'draft',
+            'quantity_needed' => 1,
+            'urgency' => 'medium',
+            'justification' => '',
+            'item_details' => 'Water filter',
+        ]);
+
+        $draftResponse->assertCreated()
+            ->assertJsonPath('data.status', 'draft')
+            ->assertJsonPath('data.item_details', 'Water filter');
+        $draftId = $draftResponse->json('data.id');
+        $this->assertDatabaseHas('requests', [
+            'id' => $draftId,
+            'beneficiary_id' => $beneficiary->id,
+            'status' => 'draft',
+            'item_details' => 'Water filter',
+        ]);
+
+        $this->getJson('/api/requests')
+            ->assertOk()
+            ->assertJsonFragment(['id' => $draftId, 'status' => 'draft']);
+
+        $this->patchJson("/api/requests/{$draftId}", [
+            'request_type' => 'physical',
+            'category' => 'Other Useful Items',
+            'status' => 'pending_review',
+            'quantity_needed' => 2,
+            'unit' => 'pieces (pcs)',
+            'urgency' => 'medium',
+            'justification' => 'Need clean drinking water at home.',
+            'item_details' => 'Water filter',
+        ])->assertOk()->assertJsonPath('data.status', 'pending_review');
+
+        $this->assertDatabaseHas('requests', [
+            'id' => $draftId,
+            'status' => 'pending_review',
+            'category' => 'Other Useful Items',
+        ]);
+    }
+
     public function test_donor_and_beneficiary_registration_save_remaining_fields_without_campus_role(): void
     {
         $password = 'Strong!Pass123';
@@ -81,6 +132,108 @@ class ReliefLinkWorkflowTest extends TestCase
             'year_level' => '3rd Year',
             'contact_number' => '09171234568',
         ]);
+    }
+
+    public function test_faculty_beneficiary_registration_saves_custom_department_without_year_level(): void
+    {
+        $password = 'Strong!Pass123';
+
+        $response = $this->postJson('/api/register', [
+            'role' => 'beneficiary',
+            'beneficiary_type' => 'faculty',
+            'first_name' => 'Faculty',
+            'last_name' => 'Member',
+            'email' => 'faculty.custom-office@example.test',
+            'campus_id' => 'EMP-2048',
+            'department' => 'Library Services',
+            'contact_number' => '09171234569',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('user.beneficiary_type', 'faculty')
+            ->assertJsonPath('user.campus_id', 'EMP-2048')
+            ->assertJsonPath('user.department', 'Library Services')
+            ->assertJsonPath('user.year_level', null);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'faculty.custom-office@example.test',
+            'campus_id' => 'EMP-2048',
+            'department' => 'Library Services',
+            'year_level' => null,
+        ]);
+    }
+
+    public function test_faculty_beneficiary_can_update_profile_with_custom_department_and_keep_campus_role(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'beneficiary',
+            'account_type' => 'beneficiary',
+            'beneficiary_type' => 'faculty',
+            'campus_id' => 'FAC-2049',
+            'student_id_number' => null,
+            'department' => 'Office of the School Registrar',
+            'course' => null,
+            'year_level' => null,
+            'school_email' => 'faculty.profile@example.test',
+        ]);
+
+        Sanctum::actingAs($user);
+        $this->postJson('/api/profile', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'contact_number' => '09171234580',
+            'department' => 'Library Services',
+            'campus_id' => 'FAC-2049',
+        ])->assertOk()
+            ->assertJsonPath('data.beneficiary_type', 'faculty')
+            ->assertJsonPath('data.campus_id', 'FAC-2049')
+            ->assertJsonPath('data.department', 'Library Services')
+            ->assertJsonPath('data.course', null)
+            ->assertJsonPath('data.year_level', null)
+            ->assertJsonPath('data.school_email', 'faculty.profile@example.test');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'beneficiary_type' => 'faculty',
+            'campus_id' => 'FAC-2049',
+            'department' => 'Library Services',
+            'course' => null,
+            'year_level' => null,
+            'school_email' => 'faculty.profile@example.test',
+        ]);
+    }
+
+    public function test_beneficiary_can_submit_and_retrieve_request_with_new_category_label(): void
+    {
+        $beneficiary = User::factory()->create(['role' => 'beneficiary']);
+        Sanctum::actingAs($beneficiary);
+
+        $response = $this->postJson('/api/requests', [
+            'request_type' => 'physical',
+            'category' => 'Other Useful Items',
+            'urgency' => 'medium',
+            'quantity_needed' => 1,
+            'unit' => 'pieces (pcs)',
+            'item_details' => 'Portable water filter',
+            'justification' => 'For safe drinking water.',
+        ])->assertCreated()
+            ->assertJsonPath('data.category', 'Other Useful Items')
+            ->assertJsonPath('data.item_details', 'Portable water filter');
+
+        $requestId = $response->json('data.id');
+        $this->assertDatabaseHas('requests', [
+            'id' => $requestId,
+            'beneficiary_id' => $beneficiary->id,
+            'category' => 'Other Useful Items',
+            'item_details' => 'Portable water filter',
+        ]);
+
+        $this->getJson('/api/requests/' . $requestId)
+            ->assertOk()
+            ->assertJsonPath('data.category', 'Other Useful Items')
+            ->assertJsonPath('data.item_details', 'Portable water filter');
     }
 
     public function test_core_relief_workflow_updates_all_connected_records(): void
