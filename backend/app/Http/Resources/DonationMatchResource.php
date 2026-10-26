@@ -18,6 +18,7 @@ class DonationMatchResource extends JsonResource
             'status' => $this->status,
             'pickup_hub' => $this->pickup_hub,
             'handoff_scheduled_at' => $this->handoff_scheduled_at,
+            'handoff_staff_scheduled' => (bool) $this->handoff_staff_scheduled,
             'handoff_notes' => $this->handoff_notes,
             'pin_attempt_count' => $this->pin_attempt_count,
             'pin_locked_at' => $this->pin_locked_at,

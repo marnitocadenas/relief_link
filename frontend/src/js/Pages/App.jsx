@@ -8709,15 +8709,15 @@ function Matches(){
                                             </Button>
                                         </>
                                     )}
-                                    {x.status === 'confirmed' && ['admin', 'staff'].includes(user.role) && (
+                                    {x.status === 'confirmed' && (['admin', 'staff'].includes(user.role) || !x.handoff_staff_scheduled) && (
                                         <>
                                             <Button variant="secondary" onClick={() => setSchedule(x)}>
-                                                <span className="text-xs">{x.handoff_scheduled_at ? 'Edit Handoff Schedule' : 'Schedule Handoff'}</span>
+                                                <span className="text-xs">{x.handoff_scheduled_at ? (['admin', 'staff'].includes(user.role) ? 'Edit Handoff Schedule' : 'Edit Proposed Schedule') : (['admin', 'staff'].includes(user.role) ? 'Schedule Handoff' : 'Suggest Handoff Time')}</span>
                                             </Button>
                                         </>
                                     )}
                                     {x.status === 'confirmed' && !['admin', 'staff'].includes(user.role) && (
-                                        <p className="text-xs font-semibold text-[#2563EB]/70">Campus staff will set or update the official handoff time and location.</p>
+                                        <p className="text-xs font-semibold text-[#2563EB]/70">{x.handoff_staff_scheduled ? 'Staff finalized this schedule. Contact staff if you need a change.' : 'Suggest a handoff time and location. Staff may finalize or update it.'}</p>
                                     )}
                                 </div>
                             </div>
@@ -13369,9 +13369,9 @@ function FulfillmentPage({ role }) {
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <span className="text-xs font-bold text-[#2563EB]/75">
                                                     {m.status === 'confirmed'
-                                                        ? (m.handoff_scheduled_at
+                                                        ? (m.handoff_staff_scheduled
                                                             ? 'Staff finalized this handoff time and location. Contact staff if you need a change.'
-                                                            : 'The match is confirmed. Campus staff will set the official handoff time and location.')
+                                                            : 'You can suggest or adjust the handoff time until staff finalizes it.')
                                                         : 'The proposed match is waiting for staff confirmation.'}
                                                 </span>
                                             </div>
@@ -13385,6 +13385,12 @@ function FulfillmentPage({ role }) {
                                                 >
                                                     <Icon name="info" className="mr-1" size={14} /> Handoff Details
                                                 </Button>
+
+                                                {m.status === 'confirmed' && !m.handoff_staff_scheduled && (
+                                                    <Button variant="secondary" className="text-xs py-2 px-3" onClick={() => openScheduleModal(m)}>
+                                                        <Icon name="calendar" className="mr-1" size={14} /> {m.handoff_scheduled_at ? 'Edit Proposed Schedule' : 'Suggest Handoff Time'}
+                                                    </Button>
+                                                )}
 
                                                 {/* Report Issue / Cancel */}
                                                 <Button

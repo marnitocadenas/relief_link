@@ -10,8 +10,16 @@ class DonationMatchPolicy
 {
     public function scheduleHandoff(User $user, DonationMatch $match): bool
     {
-        return in_array($user->role, ['admin', 'staff'], true)
-            && $match->status === 'confirmed';
+        if ($match->status !== 'confirmed') {
+            return false;
+        }
+
+        if (in_array($user->role, ['admin', 'staff'], true)) {
+            return true;
+        }
+
+        return !$match->handoff_staff_scheduled
+            && in_array($user->id, [$match->donation->donor_id, $match->request->beneficiary_id], true);
     }
 
     public function manageHandoff(User $user, DonationMatch $match): bool

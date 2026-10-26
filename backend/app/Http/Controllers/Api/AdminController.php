@@ -1015,6 +1015,9 @@ class AdminController extends Controller
         ]);
 
         $previousStatus = $match->status;
+        if (array_key_exists('handoff_scheduled_at', $d) && $d['handoff_scheduled_at']) {
+            $d['handoff_staff_scheduled'] = true;
+        }
         $match->update($d);
 
         if ($d['status'] === 'confirmed' && $previousStatus !== 'confirmed') {

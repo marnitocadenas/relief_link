@@ -15,6 +15,7 @@ class DonationMatch extends Model
         'matched_amount',
         'status',
         'handoff_scheduled_at',
+        'handoff_staff_scheduled',
         'handoff_notes',
         'donor_completed_at',
         'beneficiary_completed_at',
@@ -32,6 +33,7 @@ class DonationMatch extends Model
         'matched_quantity' => 'integer',
         'matched_amount' => 'decimal:2',
         'handoff_scheduled_at' => 'datetime',
+        'handoff_staff_scheduled' => 'boolean',
         'donor_completed_at' => 'datetime',
         'beneficiary_completed_at' => 'datetime',
         'handed_off_at' => 'datetime',
@@ -64,4 +66,5 @@ class DonationMatch extends Model
     {
         return $this->belongsTo(User::class, 'handed_off_by_user_id');
     }
+
 }
