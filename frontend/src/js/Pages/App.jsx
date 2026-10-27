@@ -579,10 +579,10 @@ const publicNavigation = [
 
 function Header() {
     const { user } = useAuth();
-    const { isDark } = useTheme();
+    const { isDark, toggleTheme } = useTheme();
     const location = useLocation();
     const [publicMenuOpen, setPublicMenuOpen] = useState(false);
-    const isDarkActive = Boolean(isDark && user);
+    const isDarkActive = Boolean(isDark);
 
     // Hide top navigation header section on all authentication pages
     const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
@@ -626,6 +626,15 @@ function Header() {
                     </>
                 ) : (
                     <>
+                        <button
+                            type="button"
+                            className="public-theme-toggle btn btn-ghost btn-icon"
+                            onClick={toggleTheme}
+                            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                        >
+                            <SunMoon size={18} />
+                        </button>
                         <div className="hidden items-center gap-2 sm:flex">
                             <NavLink to="/login" className="public-header-action btn btn-ghost btn-sm no-underline">
                                 <Icon name="profile" size={16} />
@@ -690,6 +699,7 @@ function Header() {
 
 function Home() {
     const { user, loading } = useAuth();
+    const { isDark } = useTheme();
     // Do not render the public landing page while an existing session is being restored.
     if (loading) return <main className="min-h-screen bg-white" aria-busy="true" aria-label="Restoring your session"/>;
     if (user) return <Navigate to={getRoleDashboard(user.role)} replace />;
@@ -706,7 +716,7 @@ function Home() {
     ];
 
     return (
-        <main id="top" className="landing-page min-h-screen bg-white scroll-smooth">
+        <main id="top" className={`landing-page min-h-screen scroll-smooth ${isDark ? 'theme-dark bg-[#0F141C] text-[#E2E8F0]' : 'bg-white'}`}>
             {/* HERO BANNER SECTION */}
             <section className="landing-hero bg-[#2563EB] text-white">
                 <div className="shell grid gap-10 py-14 sm:py-20 lg:grid-cols-12 lg:items-center">
@@ -728,7 +738,7 @@ function Home() {
                         <div className="flex flex-wrap items-center gap-3 pt-2">
                             <NavLink
                                 to="/register"
-                                className="inline-flex items-center gap-2 rounded-xl border border-white bg-white px-6 py-3.5 text-sm font-extrabold text-[#2563EB] no-underline shadow-md hover:bg-[#2563EB] hover:text-white hover:border-white transition"
+                                className="landing-hero-join inline-flex items-center gap-2 rounded-xl border border-white bg-white px-6 py-3.5 text-sm font-extrabold text-[#2563EB] no-underline shadow-md hover:bg-[#2563EB] hover:text-white hover:border-white transition"
                             >
                                 <span>Join ReliefLink</span>
                                 <Icon name="plus" size={16} />
@@ -736,7 +746,7 @@ function Home() {
 
                             <NavLink
                                 to="/login"
-                                className="inline-flex items-center gap-2 rounded-xl border border-white bg-[#2563EB] px-6 py-3.5 text-sm font-extrabold text-white no-underline hover:bg-white hover:text-[#2563EB] transition"
+                                className="landing-hero-explore inline-flex items-center gap-2 rounded-xl border border-white bg-[#2563EB] px-6 py-3.5 text-sm font-extrabold text-white no-underline hover:bg-white hover:text-[#2563EB] transition"
                             >
                                 <span>Explore Needs</span>
                                 <Icon name="requests" size={16} />
@@ -830,11 +840,11 @@ function Home() {
                 </div>
             </section>
 
-            <section className="impact-section border-t border-[#2563EB]/10 bg-[#2563EB]/5 py-14">
+            <section className="impact-section bg-[#2563EB]/5 py-14">
                 <div className="shell">
                     <div className="mx-auto max-w-2xl text-center"><p className="eyebrow">PLATFORM IMPACT</p><h2 className="mt-2 text-3xl font-extrabold text-[#2563EB]">Verified impact, visible as it happens</h2><p className="mt-3 text-sm font-semibold leading-relaxed text-[#2563EB]/80">ReliefLink will publish live platform impact here as verified activity becomes available.</p></div>
                     <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                        {['Donations & resources shared', 'Successful matches', 'Completed safe handoffs'].map((label, index) => <article key={label} className="panel p-5 text-center"><span className={`mx-auto grid h-11 w-11 place-items-center rounded-2xl ${index === 1 ? 'bg-[#22C55E] text-white' : 'border border-[#2563EB] bg-white text-[#2563EB]'}`}><Icon name={index === 0 ? 'donation' : index === 1 ? 'match' : 'fulfillment'} /></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Live verified data will appear here.</p></article>)}
+                        {['Donations & resources shared', 'Successful matches', 'Completed safe handoffs'].map((label, index) => <article key={label} className="panel p-5 text-center"><span className={`landing-impact-icon mx-auto grid h-11 w-11 place-items-center rounded-2xl ${index === 1 ? 'bg-[#22C55E] text-white' : 'border border-[#2563EB] bg-white text-[#2563EB]'}`}><Icon name={index === 0 ? 'donation' : index === 1 ? 'match' : 'fulfillment'} /></span><p className="mt-3 text-sm font-extrabold text-[#2563EB]">{label}</p><p className="mt-1 text-xs font-semibold text-[#2563EB]/65">Live verified data will appear here.</p></article>)}
                     </div>
                 </div>
             </section>
@@ -845,7 +855,7 @@ function Home() {
             </section>
 
             {/* RESOURCE CATEGORIES SHOWCASE */}
-            <section id="categories" className="category-section border-t border-[#2563EB]/10 bg-white py-14">
+            <section id="categories" className="category-section bg-white py-14">
                 <div className="shell">
                     <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2563EB] pb-4 mb-8">
                         <div>
@@ -863,7 +873,7 @@ function Home() {
                                 key={cat.name}
                                 className="category-card panel no-hover p-4 flex items-center gap-3 text-xs font-extrabold text-[#2563EB] hover:border-[#22C55E] transition cursor-pointer"
                             >
-                                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#2563EB] bg-white text-[#2563EB]">
+                                <div className="landing-category-icon grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#2563EB] bg-white text-[#2563EB]">
                                     <Icon name={cat.icon} size={16} />
                                 </div>
                                 <span>{cat.name}</span>
@@ -874,7 +884,7 @@ function Home() {
             </section>
 
             {/* CALL TO ACTION FOOTER BANNER */}
-            <section className="bg-[#2563EB] text-[#FFFFFF] py-16">
+            <section className="landing-cta bg-[#2563EB] text-[#FFFFFF] py-16">
                 <div className="shell text-center max-w-3xl mx-auto space-y-6">
                     <h2 className="text-3xl sm:text-4xl font-extrabold">Ready to make a difference on campus?</h2>
                     <p className="text-base sm:text-lg opacity-90">
@@ -883,13 +893,13 @@ function Home() {
                     <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
                         <NavLink
                             to="/register"
-                            className="rounded-xl border border-white bg-white px-7 py-3.5 text-sm font-extrabold text-[#2563EB] no-underline shadow-lg hover:bg-[#2563EB] hover:text-white hover:border-white transition"
+                            className="landing-cta-primary rounded-xl border border-white bg-white px-7 py-3.5 text-sm font-extrabold text-[#2563EB] no-underline shadow-lg hover:bg-[#2563EB] hover:text-white hover:border-white transition"
                         >
                             Create an Account
                         </NavLink>
                         <NavLink
                             to="/login"
-                            className="rounded-xl border border-white bg-[#2563EB] px-7 py-3.5 text-sm font-extrabold text-white no-underline hover:bg-white hover:text-[#2563EB] transition"
+                            className="landing-cta-secondary rounded-xl border border-white bg-[#2563EB] px-7 py-3.5 text-sm font-extrabold text-white no-underline hover:bg-white hover:text-[#2563EB] transition"
                         >
                             Sign In
                         </NavLink>
@@ -1052,6 +1062,7 @@ const YEAR_LEVELS = [
 
 function Auth({ register = false }) {
     const { login, user, loading: authLoading } = useAuth();
+    const { isDark, toggleTheme } = useTheme();
     const navigate = useNavigate();
 
     // Mode: 'login' | 'register' | 'forgot-email' | 'forgot-otp' | 'forgot-reset' | 'forgot-success'
@@ -1896,7 +1907,7 @@ function Auth({ register = false }) {
     };
 
     return (
-        <main className={`auth-page grid min-h-[100svh] lg:grid-cols-2 text-[#2563EB] ${mode === 'forgot-reset' ? 'auth-reset-page' : ''}`}>
+        <main className={`auth-page grid min-h-[100svh] lg:grid-cols-2 text-[#2563EB] ${isDark ? 'theme-dark' : ''} ${mode === 'forgot-reset' ? 'auth-reset-page' : ''}`}>
             {/* Left Hero Side Banner */}
             <aside className="auth-brand-panel bg-[#2563EB] p-12 text-white lg:flex lg:flex-col lg:justify-between">
                 <div>
@@ -1934,7 +1945,16 @@ function Auth({ register = false }) {
             </aside>
 
             {/* Right Auth Form Section */}
-            <section className="auth-form-area flex items-center justify-center p-6 sm:p-12 bg-white">
+            <section className="auth-form-area relative flex items-center justify-center p-6 sm:p-12 bg-white">
+                <button
+                    type="button"
+                    className="auth-theme-toggle"
+                    onClick={toggleTheme}
+                    aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                    title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                    <SunMoon size={19} />
+                </button>
                 <div className={`auth-content w-full max-w-md ${mode === 'forgot-reset' ? 'space-y-3 sm:space-y-4' : 'space-y-6'}`}>
                     {/* Success Banner */}
                     {successMessage && (
@@ -2220,7 +2240,7 @@ function Auth({ register = false }) {
                                             </div>
 
                                             {/* Real-time Requirement Checklist */}
-                                            <div className="mt-2.5 rounded-xl border border-[#2563EB] bg-white p-3 space-y-1.5 text-xs">
+                                            <div className="auth-password-requirements mt-2.5 rounded-xl border border-[#2563EB] bg-white p-3 space-y-1.5 text-xs">
                                                 <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#2563EB] mb-1">
                                                     Password Security Requirements:
                                                 </p>
@@ -2556,7 +2576,7 @@ function Auth({ register = false }) {
                                             )}
 
                                             {/* Real-time Requirement Checklist */}
-                                            <div className="mt-2.5 rounded-xl border border-[#2563EB] bg-white p-3 space-y-1.5 text-xs">
+                                            <div className="auth-password-requirements mt-2.5 rounded-xl border border-[#2563EB] bg-white p-3 space-y-1.5 text-xs">
                                                 <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#2563EB] mb-1">
                                                     Password Security Requirements:
                                                 </p>
@@ -2954,7 +2974,7 @@ function Auth({ register = false }) {
                                             )}
 
                                             {/* Real-time Requirement Checklist */}
-                                            <div className="mt-2.5 rounded-xl border border-[#2563EB] bg-white p-3 space-y-1.5 text-xs">
+                                            <div className="auth-password-requirements mt-2.5 rounded-xl border border-[#2563EB] bg-white p-3 space-y-1.5 text-xs">
                                                 <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#2563EB] mb-1">
                                                     Password Security Requirements:
                                                 </p>
@@ -18519,10 +18539,10 @@ export default function App() {
     const { user, loading } = useAuth();
     const { isDark } = useTheme();
     const location = useLocation();
-    const isDarkActive = Boolean(isDark && user);
+    const isDarkActive = Boolean(isDark);
 
     return (
-        <div className={`min-h-screen ${isDarkActive ? 'dark theme-dark bg-[#0F141C] text-[#E2E8F0]' : 'bg-white text-[#1E293B]'} ${user?.role === 'admin' ? 'admin-app' : user ? 'member-app' : ''}`}>
+        <div className={`min-h-screen ${isDarkActive ? 'dark theme-dark bg-[#0F141C] text-[#E2E8F0]' : 'bg-white text-[#1E293B]'} ${user?.role === 'admin' ? 'admin-app' : user ? 'member-app' : 'public-app'}`}>
             <Sidebar />
             <Header />
             <div className={`${user ? 'ml-64' : 'w-full'} min-h-screen`}>

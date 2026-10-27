@@ -7,6 +7,7 @@ const ThemeContext = createContext();
 const ADMIN_THEME_KEY = 'relieflink_theme_admin';
 const STAFF_THEME_KEY = 'relieflink_theme_staff';
 const MEMBER_THEME_KEY = 'relieflink_theme_member';
+const PUBLIC_THEME_KEY = 'relieflink_theme_public';
 
 export const getPanelForPathAndUser = (pathname, user) => {
     // Administrators can enter shared staff workflows such as inventory from
@@ -61,6 +62,14 @@ export function ThemeProvider({ children }) {
         }
     });
 
+    const [publicTheme, setPublicThemeState] = useState(() => {
+        try {
+            return localStorage.getItem(PUBLIC_THEME_KEY) || 'light';
+        } catch {
+            return 'light';
+        }
+    });
+
     const currentPanel = getPanelForPathAndUser(location.pathname, user);
 
     // Active theme depends strictly on which panel is active
@@ -70,7 +79,7 @@ export function ThemeProvider({ children }) {
             ? staffTheme
             : currentPanel === 'member'
                 ? memberTheme
-                : 'light';
+                : publicTheme;
 
     const isDark = theme === 'dark';
 
@@ -97,6 +106,14 @@ export function ThemeProvider({ children }) {
             setMemberThemeState(next);
             try {
                 localStorage.setItem(MEMBER_THEME_KEY, next);
+            } catch {
+                // Storage exception safety
+            }
+        } else {
+            const next = publicTheme === 'dark' ? 'light' : 'dark';
+            setPublicThemeState(next);
+            try {
+                localStorage.setItem(PUBLIC_THEME_KEY, next);
             } catch {
                 // Storage exception safety
             }
@@ -137,7 +154,8 @@ export function ThemeProvider({ children }) {
     useEffect(() => {
         const isPanelDark = (currentPanel === 'admin' && adminTheme === 'dark') ||
                             (currentPanel === 'staff' && staffTheme === 'dark') ||
-                            (currentPanel === 'member' && memberTheme === 'dark');
+                            (currentPanel === 'member' && memberTheme === 'dark') ||
+                            (!currentPanel && publicTheme === 'dark');
 
         if (isPanelDark) {
             document.documentElement.classList.add('dark');
@@ -146,7 +164,7 @@ export function ThemeProvider({ children }) {
             document.documentElement.classList.remove('dark');
             document.documentElement.style.colorScheme = 'light';
         }
-    }, [currentPanel, adminTheme, staffTheme, memberTheme]);
+    }, [currentPanel, adminTheme, staffTheme, memberTheme, publicTheme]);
 
     return (
         <ThemeContext.Provider
@@ -157,9 +175,11 @@ export function ThemeProvider({ children }) {
                 adminTheme,
                 staffTheme,
                 memberTheme,
+                publicTheme,
                 isAdminDark: adminTheme === 'dark',
                 isStaffDark: staffTheme === 'dark',
                 isMemberDark: memberTheme === 'dark',
+                isPublicDark: publicTheme === 'dark',
                 toggleTheme,
                 setAdminTheme,
                 setStaffTheme,
@@ -180,10 +200,11 @@ export const useTheme = () => {
             currentPanel: null,
             adminTheme: 'light',
             staffTheme: 'light',
-                memberTheme: 'light',
+            memberTheme: 'light',
             isAdminDark: false,
             isStaffDark: false,
-                isMemberDark: false,
+            isMemberDark: false,
+            isPublicDark: false,
             toggleTheme: () => {},
             setAdminTheme: () => {},
             setStaffTheme: () => {},

@@ -5190,8 +5190,7 @@ html.dark .min-h-screen {
 
 html.dark main.page,
 html.dark main.staff-workspace,
-html.dark .admin-dashboard.page,
-html.dark .shell {
+html.dark .admin-dashboard.page {
   background-color: #0F141C !important;
   color: #E2E8F0 !important;
 }
@@ -6664,4 +6663,360 @@ html.dark :is(.admin-app, .member-app) .request-management-view-modal .request-m
 
 html.dark :is(.admin-app, .member-app) .request-management-view-modal .text-red-600 {
   color: #FCA5A5 !important;
+}
+
+/* Public landing and authentication pages */
+html.dark .public-app {
+  background: #0F141C !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .public-header {
+  background: #101722 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .public-header .text-gray-900,
+html.dark .public-header .public-nav-link,
+html.dark .public-header .public-header-action {
+  color: #E2E8F0 !important;
+}
+
+html.dark .public-header .public-nav-link:hover {
+  background: #1B293B !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .public-theme-toggle,
+html.dark .auth-theme-toggle {
+  border: 1px solid rgba(148, 163, 184, 0.28) !important;
+  background: #1B293B !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .public-theme-toggle:hover,
+html.dark .auth-theme-toggle:hover {
+  background: #26364B !important;
+  color: #FFFFFF !important;
+}
+
+.auth-form-area {
+  position: relative;
+}
+
+.auth-theme-toggle {
+  position: absolute !important;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: grid;
+  width: 2.625rem;
+  height: 2.625rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #DBEAFE;
+  border-radius: 9999px;
+  background: #FFFFFF;
+  color: #2563EB;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.auth-theme-toggle:hover {
+  border-color: #93C5FD;
+  background: #EFF6FF;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.16);
+  transform: translateY(-1px);
+}
+
+.auth-theme-toggle:focus-visible {
+  outline: 3px solid rgba(34, 197, 94, 0.55);
+  outline-offset: 3px;
+}
+
+html.dark .landing-page {
+  background: #0F141C !important;
+  color: #E2E8F0 !important;
+}
+
+/* Layout shells should not cover the background owned by each landing section. */
+html.dark .landing-page .shell {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+html.dark .landing-page .landing-stats,
+html.dark .landing-page .category-section {
+  background: #101722 !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+html.dark .landing-page .landing-values,
+html.dark .landing-page .flow-section {
+  background: #0F141C !important;
+}
+
+html.dark .landing-page .impact-section {
+  background: #111B2A !important;
+  border: 0 !important;
+}
+
+html.dark .landing-page .landing-category-icon,
+html.dark .landing-page .landing-impact-icon {
+  border-color: rgba(148, 163, 184, 0.3) !important;
+  background: #1B2A40 !important;
+  color: #BFDBFE !important;
+}
+
+html.dark .landing-page .landing-hero .landing-hero-join {
+  border-color: rgba(147, 197, 253, 0.45) !important;
+  background: #14243B !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .landing-page .landing-hero {
+  background-color: #101B2D !important;
+  background-image:
+    radial-gradient(ellipse at 82% 10%, rgba(59, 130, 246, 0.16), transparent 34%),
+    radial-gradient(ellipse at 8% 100%, rgba(30, 64, 115, 0.2), transparent 38%),
+    linear-gradient(135deg, #101B2D, #0D1522 72%) !important;
+  color: #F1F5F9 !important;
+}
+
+html.dark .landing-page .landing-hero > .shell > div:first-child > span,
+html.dark .landing-page .landing-hero .how-card > div:first-child > span {
+  border-color: rgba(148, 163, 184, 0.35) !important;
+  background-color: #1B2A40 !important;
+  color: #DBEAFE !important;
+}
+
+html.dark .landing-page .landing-hero .how-card {
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  background: rgba(20, 30, 45, 0.92) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .landing-page .landing-hero .how-card > div:first-child {
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+html.dark .landing-page .landing-hero .how-card .space-y-6 > .relative > span {
+  border: 1px solid rgba(96, 165, 250, 0.4) !important;
+  background: #1B2A40 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .landing-page .landing-hero .how-card > div:last-child {
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+html.dark .landing-page .landing-hero .landing-hero-join:hover {
+  border-color: #86EFAC !important;
+  background: #1B344F !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .landing-page .landing-hero .landing-hero-explore {
+  border-color: rgba(191, 219, 254, 0.65) !important;
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .landing-page .landing-hero .landing-hero-explore:hover {
+  border-color: #86EFAC !important;
+  background: #1B344F !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .landing-page .panel,
+html.dark .landing-page .card,
+html.dark .landing-page .stat-highlight {
+  background: #141C28 !important;
+  border-color: rgba(148, 163, 184, 0.16) !important;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.2) !important;
+}
+
+html.dark .landing-page .landing-values :is(.eyebrow, .page-title, h2, h3, p),
+html.dark .landing-page .impact-section :is(.eyebrow, h2, p),
+html.dark .landing-page .flow-section :is(.eyebrow, h2, .panel p),
+html.dark .landing-page .category-section :is(.eyebrow, h2, a, .category-card),
+html.dark .landing-page .landing-stats .stat-highlight span:last-child {
+  color: #CBD5E1 !important;
+}
+
+html.dark .landing-page .landing-values h2,
+html.dark .landing-page .landing-values h3,
+html.dark .landing-page .impact-section h2,
+html.dark .landing-page .flow-section h2,
+html.dark .landing-page .category-section h2 {
+  color: #F8FAFC !important;
+}
+
+html.dark .landing-page footer {
+  background: #101722 !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+html.dark .landing-page .landing-cta {
+  border: 0 !important;
+  background: #0F141C !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .landing-page .landing-cta-primary {
+  border-color: #22C55E !important;
+  background: #22C55E !important;
+  color: #062414 !important;
+}
+
+html.dark .landing-page .landing-cta-primary:hover {
+  border-color: #4ADE80 !important;
+  background: #4ADE80 !important;
+  color: #052010 !important;
+}
+
+html.dark .landing-page .landing-cta-secondary {
+  border-color: rgba(147, 197, 253, 0.45) !important;
+  background: #14243B !important;
+  color: #F8FAFC !important;
+}
+
+html.dark .landing-page .landing-cta-secondary:hover {
+  border-color: #86EFAC !important;
+  background: #1B344F !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .auth-page {
+  background: #0F141C !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .auth-page .auth-brand-panel {
+  background-color: #101B2D !important;
+  background-image:
+    radial-gradient(ellipse at 82% 10%, rgba(59, 130, 246, 0.16), transparent 34%),
+    radial-gradient(ellipse at 8% 100%, rgba(30, 64, 115, 0.2), transparent 38%),
+    linear-gradient(135deg, #101B2D, #0D1522 72%) !important;
+  color: #F1F5F9 !important;
+}
+
+html.dark .auth-page .auth-brand-panel .auth-brand-copy > span {
+  border-color: rgba(148, 163, 184, 0.35) !important;
+  background: #1B2A40 !important;
+  color: #DBEAFE !important;
+}
+
+html.dark .auth-page .auth-brand-panel > div:last-child {
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark .auth-page .auth-brand-panel img {
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+html.dark .auth-page .auth-form-area {
+  background: #0F141C !important;
+}
+
+html.dark .auth-page form.panel,
+html.dark .auth-page .auth-form-card,
+html.dark .auth-page .auth-content > div {
+  background-color: #141C28 !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .auth-page .auth-password-requirements {
+  border-color: rgba(96, 165, 250, 0.28) !important;
+  background: #101722 !important;
+  color: #CBD5E1 !important;
+}
+
+html.dark .auth-page .auth-password-requirements > p {
+  color: #BFDBFE !important;
+}
+
+html.dark .auth-page .auth-password-requirements > div {
+  color: #CBD5E1 !important;
+}
+
+html.dark .auth-page .auth-password-requirements > div[class*="text-[#22C55E]"] {
+  color: #4ADE80 !important;
+}
+
+html.dark .auth-page .international-phone-control {
+  border-color: rgba(148, 163, 184, 0.3) !important;
+  background: #101722 !important;
+}
+
+html.dark .auth-page .international-phone-control:focus-within:not(.international-phone-control-error):not(.international-phone-control-disabled) {
+  border-color: #60A5FA !important;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18) !important;
+}
+
+html.dark .auth-page .international-phone-control-disabled {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  background: #141C28 !important;
+}
+
+html.dark .auth-page .international-phone-control > div:first-child {
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  background: #1B2A40 !important;
+  color: #BFDBFE !important;
+}
+
+html.dark .auth-page .international-phone-control-disabled > div:first-child {
+  background: #1B2432 !important;
+  color: #94A3B8 !important;
+}
+
+html.dark .auth-page .international-phone-control input {
+  background: transparent !important;
+  color: #F1F5F9 !important;
+}
+
+html.dark .auth-page .international-phone-control input::placeholder {
+  color: #94A3B8 !important;
+}
+
+html.dark .auth-page .international-phone-control input:disabled {
+  background: transparent !important;
+  color: #94A3B8 !important;
+}
+
+html.dark .auth-page :is(.page-title, .eyebrow, label, .auth-form-label, .auth-login-title, .auth-login-description, .auth-options, .auth-create-account) {
+  color: #CBD5E1 !important;
+}
+
+html.dark .auth-page .text-\[\#2563EB\],
+html.dark .auth-page [class*="text-[#2563EB]"] {
+  color: #CBD5E1 !important;
+}
+
+html.dark .auth-page .field,
+html.dark .auth-page input:not([type="checkbox"]),
+html.dark .auth-page textarea,
+html.dark .auth-page select {
+  background-color: #101722 !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+  color: #F1F5F9 !important;
+}
+
+html.dark .auth-page .field::placeholder,
+html.dark .auth-page input::placeholder,
+html.dark .auth-page textarea::placeholder {
+  color: #94A3B8 !important;
+}
+
+html.dark .auth-page option {
+  background: #141C28;
+  color: #E2E8F0;
+}
+
+html.dark .auth-page .auth-create-account {
+  border-color: rgba(148, 163, 184, 0.2) !important;
 }
