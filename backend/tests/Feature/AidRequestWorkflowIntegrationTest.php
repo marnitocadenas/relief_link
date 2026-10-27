@@ -211,6 +211,41 @@ class AidRequestWorkflowIntegrationTest extends TestCase
         ]);
     }
 
+    public function test_beneficiary_can_submit_physical_request_with_preferred_date_and_priority(): void
+    {
+        $preferredDate = now()->addDays(5)->format('Y-m-d');
+        $response = $this->actingAs($this->beneficiary, 'sanctum')
+            ->postJson('/api/requests', [
+                'request_type' => 'physical',
+                'category' => 'Medical & Health Supplies',
+                'item_details' => 'First Aid Kit with bandages and antiseptic',
+                'quantity_needed' => 3,
+                'unit' => 'sets',
+                'urgency' => 'high',
+                'justification' => 'Essential for student laboratory activities.',
+                'preferred_assistance_date' => $preferredDate,
+            ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.request_type', 'physical')
+            ->assertJsonPath('data.category', 'Medical & Health Supplies')
+            ->assertJsonPath('data.quantity_needed', 3)
+            ->assertJsonPath('data.unit', 'sets')
+            ->assertJsonPath('data.urgency', 'high')
+            ->assertJsonPath('data.preferred_assistance_date', $preferredDate)
+            ->assertJsonPath('data.status', 'pending_review');
+
+        $this->assertDatabaseHas('requests', [
+            'beneficiary_id' => $this->beneficiary->id,
+            'category' => 'Medical & Health Supplies',
+            'quantity_needed' => 3,
+            'unit' => 'sets',
+            'urgency' => 'high',
+            'preferred_assistance_date' => $preferredDate,
+            'status' => 'pending_review',
+        ]);
+    }
+
     public function test_admin_and_staff_can_review_and_approve_request(): void
     {
         $request = AidRequest::create([
@@ -372,7 +407,7 @@ class AidRequestWorkflowIntegrationTest extends TestCase
             'justification' => 'Needs tuition balance coverage before exams.',
         ]);
 
-        // Donor donates partial ₱2,000.00
+        // Donor donates partial â‚±2,000.00
         $response = $this->actingAs($this->donor, 'sanctum')
             ->postJson('/api/donations', [
                 'donation_type' => 'financial',
@@ -398,7 +433,7 @@ class AidRequestWorkflowIntegrationTest extends TestCase
         $this->assertEquals(3000.00, $request->getRemainingAmount());
         $this->assertEquals('partially_fulfilled', $request->status);
 
-        // Donor donates remaining ₱3,000.00
+        // Donor donates remaining â‚±3,000.00
         $response2 = $this->actingAs($this->donor, 'sanctum')
             ->postJson('/api/donations', [
                 'donation_type' => 'financial',
