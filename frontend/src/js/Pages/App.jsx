@@ -10939,7 +10939,7 @@ function StaffHandoffDispatch() {
                             </p>
                         </div>
 
-                        <div className="rounded-xl border border-[#2563EB]/20 bg-[#2563EB]/5 p-3"><p className="text-xs font-extrabold">Release checklist</p><div className="mt-2 space-y-2">{[['identity','Student ID and recipient identity match'],['item','Correct item is physically present'],['quantity',`Correct quantity (${verifyingMatch.matched_quantity}) is ready`]].map(([key,label])=><label key={key} className="flex items-center gap-2 text-[11px] font-bold"><input type="checkbox" checked={handoffChecks[key]} onChange={(e)=>setHandoffChecks({...handoffChecks,[key]:e.target.checked})} className="accent-[#22C55E]"/>{label}</label>)}</div></div>
+                        <div className="rounded-xl border border-[#2563EB]/20 bg-[#2563EB]/5 p-3"><p className="text-xs font-extrabold">Release checklist</p><div className="mt-2 space-y-2">{[['identity','Recipient identity match'],['item','Correct item is physically present'],['quantity',`Correct quantity (${verifyingMatch.matched_quantity}) is ready`]].map(([key,label])=><label key={key} className="flex items-center gap-2 text-[11px] font-bold"><input type="checkbox" checked={handoffChecks[key]} onChange={(e)=>setHandoffChecks({...handoffChecks,[key]:e.target.checked})} className="accent-[#22C55E]"/>{label}</label>)}</div></div>
 
                         <div className="space-y-1">
                             <label className="text-[10px] font-extrabold uppercase text-[#2563EB]">Enter Recipient's 6-Digit PIN Code </label>
@@ -13383,6 +13383,26 @@ function FulfillmentPage({ role }) {
                                             </div>
                                         </div>
                                     </div>
+
+                                    {role === 'beneficiary' && m.handoff_scheduled_at && m.verification_pin && (
+                                        <div className="overflow-hidden rounded-2xl border border-[#2563EB]/15 bg-white shadow-sm">
+                                            <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#22C55E]/15 text-[#16803C]">
+                                                        <Icon name="check" size={19} />
+                                                    </span>
+                                                    <div>
+                                                        <p className="text-xs font-extrabold uppercase tracking-wider text-[#2563EB]">Pickup PIN</p>
+                                                        <p className="mt-0.5 text-xs font-medium text-[#2563EB]/65">Have this ready to show campus staff at pickup.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-center rounded-xl bg-[#2563EB] px-5 py-3 text-white shadow-inner sm:min-w-52">
+                                                    <span className="font-mono text-3xl font-black tracking-[0.35em]">{m.verification_pin}</span>
+                                                </div>
+                                            </div>
+                                            <div className="h-1 bg-gradient-to-r from-[#22C55E] via-[#22C55E]/50 to-transparent" />
+                                        </div>
+                                    )}
 
                                     {/* Action Controls Footer */}
                                     {m.status !== 'fulfilled' && m.status !== 'rejected' && (
