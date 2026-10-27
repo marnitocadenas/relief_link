@@ -137,7 +137,8 @@ class AidRequestController extends Controller
         }
 
         $wasDraft = $aidRequest->status === 'draft';
-        $aidRequest = DB::transaction(function () use ($request, $aidRequest, $data, $wasDraft, $submittingDraft) {
+        $isRevisionResubmission = !$wasDraft && ($aidRequest->verification_state === 'needs_revision' || $aidRequest->status === 'under_review');
+        $aidRequest = DB::transaction(function () use ($request, $aidRequest, $data, $wasDraft, $submittingDraft, $isRevisionResubmission) {
             if ($request->hasFile('image')) {
                 if ($aidRequest->supporting_document_path) {
                     Storage::delete($aidRequest->supporting_document_path);
@@ -153,6 +154,11 @@ class AidRequestController extends Controller
             if ($wasDraft && !isset($data['status'])) {
                 $data['status'] = 'pending_review';
             }
+            if ($aidRequest->verification_state === 'needs_revision') {
+                $data['verification_state'] = 'pending';
+                $data['verification_decision_reason'] = null;
+                $data['verification_decided_at'] = null;
+            }
             $aidRequest->update($data);
             ActivityService::log($request->user(), 'updated support request', $aidRequest);
             if ($submittingDraft) {
@@ -165,6 +171,10 @@ class AidRequestController extends Controller
                     $aidRequest,
                     '/staff/verifications'
                 );
+            }
+            if ($isRevisionResubmission) {
+                AlertService::send($request->user(), 'Your revised support request was submitted and is awaiting verification.', 'request', 'normal', $aidRequest, '/requests');
+                AlertService::sendToRoles(['staff', 'admin'], 'A revised support request requires verification.', 'request', $aidRequest->urgency === 'high' ? 'high' : 'normal', $aidRequest, '/staff/verifications');
             }
 
             return $aidRequest;

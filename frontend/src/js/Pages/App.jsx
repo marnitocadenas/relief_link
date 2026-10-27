@@ -4179,7 +4179,7 @@ function BeneficiaryRequestForm() {
     const [showClearModal, setShowClearModal] = useState(false);
     const [submittedRequestData, setSubmittedRequestData] = useState(null);
 
-    // Auto-restore draft from localStorage on mount
+    // Restore the user's browser draft.
     useEffect(() => {
         const savedDraft = localStorage.getItem('relieflink_request_draft');
         if (savedDraft) {
@@ -4386,7 +4386,7 @@ function BeneficiaryRequestForm() {
         <main className="page max-w-4xl space-y-6">
             <div className="admin-module-hero">
                 <p className="eyebrow">BENEFICIARY WORKSPACE</p>
-                <h1 className="page-title">Create Support Request</h1>
+            <h1 className="page-title">Create Support Request</h1>
                 <p className="page-copy">
                     Submit an online request for physical goods and essential supplies.
                 </p>
@@ -7266,7 +7266,7 @@ function DonationManager(){
     );
 }
 
-function RequestEditModal({ item, close, done }) {
+function RequestEditModal({ item, close, done, beneficiary = false }) {
     const isFin = item.request_type === 'financial';
     const [f, setF] = useState({
         request_type:              item.request_type || 'physical',
@@ -7299,7 +7299,12 @@ function RequestEditModal({ item, close, done }) {
         if (!isFinancial && !f.quantity_needed)  { setError('Quantity needed is required.'); return; }
         setSaving(true);
         try {
-            await api.put(`/admin/requests/${item.id}/content`, { ...f, currency: 'PHP' });
+            if (beneficiary) {
+                const { staff_internal_notes, ...requestFields } = f;
+                await api.put(`/requests/${item.id}`, { ...requestFields, status: 'pending_review' });
+            } else {
+                await api.put(`/admin/requests/${item.id}/content`, { ...f, currency: 'PHP' });
+            }
             await done();
             close();
         } catch (err) {
@@ -7326,7 +7331,8 @@ function RequestEditModal({ item, close, done }) {
                         <span className="text-xs font-black text-[#2563EB]">
                             #REQ-{String(item.id).padStart(3, '0')}
                         </span>
-                        <h2 className="text-lg font-extrabold text-[#2563EB]">Edit Support Request</h2>
+                        <h2 className="text-lg font-extrabold text-[#2563EB]">{beneficiary ? 'Edit Your Existing Request' : 'Edit Support Request'}</h2>
+                        {beneficiary && <p className="mt-1 text-xs font-semibold text-[#2563EB]/70">Changes will update request #{String(item.id).padStart(3, '0')}; this will not create a new request.</p>}
                     </div>
                     <button type="button" className="nav-link p-1 panel-modal-close" onClick={close} title="Close">
                         <Icon name="close"/>
@@ -7334,6 +7340,12 @@ function RequestEditModal({ item, close, done }) {
                 </div>
 
                 {error && <p className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">{error}</p>}
+                {beneficiary && item.verification_state === 'needs_revision' && item.verification_decision_reason && (
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs font-semibold text-amber-900">
+                        <strong className="block">Staff requested a revision</strong>
+                        <span>{item.verification_decision_reason}</span>
+                    </div>
+                )}
 
                 {/* Request Type */}
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -7461,20 +7473,20 @@ function RequestEditModal({ item, close, done }) {
                         onChange={e => setF({...f, additional_info: e.target.value})}/>
                 </div>
 
-                <div>
+                {!beneficiary && <div>
                     {lbl('Internal Staff Notes (Admin Only)')}
                     <textarea rows={2} className="field w-full text-xs font-semibold"
                         placeholder="Private notes for admin/staff use only"
                         value={f.staff_internal_notes}
                         onChange={e => setF({...f, staff_internal_notes: e.target.value})}/>
-                </div>
+                </div>}
 
                 {/* Actions */}
                 <div className="flex justify-end gap-3 pt-2 border-t border-[#2563EB]/20">
                     <Button type="button" variant="secondary" onClick={close}>Cancel</Button>
                     <Button type="submit" loading={saving}>
                         <Icon name="check"/>
-                        <span className="ml-1">Save Changes</span>
+                        <span className="ml-1">{beneficiary && item.verification_state === 'needs_revision' ? 'Save & Resubmit' : 'Save Changes'}</span>
                     </Button>
                 </div>
             </form>
@@ -7828,6 +7840,9 @@ function RequestManager(){
                                             <td>
                                                 <Badge status={item.status}/>
                                                 {requestMatchReadiness(item) && <p className="mt-1 max-w-56 text-[10px] font-semibold leading-relaxed text-[#2563EB]/70">{requestMatchReadiness(item)}</p>}
+                                                {user.role === 'beneficiary' && item.verification_state === 'needs_revision' && item.verification_decision_reason && (
+                                                    <p className="mt-1 max-w-56 text-[10px] font-semibold leading-relaxed text-amber-800">Staff requested a revision: {item.verification_decision_reason}</p>
+                                                )}
                                             </td>
                                             <td>
                                                 <div className="request-management-actions flex flex-nowrap items-center gap-1">
@@ -7836,6 +7851,12 @@ function RequestManager(){
                                                         <span className="ml-1 text-xs">View</span>
                                                     </Button>
                                                     {user.role === 'admin' && (
+                                                        <Button title="Edit Request" variant="secondary" onClick={() => setEditing(item)}>
+                                                            <Icon name="edit"/>
+                                                            <span className="ml-1 text-xs">Edit</span>
+                                                        </Button>
+                                                    )}
+                                                    {user.role === 'beneficiary' && ['pending_review', 'under_review'].includes(item.status) && (
                                                         <Button title="Edit Request" variant="secondary" onClick={() => setEditing(item)}>
                                                             <Icon name="edit"/>
                                                             <span className="ml-1 text-xs">Edit</span>
@@ -8194,7 +8215,7 @@ function RequestManager(){
                 </div>
             )}
 
-            {editing && <RequestEditModal item={editing} close={() => setEditing(null)} done={load}/>}
+            {editing && <RequestEditModal item={editing} beneficiary={user.role === 'beneficiary'} close={() => setEditing(null)} done={load}/>}
         </main>
     );
 }
@@ -9949,7 +9970,7 @@ function StaffVerificationDesk() {
                     <table className="data-table staff-table staff-workspace-table">
                         <thead>
                             <tr>
-                                <th>Student / Beneficiary</th>
+                                <th>Beneficiary</th>
                                 <th>Category</th>
                                 <th>Urgency</th>
                                 <th>Tier</th>
@@ -10138,7 +10159,7 @@ function StaffVerificationDesk() {
 
                             <div className="rounded-xl border border-[#2563EB]/20 bg-[#2563EB]/5 p-3">
                                 <div className="flex items-center justify-between gap-3"><div><h5 className="text-xs font-extrabold">Verification checklist</h5><p className="mt-0.5 text-[10px] font-semibold text-[#2563EB]/65">Complete the checks used for this decision.</p></div><span className="text-xs font-extrabold text-[#22C55E]">{Object.values(form.verification_checklist).filter(Boolean).length}/3</span></div>
-                                <div className="mt-3 grid gap-2 sm:grid-cols-3">{[['identity', 'Student identity checked'], ['eligibility', 'Eligibility confirmed'], ['justification', 'Need is documented']].map(([key, label]) => <label key={key} className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-[11px] font-bold"><input type="checkbox" checked={Boolean(form.verification_checklist[key])} onChange={(e) => setForm({ ...form, verification_checklist: { ...form.verification_checklist, [key]: e.target.checked } })} className="accent-[#22C55E]"/>{label}</label>)}</div>
+                                <div className="mt-3 grid gap-2 sm:grid-cols-3">{[['identity', 'Identity checked'], ['eligibility', 'Eligibility confirmed'], ['justification', 'Need is documented']].map(([key, label]) => <label key={key} className="flex cursor-pointer items-center gap-2 rounded-lg bg-white px-2.5 py-2 text-[11px] font-bold"><input type="checkbox" checked={Boolean(form.verification_checklist[key])} onChange={(e) => setForm({ ...form, verification_checklist: { ...form.verification_checklist, [key]: e.target.checked } })} className="accent-[#22C55E]"/>{label}</label>)}</div>
                             </div>
 
                             <div>
@@ -13642,7 +13663,6 @@ function FulfillmentPage({ role }) {
 
 function HistoryPage({ role }) {
     const { user } = useAuth();
-    const navigate = useNavigate();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -13660,6 +13680,7 @@ function HistoryPage({ role }) {
     // Detail & Receipt Modals
     const [selectedDonation, setSelectedDonation] = useState(null);
     const [receiptModal, setReceiptModal] = useState(null);
+    const [editingRequest, setEditingRequest] = useState(null);
 
     const categories = [
         { value: 'all', label: 'All Categories' },
@@ -14043,6 +14064,7 @@ function HistoryPage({ role }) {
                                     {paginatedItems.map((x) => {
                                         const refId = `#${isDonor ? 'DN' : 'REQ'}-${String(x.id).padStart(3, '0')}`;
                                         const isCompleted = ['fulfilled', 'matched', 'confirmed'].includes(x.status);
+                                        const canEditRequest = !isDonor && (x.request_type || 'physical') === 'physical' && ['pending_review', 'under_review'].includes(x.status);
 
                                         return (
                                             <tr key={x.id}>
@@ -14054,6 +14076,9 @@ function HistoryPage({ role }) {
                                                     <div className="text-[11px] font-bold text-[#2563EB] opacity-75 uppercase">
                                                         {x.category}
                                                     </div>
+                                                    {!isDonor && x.verification_state === 'needs_revision' && x.verification_decision_reason && (
+                                                        <div className="mt-1 max-w-sm text-[11px] font-semibold normal-case text-amber-800">Staff requested a revision: {x.verification_decision_reason}</div>
+                                                    )}
                                                 </td>
                                                 <td className="font-bold text-[#2563EB]">{x.quantity || x.quantity_needed} unit(s)</td>
                                                 <td>
@@ -14069,6 +14094,11 @@ function HistoryPage({ role }) {
                                                         >
                                                             <Icon name="info" className="mr-1" size={13} /> Details
                                                         </Button>
+                                                        {canEditRequest && (
+                                                            <Button variant="secondary" className="py-1 px-2.5 text-xs" onClick={() => setEditingRequest(x)}>
+                                                                <Icon name="edit" className="mr-1" size={13} /> Edit Request
+                                                            </Button>
+                                                        )}
                                                         {isCompleted && (
                                                             <Button
                                                                 variant="success"
@@ -14092,6 +14122,7 @@ function HistoryPage({ role }) {
                             {paginatedItems.map((x) => {
                                 const refId = `#${isDonor ? 'DN' : 'REQ'}-${String(x.id).padStart(3, '0')}`;
                                 const isCompleted = ['fulfilled', 'matched', 'confirmed'].includes(x.status);
+                                const canEditRequest = !isDonor && (x.request_type || 'physical') === 'physical' && ['pending_review', 'under_review'].includes(x.status);
 
                                 return (
                                     <div key={x.id} className="panel p-5 space-y-3">
@@ -14109,6 +14140,9 @@ function HistoryPage({ role }) {
                                             <p className="text-[11px] text-[#2563EB] mt-1">
                                                 Date: {formatDate(x.created_at)}
                                             </p>
+                                            {x.verification_state === 'needs_revision' && x.verification_decision_reason && (
+                                                <p className="mt-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-xs font-semibold text-amber-900">Staff requested a revision: {x.verification_decision_reason}</p>
+                                            )}
                                         </div>
                                         <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#2563EB]/20">
                                             <Button
@@ -14118,6 +14152,11 @@ function HistoryPage({ role }) {
                                             >
                                                 <Icon name="info" className="mr-1" size={13} /> Details
                                             </Button>
+                                            {canEditRequest && (
+                                                <Button variant="secondary" className="py-1 px-3 text-xs" onClick={() => setEditingRequest(x)}>
+                                                    <Icon name="edit" className="mr-1" size={13} /> Edit Request
+                                                </Button>
+                                            )}
                                             {isCompleted && (
                                                 <Button
                                                     variant="success"
@@ -14378,6 +14417,14 @@ function HistoryPage({ role }) {
                         </div>
                     </div>
                 </div>
+            )}
+            {editingRequest && (
+                <RequestEditModal
+                    item={editingRequest}
+                    beneficiary
+                    close={() => setEditingRequest(null)}
+                    done={loadData}
+                />
             )}
         </main>
     );
