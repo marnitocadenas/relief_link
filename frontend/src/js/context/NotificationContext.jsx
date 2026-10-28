@@ -41,7 +41,7 @@ export function NotificationProvider({ children }) {
 
                 setState({
                     items: Array.isArray(data.data) ? data.data : [],
-                    unreadCount: Number(data.unread_count || 0),
+                    unreadCount: Number(data.unread_count ?? data.summary?.unread_count ?? 0),
                     loading: false,
                     error: '',
                 });

@@ -449,12 +449,13 @@ class AdminController extends Controller
             $rules['contact_number'] = 'required|string|max:30|unique:users,contact_number';
             $rules['country'] = 'required|string|max:100';
             $rules['country_code'] = 'nullable|string|size:2';
-            $rules['address_line_1'] = 'required|string|max:255';
+            $rules['campus_id'] = 'required|string|min:3|max:50|unique:users,campus_id';
+            $rules['address_line_1'] = 'nullable|string|max:255';
             $rules['state_province_region'] = 'nullable|string|max:255';
             $rules['city_municipality'] = 'nullable|string|max:255';
             $rules['district_local_area'] = 'nullable|string|max:255';
             $rules['postal_zip_code'] = 'nullable|string|max:50';
-            $rules['valid_id_type'] = 'required|string|max:100';
+            $rules['valid_id_type'] = 'nullable|string|max:100';
             $rules['valid_id_number'] = 'required|string|max:50|unique:users,valid_id_number';
         }
 
@@ -482,10 +483,8 @@ class AdminController extends Controller
             'contact_number.regex' => 'Contact Number must begin with 09 and contain exactly 11 digits.',
             'contact_number.unique' => 'This Contact Number is already registered.',
             'country.required' => 'Country / Region is required.',
-            'address_line_1.required' => 'Address Line is required.',
-            'valid_id_type.required' => 'Valid ID Type is required.',
-            'valid_id_number.required' => 'Valid ID Number is required.',
-            'valid_id_number.unique' => 'This Valid ID Number is already taken.',
+            'valid_id_number.required' => 'Campus ID Number is required.',
+            'valid_id_number.unique' => 'This Campus ID Number is already taken.',
             'password.required' => 'Password is required.',
             'password.confirmed' => 'Passwords do not match.',
             'password.min' => 'The password must be at least 8 characters long.',
@@ -517,13 +516,14 @@ class AdminController extends Controller
             $d['country_code'] = null;
             $d['school_email'] = $d['email'];
         } elseif ($role === 'donor') {
-            $d['campus_id'] = null;
+            $d['campus_id'] = $d['campus_id'] ?? $d['valid_id_number'];
             $d['student_id_number'] = null;
             $d['beneficiary_type'] = null;
             $d['school_email'] = null;
             $d['department'] = null;
             $d['course'] = null;
             $d['year_level'] = null;
+            $d['valid_id_type'] = null;
             $d['country_code'] = RegisterRequest::resolveCountryIso($d['country'] ?? '', $r->input('country_code'));
             if (!empty($d['address_line_1'])) {
                 $d['address'] = implode(', ', array_filter([

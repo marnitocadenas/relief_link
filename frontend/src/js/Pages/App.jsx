@@ -1214,11 +1214,9 @@ function Auth({ register = false }) {
     const canEnterDonorContact = canEnterDonorIdentity && regCountryValid;
     const regDonorContactValid = isPhoneValid === true && Boolean((f.contact_number || '').trim());
     const isDonorContactAvailable = uniqueness.contact_number.status === 'available';
-    // 4. Address Line 1 and subsequent fields unlock ONLY after Contact Number is entered, valid for selected country, and available
+    // Campus ID unlocks after the donor's contact number is verified and available.
     const canEnterDonorSubsequent = canEnterDonorContact && regDonorContactValid && isDonorContactAvailable;
 
-    const regAddressLine1Valid = (f.address_line_1 || '').trim().length > 0;
-    const regValidIdTypeValid = (f.valid_id_type || '').trim().length > 0;
     const regValidIdNumberValid = (f.valid_id_number || '').trim().length >= 3;
 
     const regBeneficiaryValid = isBeneficiary
@@ -1241,8 +1239,6 @@ function Auth({ register = false }) {
         && regCountryValid
         && regDonorContactValid
         && isDonorContactAvailable
-        && regAddressLine1Valid
-        && regValidIdTypeValid
         && regValidIdNumberValid
         && uniqueness.valid_id_number.status !== 'taken'
         && regIsPasswordValid
@@ -1638,18 +1634,8 @@ function Auth({ register = false }) {
                     setLoading(false);
                     return;
                 }
-                if (!f.address_line_1?.trim()) {
-                    setError('Please enter your address.');
-                    setLoading(false);
-                    return;
-                }
-                if (!f.valid_id_type?.trim()) {
-                    setError('Please select a valid ID type.');
-                    setLoading(false);
-                    return;
-                }
                 if (!f.valid_id_number?.trim()) {
-                    setError('Please enter your valid ID number.');
+                    setError('Please enter your campus ID number.');
                     setLoading(false);
                     return;
                 }
@@ -1700,13 +1686,6 @@ function Auth({ register = false }) {
                 contact_number: f.contact_number.trim(),
                 country: 'Philippines',
                 country_code: 'PH',
-                address_line_1: f.address_line_1.trim(),
-                state_province_region: f.state_province_region?.trim() || null,
-                city_municipality: f.city_municipality?.trim() || null,
-                district_local_area: f.district_local_area?.trim() || null,
-                postal_zip_code: f.postal_zip_code?.trim() || null,
-                address: [f.address_line_1, f.district_local_area, f.city_municipality, f.state_province_region, f.postal_zip_code, 'Philippines'].filter(Boolean).map(s => s.trim()).join(', '),
-                valid_id_type: f.valid_id_type.trim(),
                 valid_id_number: f.valid_id_number.trim(),
                 campus_id: f.valid_id_number.trim(),
                 password: f.password,
@@ -2789,123 +2768,16 @@ function Auth({ register = false }) {
                                             {renderDuplicateStatus('contact_number')}
                                         </div>
 
-                                        {/* Rank #8: Address Line 1 */}
-                                        <div>
-                                            <label htmlFor="reg_address_line_1" className="block text-xs font-bold text-[#2563EB]">
-                                                Address Line 1
-                                            </label>
-                                            <input
-                                                id="reg_address_line_1"
-                                                type="text"
-                                                disabled={!canEnterDonorSubsequent}
-                                                placeholder="House/Unit/Building No., Street Name"
-                                                className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDonorSubsequent ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
-                                                value={f.address_line_1}
-                                                onChange={(e) => handleRegistrationFieldChange('address_line_1', e.target.value)}
-                                                maxLength={255}
-                                                required
-                                            />
-                                        </div>
-
-                                        {/* Rank #9: State / Province / Region */}
-                                        <div>
-                                            <label htmlFor="reg_state_province" className="block text-xs font-bold text-[#2563EB]">
-                                                State / Province / Region
-                                            </label>
-                                            <input
-                                                id="reg_state_province"
-                                                type="text"
-                                                disabled={!canEnterDonorSubsequent}
-                                                placeholder="Enter your state, province, or region"
-                                                className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDonorSubsequent ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
-                                                value={f.state_province_region}
-                                                onChange={(e) => handleRegistrationFieldChange('state_province_region', e.target.value)}
-                                                maxLength={255}
-                                                required
-                                            />
-                                        </div>
-
-                                        {/* Rank #10: City / Town / Municipality */}
-                                        <div>
-                                            <label htmlFor="reg_city_municipality" className="block text-xs font-bold text-[#2563EB]">
-                                                City / Town / Municipality
-                                            </label>
-                                            <input
-                                                id="reg_city_municipality"
-                                                type="text"
-                                                disabled={!canEnterDonorSubsequent}
-                                                placeholder="Enter your city, town, or municipality"
-                                                className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDonorSubsequent ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
-                                                value={f.city_municipality}
-                                                onChange={(e) => handleRegistrationFieldChange('city_municipality', e.target.value)}
-                                                maxLength={255}
-                                            />
-                                        </div>
-
-                                        {/* Rank #11: District / Local Area */}
-                                        <div>
-                                            <label htmlFor="reg_district_local" className="block text-xs font-bold text-[#2563EB]">
-                                                District / Local Area <span className="text-xs font-normal text-[#2563EB]/60">(Optional)</span>
-                                            </label>
-                                            <input
-                                                id="reg_district_local"
-                                                type="text"
-                                                disabled={!canEnterDonorSubsequent}
-                                                placeholder="Enter your district or local area (optional)"
-                                                className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDonorSubsequent ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
-                                                value={f.district_local_area}
-                                                onChange={(e) => handleRegistrationFieldChange('district_local_area', e.target.value)}
-                                                maxLength={255}
-                                            />
-                                        </div>
-
-                                        {/* Rank #12: Postal / ZIP Code */}
-                                        <div>
-                                            <label htmlFor="reg_postal_zip" className="block text-xs font-bold text-[#2563EB]">
-                                                Postal / ZIP Code
-                                            </label>
-                                            <input
-                                                id="reg_postal_zip"
-                                                type="text"
-                                                disabled={!canEnterDonorSubsequent}
-                                                placeholder="Enter your postal or ZIP code"
-                                                className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDonorSubsequent ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
-                                                value={f.postal_zip_code}
-                                                onChange={(e) => handleRegistrationFieldChange('postal_zip_code', e.target.value)}
-                                                maxLength={50}
-                                            />
-                                        </div>
-
-                                        {/* Rank #13: Valid ID Type */}
-                                        <div>
-                                            <label htmlFor="reg_valid_id_type" className="block text-xs font-bold text-[#2563EB]">
-                                                Valid ID Type
-                                            </label>
-                                            <DropdownSelect
-                                                id="reg_valid_id_type"
-                                                disabled={!canEnterDonorSubsequent}
-                                                className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDonorSubsequent ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''}`}
-                                                value={f.valid_id_type}
-                                                onChange={(e) => handleRegistrationFieldChange('valid_id_type', e.target.value)}
-                                                required
-                                            >
-                                                <option value="" disabled hidden>Select Valid ID Type</option>
-                                                {VALID_ID_TYPES.map((type) => (
-                                                    <option key={type} value={type}>{type}</option>
-                                                ))}
-                                            </DropdownSelect>
-                                        </div>
-
-                                        {/* Rank #14: Valid ID Number */}
+                                        {/* Campus ID Number */}
                                         <div>
                                             <label htmlFor="reg_valid_id_number" className="block text-xs font-bold text-[#2563EB]">
-                                                Valid ID Number
+                                                Campus ID Number
                                             </label>
                                             <input
                                                 id="reg_valid_id_number"
                                                 type="text"
                                                 disabled={!canEnterDonorSubsequent}
-                                                placeholder="Enter your valid ID number"
+                                                placeholder="Enter your campus ID number"
                                                 className={`field mt-1 text-xs py-2 font-semibold ${!canEnterDonorSubsequent ? 'opacity-60 bg-gray-50 cursor-not-allowed' : ''} ${uniqueness.valid_id_number?.status === 'taken' || uniqueness.valid_id_number?.status === 'error' ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                                                 value={f.valid_id_number}
                                                 onChange={(e) => handleRegistrationFieldChange('valid_id_number', e.target.value)}
@@ -2915,7 +2787,7 @@ function Auth({ register = false }) {
                                             {renderDuplicateStatus('valid_id_number')}
                                         </div>
 
-                                        {/* Rank #15: Password */}
+                                        {/* Password */}
                                         <div>
                                             <label htmlFor="reg_pwd_donor" className="block text-xs font-bold text-[#2563EB]">
                                                 Password
@@ -5379,16 +5251,8 @@ function EditModal({item, kind, admin, close, done}){
                     setError('Contact Number is required.');
                     return;
                 }
-                if (!f.address_line_1?.trim()) {
-                    setError('Address Line is required.');
-                    return;
-                }
-                if (!f.valid_id_type?.trim()) {
-                    setError('Valid ID Type is required.');
-                    return;
-                }
                 if (!f.valid_id_number?.trim()) {
-                    setError('Valid ID Number is required.');
+                    setError('Campus ID Number is required.');
                     return;
                 }
             }
@@ -5428,13 +5292,8 @@ function EditModal({item, kind, admin, close, done}){
             } else if (f.role === 'donor') {
                 payload.country = f.country?.trim() || 'Philippines';
                 payload.country_code = f.country_code?.trim() || 'PH';
-                payload.address_line_1 = f.address_line_1?.trim() || '';
-                payload.state_province_region = f.state_province_region?.trim() || '';
-                payload.city_municipality = f.city_municipality?.trim() || '';
-                payload.district_local_area = f.district_local_area?.trim() || '';
-                payload.postal_zip_code = f.postal_zip_code?.trim() || '';
-                payload.valid_id_type = f.valid_id_type?.trim() || '';
                 payload.valid_id_number = f.valid_id_number?.trim() || '';
+                payload.campus_id = f.valid_id_number?.trim() || '';
             }
         }
 
@@ -5815,7 +5674,7 @@ function EditModal({item, kind, admin, close, done}){
 
                         {f.role === 'beneficiary' && <div aria-hidden="true" className="hidden sm:block" />}
 
-                        {/* DONOR: Email, Contact, Address, State, City, District, Postal, Valid ID Type, Valid ID Number */}
+                        {/* DONOR: Email, Contact, Campus ID Number */}
                         {f.role === 'donor' && (
                             <>
                                 <div>
@@ -5853,103 +5712,15 @@ function EditModal({item, kind, admin, close, done}){
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="modal_donor_addr1" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Address Line
-                                    </label>
-                                    <input
-                                        id="modal_donor_addr1"
-                                        type="text"
-                                        required
-                                        className="field w-full text-xs font-semibold"
-                                        placeholder="House/Unit/Building No., Street Name"
-                                        value={f.address_line_1 || ''}
-                                        onChange={e => setF({...f, address_line_1: e.target.value})}
-                                        maxLength={255}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="modal_donor_state" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        State / Province / Region <span className="text-xs font-normal text-[#2563EB]/70">(Optional)</span>
-                                    </label>
-                                    <input
-                                        id="modal_donor_state"
-                                        type="text"
-                                        className="field w-full text-xs font-semibold"
-                                        placeholder="Enter your state, province, or region"
-                                        value={f.state_province_region || ''}
-                                        onChange={e => setF({...f, state_province_region: e.target.value})}
-                                        maxLength={255}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="modal_donor_city" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        City / Town / Municipality <span className="text-xs font-normal text-[#2563EB]/70">(Optional)</span>
-                                    </label>
-                                    <input
-                                        id="modal_donor_city"
-                                        type="text"
-                                        className="field w-full text-xs font-semibold"
-                                        placeholder="Enter your city, town, or municipality"
-                                        value={f.city_municipality || ''}
-                                        onChange={e => setF({...f, city_municipality: e.target.value})}
-                                        maxLength={255}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="modal_donor_district" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        District / Local Area <span className="text-xs font-normal text-[#2563EB]/70">(Optional)</span>
-                                    </label>
-                                    <input
-                                        id="modal_donor_district"
-                                        type="text"
-                                        className="field w-full text-xs font-semibold"
-                                        placeholder="Enter your district or local area (optional)"
-                                        value={f.district_local_area || ''}
-                                        onChange={e => setF({...f, district_local_area: e.target.value})}
-                                        maxLength={255}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="modal_donor_zip" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Postal / ZIP Code <span className="text-xs font-normal text-[#2563EB]/70">(Optional)</span>
-                                    </label>
-                                    <input
-                                        id="modal_donor_zip"
-                                        type="text"
-                                        className="field w-full text-xs font-semibold"
-                                        placeholder="Enter your postal or ZIP code"
-                                        value={f.postal_zip_code || ''}
-                                        onChange={e => setF({...f, postal_zip_code: e.target.value})}
-                                        maxLength={50}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="modal_donor_id_type" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Valid ID Type
-                                    </label>
-                                    <DropdownSelect
-                                        id="modal_donor_id_type"
-                                        required
-                                        className="field w-full text-xs font-semibold"
-                                        value={f.valid_id_type || ''}
-                                        onChange={e => setF({...f, valid_id_type: e.target.value})}
-                                    >
-                                        <option value="" disabled hidden>Select Valid ID Type</option>
-                                        {VALID_ID_TYPES.map((type) => (
-                                            <option key={type} value={type}>{type}</option>
-                                        ))}
-                                    </DropdownSelect>
-                                </div>
-                                <div>
                                     <label htmlFor="modal_donor_id_num" className="block text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-1">
-                                        Valid ID Number
+                                        Campus ID Number
                                     </label>
                                     <input
                                         id="modal_donor_id_num"
                                         type="text"
                                         required
                                         className="field w-full text-xs font-semibold"
-                                        placeholder="Enter your valid ID number"
+                                        placeholder="Enter campus ID number"
                                         value={f.valid_id_number || ''}
                                         onChange={e => setF({...f, valid_id_number: e.target.value})}
                                         maxLength={50}
